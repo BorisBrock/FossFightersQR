@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -15,6 +15,8 @@
 [ext_resource type="AudioStream" path="res://assets/onboarding/sounds/reveal.wav" id="13_reveal"]
 [ext_resource type="AudioStream" path="res://assets/onboarding/sounds/seat.wav" id="14_seat"]
 [ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="15_fanfare"]
+[ext_resource type="Script" path="res://scripts/splash.gd" id="16_splash"]
+[ext_resource type="Texture2D" path="res://assets/splash.png" id="17_splash"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("7_table_shader")
@@ -237,10 +239,6 @@ layout_mode = 2
 theme_type_variation = &"Title"
 horizontal_alignment = 1
 
-[node name="Pips" type="HBoxContainer" parent="Stage/Margin/Layout/Header"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
 [node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header"]
 layout_mode = 2
 theme_type_variation = &"Hint"
@@ -251,7 +249,7 @@ autowrap_mode = 3
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Wizard" type="VBoxContainer" parent="Stage/Margin/Layout/Views"]
+[node name="Editor" type="VBoxContainer" parent="Stage/Margin/Layout/Views"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -260,16 +258,16 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="CardArea" type="AspectRatioContainer" parent="Stage/Margin/Layout/Views/Wizard"]
+[node name="CardArea" type="AspectRatioContainer" parent="Stage/Margin/Layout/Views/Editor"]
 custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Frame" type="Panel" parent="Stage/Margin/Layout/Views/Wizard/CardArea"]
+[node name="Frame" type="Panel" parent="Stage/Margin/Layout/Views/Editor/CardArea"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("frame_empty")
 
-[node name="Rays" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+[node name="Rays" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
 modulate = Color(1, 1, 1, 0)
 show_behind_parent = true
 material = SubResource("rays_material")
@@ -283,7 +281,7 @@ offset_right = 150.0
 offset_bottom = 150.0
 mouse_filter = 2
 
-[node name="Portrait" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+[node name="Portrait" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -292,7 +290,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Flash" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+[node name="Flash" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -301,14 +299,14 @@ anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(1, 0.95, 0.8, 1)
 
-[node name="ScanPrompt" type="Control" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+[node name="ScanPrompt" type="Control" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="CameraView" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+[node name="CameraView" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -319,7 +317,7 @@ expand_mode = 1
 stretch_mode = 6
 flip_h = true
 
-[node name="CardIcon" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+[node name="CardIcon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -335,7 +333,7 @@ texture = ExtResource("9_card")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Sweep" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+[node name="Sweep" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.08
@@ -346,7 +344,7 @@ offset_bottom = 4.0
 mouse_filter = 2
 color = Color(1, 0.8, 0.35, 0.9)
 
-[node name="Badge" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+[node name="Badge" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.66
@@ -357,34 +355,22 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Info" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Wizard"]
+[node name="Info" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Wizard/Info"]
-layout_mode = 2
-theme_type_variation = &"Heading"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Wizard/Info"]
-layout_mode = 2
-theme_type_variation = &"Hint"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Info"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Views/Wizard/Info/NameRow"]
+[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Views/Editor/Info/NameRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_length = 16
 select_all_on_focus = true
 right_icon = ExtResource("11_pen")
 
-[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Views/Wizard/Info/NameRow"]
+[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Views/Editor/Info/NameRow"]
 custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
 focus_mode = 0
@@ -392,10 +378,31 @@ texture_normal = ExtResource("10_dice")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Tiles" type="GridContainer" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Editor/Info"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Editor/Info"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_type_variation = &"Hint"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="RaceTiles" type="GridContainer" parent="Stage/Margin/Layout/Views/Editor/Info"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/h_separation = 22
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="ClassTiles" type="GridContainer" parent="Stage/Margin/Layout/Views/Editor/Info"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 6
 columns = 3
 
@@ -417,25 +424,25 @@ columns = 2
 [node name="Footer" type="HBoxContainer" parent="Stage/Margin/Layout"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
-[node name="Back" type="Button" parent="Stage/Margin/Layout/Footer"]
+[node name="Cancel" type="Button" parent="Stage/Margin/Layout/Footer"]
 layout_mode = 2
 focus_mode = 0
 
-[node name="Remove" type="Button" parent="Stage/Margin/Layout/Footer"]
+[node name="Delete" type="Button" parent="Stage/Margin/Layout/Footer"]
 layout_mode = 2
 focus_mode = 0
-theme_override_colors/font_color = Color(1, 0.62, 0.55, 1)
-theme_override_colors/font_hover_color = Color(1, 0.75, 0.7, 1)
+theme_type_variation = &"DangerButton"
 
 [node name="Spacer" type="Control" parent="Stage/Margin/Layout/Footer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Next" type="Button" parent="Stage/Margin/Layout/Footer"]
+[node name="Primary" type="Button" parent="Stage/Margin/Layout/Footer"]
 layout_mode = 2
 focus_mode = 0
+theme_type_variation = &"PrimaryButton"
 
 [node name="Ornaments" type="Control" parent="."]
 layout_mode = 1
@@ -570,6 +577,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="Splash" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0745098, 0.0431373, 0.137255, 1)
+script = ExtResource("16_splash")
+
+[node name="Logo" type="TextureRect" parent="Splash"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("17_splash")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="RevealSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("13_reveal")

@@ -1,58 +1,53 @@
 extends Control
-## The first screen: each player chooses a character and a class by showing the matching
-## cards to the camera, then taps where they sit. The party is kept for the next run.
+## The first screen: the table with its seats. Tapping a seat opens the editor for the hero
+## sitting there, where cards choose the character and the class. The party is kept for the
+## next run.
 
-enum View { PARTY, CHARACTER, CLASS, SEAT }
+enum View { PARTY, EDITOR }
 
 const GAME_SCENE := "res://main.tscn"
 const CARDS_PATH := "res://cards/cards.json"
 ## A code seen this recently is taken to be still in view. It is what lets a player keep
-## holding a card while the screen moves on, without that card counting for the next step.
+## holding a card while the screen moves on, without that card counting for the next hero.
 ## The decoder reads a code in a still picture at least once per second.
 const STILL_IN_VIEW_MSEC := 2000
 ## Two cards in view at once must not make the picture flip back and forth.
 const SELECTION_DWELL_MSEC := 800
-const REMOVE_CONFIRM_SEC := 3.0
+const DELETE_CONFIRM_SEC := 3.0
+## How much bigger the tile of the current choice stays.
+const TILE_SELECTED_SCALE := 1.08
 const TAKEN_NOTICE_SEC := 3.0
 const GOLD := Color(0.98, 0.82, 0.48)
 const CREAM := Color(0.95, 0.88, 0.74)
 const FAINT := Color(0.6, 0.53, 0.42)
 const TAKEN := Color(0.85, 0.5, 0.42)
 
-const STEP_KEYS := {
-	View.CHARACTER: "step_character",
-	View.CLASS: "step_class",
-	View.SEAT: "step_seat",
-}
-
 const TEXT := {
 	"hero": { "de": "Held %d", "en": "Hero %d" },
-	"step_character": { "de": "Charakter", "en": "Character" },
-	"step_class": { "de": "Klasse", "en": "Class" },
-	"step_seat": { "de": "Platz", "en": "Seat" },
-	"prompt_character": { "de": "Halte deine Charakterkarte über die Kamera", "en": "Hold your character card over the camera" },
-	"prompt_class": { "de": "Halte deine Klassenkarte über die Kamera", "en": "Hold your class card over the camera" },
-	"prompt_seat": { "de": "Wo sitzt du?", "en": "Where are you sitting?" },
-	"hint_seat": { "de": "Tippe am Bildschirmrand auf deinen Platz am Tisch.", "en": "Tap your place at the table, around the edge of the screen." },
-	"hint_edit": { "de": "Zeig eine andere Karte oder tippe oben auf einen Schritt.", "en": "Show another card, or tap a step at the top to change it." },
+	"prompt_both": { "de": "Charakter- und Klassenkarte", "en": "Character and class card" },
+	"prompt_character": { "de": "Deine Charakterkarte", "en": "Your character card" },
+	"prompt_class": { "de": "Deine Klassenkarte", "en": "Your class card" },
+	"hint_show": { "de": "Über die Kamera halten.", "en": "Hold it over the camera." },
+	"hint_edit": { "de": "Zeig eine andere Karte, oder tippe auf einen freien Platz, um dich umzusetzen.", "en": "Show another card, or tap a free seat to move there." },
 	"taken": { "de": "%s ist schon vergeben, an %s.", "en": "%s is already taken by %s." },
 	"camera_starting": { "de": "Die Kamera startet…", "en": "Starting the camera…" },
 	"name_placeholder": { "de": "Dein Name", "en": "Your name" },
-	"back": { "de": "Zurück", "en": "Back" },
-	"next": { "de": "Weiter", "en": "Next" },
+	"cancel": { "de": "Abbrechen", "en": "Cancel" },
 	"done": { "de": "Fertig", "en": "Done" },
-	"remove": { "de": "Entfernen", "en": "Remove" },
-	"remove_confirm": { "de": "Wirklich?", "en": "Really?" },
+	"delete": { "de": "Löschen", "en": "Delete" },
+	"delete_confirm": { "de": "Sicher?", "en": "Really?" },
 	"battle": { "de": "Zur Schlacht!", "en": "To Battle!" },
-	"add_hero": { "de": "Held\nhinzufügen", "en": "Add\nhero" },
-	"party_hint": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
+	"party_hint": { "de": "Tippe auf deinen Platz am Tisch, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table to create or change a hero." },
+	"party_hint_full": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
 	"title": { "de": "Foss Fighters", "en": "Foss Fighters" },
 }
 
 ## Where the party is saved. Set before adding the scene to the tree to use another file.
 var party_path := Party.SAVE_PATH
+## Where the cards come from. Set before adding the scene to the tree to use another file.
+var cards_path := CARDS_PATH
 
-var _cards := CardDatabase.load_file(CARDS_PATH)
+var _cards: CardDatabase
 var _party: Party
 var _view := View.PARTY
 var _draft := Party.Hero.new()
@@ -65,12 +60,10 @@ var _code_seen_msec := {}
 var _codes_to_ignore := {}
 var _last_selection_msec := -SELECTION_DWELL_MSEC
 var _tiles := {}
-var _pips: Array[Dictionary] = []
 var _prompt_tween: Tween
-var _next_tween: Tween
 var _reveal_tween: Tween
-var _remove_armed := false
-var _remove_timer: SceneTreeTimer
+var _delete_armed := false
+var _delete_timer: SceneTreeTimer
 var _taken_notice := ""
 var _taken_notice_until_msec := 0
 
@@ -81,33 +74,33 @@ var _taken_notice_until_msec := 0
 @onready var _stage: Control = $Stage
 @onready var _ornaments: Control = $Ornaments
 @onready var _title: Label = $Stage/Margin/Layout/Header/Title
-@onready var _pips_box: HBoxContainer = $Stage/Margin/Layout/Header/Pips
 @onready var _party_hint: Label = $Stage/Margin/Layout/Header/PartyHint
-@onready var _wizard: Control = $Stage/Margin/Layout/Views/Wizard
+@onready var _editor: Control = $Stage/Margin/Layout/Views/Editor
 @onready var _party_view: Control = $Stage/Margin/Layout/Views/PartyView
 @onready var _party_grid: GridContainer = $Stage/Margin/Layout/Views/PartyView/PartyGrid
-@onready var _frame: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame
-@onready var _rays: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/Rays
-@onready var _portrait: TextureRect = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/Portrait
-@onready var _flash: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/Flash
-@onready var _scan_prompt: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt
-@onready var _camera_view: TextureRect = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt/CameraView
-@onready var _card_icon: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt/CardIcon
-@onready var _sweep: Control = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt/Sweep
-@onready var _badge: TextureRect = $Stage/Margin/Layout/Views/Wizard/CardArea/Frame/Badge
-@onready var _prompt: Label = $Stage/Margin/Layout/Views/Wizard/Info/Prompt
-@onready var _hint: Label = $Stage/Margin/Layout/Views/Wizard/Info/Hint
-@onready var _name_row: Control = $Stage/Margin/Layout/Views/Wizard/Info/NameRow
-@onready var _name_edit: LineEdit = $Stage/Margin/Layout/Views/Wizard/Info/NameRow/NameEdit
-@onready var _dice: TextureButton = $Stage/Margin/Layout/Views/Wizard/Info/NameRow/Dice
-@onready var _tiles_box: GridContainer = $Stage/Margin/Layout/Views/Wizard/Info/Tiles
-@onready var _back: Button = $Stage/Margin/Layout/Footer/Back
-@onready var _remove: Button = $Stage/Margin/Layout/Footer/Remove
-@onready var _next: Button = $Stage/Margin/Layout/Footer/Next
+@onready var _frame: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame
+@onready var _rays: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/Rays
+@onready var _portrait: TextureRect = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/Portrait
+@onready var _flash: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/Flash
+@onready var _scan_prompt: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt
+@onready var _camera_view: TextureRect = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt/CameraView
+@onready var _card_icon: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt/CardIcon
+@onready var _sweep: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt/Sweep
+@onready var _badge: TextureRect = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/Badge
+@onready var _prompt: Label = $Stage/Margin/Layout/Views/Editor/Info/Prompt
+@onready var _hint: Label = $Stage/Margin/Layout/Views/Editor/Info/Hint
+@onready var _name_edit: LineEdit = $Stage/Margin/Layout/Views/Editor/Info/NameRow/NameEdit
+@onready var _dice: TextureButton = $Stage/Margin/Layout/Views/Editor/Info/NameRow/Dice
+@onready var _race_tiles: GridContainer = $Stage/Margin/Layout/Views/Editor/Info/RaceTiles
+@onready var _class_tiles: GridContainer = $Stage/Margin/Layout/Views/Editor/Info/ClassTiles
+@onready var _cancel: Button = $Stage/Margin/Layout/Footer/Cancel
+@onready var _delete: Button = $Stage/Margin/Layout/Footer/Delete
+@onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
 @onready var _switch_camera: TextureButton = $SwitchCamera
 @onready var _overlay: Control = $Overlay
 @onready var _sparks: CPUParticles2D = $Sparks
 @onready var _fade: ColorRect = $Fade
+@onready var _splash: Splash = $Splash
 @onready var _reveal_sound: AudioStreamPlayer = $RevealSound
 @onready var _seat_sound: AudioStreamPlayer = $SeatSound
 @onready var _fanfare_sound: AudioStreamPlayer = $FanfareSound
@@ -115,6 +108,7 @@ var _taken_notice_until_msec := 0
 
 func _ready() -> void:
 	_party = Party.load_file(party_path)
+	_cards = CardDatabase.load_file(cards_path)
 	_portrait.material = PortraitMaterial.new(0.09, 0.012)
 	_badge.material = PortraitMaterial.new(0.5, 0.05)
 
@@ -124,29 +118,24 @@ func _ready() -> void:
 	_switch_camera.pressed.connect(_on_switch_camera_pressed)
 	_switch_camera.hide()
 
-	_next.pressed.connect(_on_next_pressed)
-	_back.pressed.connect(_on_back_pressed)
-	_remove.pressed.connect(_on_remove_pressed)
+	_primary.pressed.connect(_on_primary_pressed)
+	_cancel.pressed.connect(_on_cancel_pressed)
+	_delete.pressed.connect(_on_delete_pressed)
 	_dice.pressed.connect(_on_dice_pressed)
 	_name_edit.text_changed.connect(_on_name_changed)
 	_name_edit.text_submitted.connect(func(_text: String) -> void: _name_edit.release_focus())
 	_name_edit.max_length = Party.MAX_NAME_LENGTH
 	_name_edit.placeholder_text = _t("name_placeholder")
-	_back.text = _t("back")
+	_cancel.text = _t("cancel")
 	_title.text = _t("title")
-	_party_hint.text = _t("party_hint")
-	_name_row.modulate.a = 0.0
-	_build_pips()
+	_fill_tiles()
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
 
 	resized.connect(_on_resized)
 	_on_resized()
-	_play_intro()
-	if _party.heroes.is_empty():
-		_start_new_hero()
-	else:
-		_show_view(View.PARTY)
+	_splash.revealing.connect(_play_intro)
+	_show_view(View.PARTY)
 	if not _cards.error.is_empty():
 		_camera_problem = _cards.error
 		_refresh_hint()
@@ -209,17 +198,17 @@ func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vect
 		_apply_card(_cards.find(text))
 
 
-## Only cards that match the current step do anything, all others are ignored.
+## Only character and class cards do anything while editing, all others are ignored.
 func _apply_card(card: Card) -> void:
-	if card == null:
+	if card == null or _view != View.EDITOR:
 		return
-	if _view == View.CHARACTER and HeroOptions.RACES.has(card.race):
+	if HeroOptions.RACES.has(card.race):
 		_select_race(card.race)
-	elif _view == View.CLASS and HeroOptions.CLASSES.has(card.hero_class):
+	elif HeroOptions.CLASSES.has(card.hero_class):
 		_select_class(card.hero_class)
 
 
-## A card that is still in view must first be taken away before it counts in a new step.
+## A card that is still in view must first be taken away before it counts for a new hero.
 func _ignore_codes_in_view() -> void:
 	var now := Time.get_ticks_msec()
 	for code: String in _code_seen_msec:
@@ -245,15 +234,10 @@ func _select_race(race: String) -> void:
 		return
 	if race == _draft.race or not _may_change_selection():
 		return
-	_clear_taken_notice()
 	_draft.race = race
 	if _draft.name.is_empty() or _name_is_suggested:
 		_suggest_name()
-	_refresh_tiles()
-	_refresh_step_controls()
-	_prompt.text = _title_of(HeroOptions.RACES[race]) + "!"
-	_pop_control(_prompt)
-	_reveal(load(HeroOptions.RACES[race].art))
+	_show_new_choice(race)
 
 
 func _select_class(hero_class: String) -> void:
@@ -263,13 +247,17 @@ func _select_class(hero_class: String) -> void:
 		return
 	if hero_class == _draft.hero_class or not _may_change_selection():
 		return
-	_clear_taken_notice()
 	_draft.hero_class = hero_class
+	_show_new_choice(hero_class)
+
+
+func _show_new_choice(id: String) -> void:
+	_clear_taken_notice()
 	_refresh_tiles()
-	_refresh_step_controls()
-	_prompt.text = _title_of(HeroOptions.CLASSES[hero_class]) + "!"
+	_pop_tile(id)
+	_refresh_controls()
 	_pop_control(_prompt)
-	_reveal(load(HeroOptions.CLASSES[hero_class].art))
+	_reveal()
 
 
 ## Says why nothing happens. The camera reads a held card over and over, so the shake
@@ -312,117 +300,96 @@ func _on_dice_pressed() -> void:
 	if not _draft.race.is_empty():
 		_suggest_name()
 		_pop_control(_name_edit)
-		_refresh_step_controls()
+		_refresh_controls()
 
 
 func _on_name_changed(text: String) -> void:
 	_draft.name = text.strip_edges()
 	_name_is_suggested = false
-	_refresh_step_controls()
+	_refresh_controls()
 
 
 # Flow ----------------------------------------------------------------------------
 
 
-func _start_new_hero() -> void:
+func _start_new_hero(seat: int) -> void:
 	_draft = Party.Hero.new()
+	_draft.seat = seat
 	_editing = null
-	_name_edit.text = ""
-	_name_is_suggested = false
-	_show_view(View.CHARACTER)
+	_open_editor()
 
 
 func _start_editing(hero: Party.Hero) -> void:
 	_draft = Party.Hero.new()
 	_draft.copy_from(hero)
 	_editing = hero
-	_name_edit.text = hero.name
+	_open_editor()
+
+
+func _open_editor() -> void:
+	_name_edit.text = _draft.name
 	_name_is_suggested = false
-	_show_view(View.CHARACTER)
+	_show_view(View.EDITOR)
+	var token: SeatToken = _seats[_draft.seat]
+	token.pop()
 
 
-func _on_next_pressed() -> void:
+func _on_primary_pressed() -> void:
 	_name_edit.release_focus()
 	if _view == View.PARTY:
 		_start_battle()
-	elif _editing != null:
-		# The hero is complete, so a change needs no walk through the other steps.
-		_commit_draft()
-		_show_view(View.PARTY)
-	elif _view == View.CHARACTER:
-		_show_view(View.CLASS)
-	elif _view == View.CLASS:
-		_show_view(View.SEAT)
+	else:
+		_finish_editing()
 
 
-func _on_back_pressed() -> void:
+func _on_cancel_pressed() -> void:
 	_name_edit.release_focus()
-	match _view:
-		View.CHARACTER:
-			if not _party.heroes.is_empty():
-				_show_view(View.PARTY, -1.0)
-		View.CLASS:
-			_show_view(View.CHARACTER, -1.0)
-		View.SEAT:
-			_show_view(View.CLASS, -1.0)
+	_show_view(View.PARTY, -1.0)
 
 
-## Whether this step can be opened yet: it needs the choices of the steps before it.
-func _can_open(step: View) -> bool:
-	match step:
-		View.CLASS:
-			return not _draft.race.is_empty()
-		View.SEAT:
-			return not _draft.race.is_empty() and not _draft.hero_class.is_empty()
-	return true
-
-
-func _on_pip_input(event: InputEvent, step: View) -> void:
-	if not event is InputEventMouseButton or event.button_index != MOUSE_BUTTON_LEFT or not event.pressed:
-		return
-	if step != _view and _can_open(step):
-		_name_edit.release_focus()
-		_show_view(step, 1.0 if step > _view else -1.0)
-
-
-func _on_remove_pressed() -> void:
-	if not _remove_armed:
-		_remove_armed = true
-		_remove.text = _t("remove_confirm")
-		_pop_control(_remove)
-		_remove_timer = get_tree().create_timer(REMOVE_CONFIRM_SEC)
-		var timer := _remove_timer
+func _on_delete_pressed() -> void:
+	if not _delete_armed:
+		_delete_armed = true
+		_delete.text = _t("delete_confirm")
+		_pop_control(_delete)
+		_delete_timer = get_tree().create_timer(DELETE_CONFIRM_SEC)
+		var timer := _delete_timer
 		timer.timeout.connect(func() -> void:
 			# Only the newest press may disarm, and it may have been answered already.
-			if timer == _remove_timer:
-				_disarm_remove())
+			if timer == _delete_timer:
+				_disarm_delete())
 		return
-	_disarm_remove()
+	_disarm_delete()
 	_party.heroes.erase(_editing)
 	_party.save()
-	if _party.heroes.is_empty():
-		_start_new_hero()
-	else:
-		_show_view(View.PARTY, -1.0)
+	_show_view(View.PARTY, -1.0)
 
 
-func _disarm_remove() -> void:
-	_remove_armed = false
-	_remove_timer = null
-	_remove.text = _t("remove")
+func _disarm_delete() -> void:
+	_delete_armed = false
+	_delete_timer = null
+	_delete.text = _t("delete")
 
 
 func _on_seat_pressed(seat: int) -> void:
-	if _view == View.PARTY:
-		var hero := _party.hero_at(seat)
-		if hero != null:
-			_start_editing(hero)
-	elif _view == View.SEAT:
-		_name_edit.release_focus()
-		if _draft.name.is_empty():
-			_suggest_name()
-		_draft.seat = seat
-		_seat_hero(seat)
+	var hero := _party.hero_at(seat)
+	if _view == View.EDITOR:
+		if seat != _draft.seat and (hero == null or hero == _editing):
+			_move_draft(seat)
+	elif hero != null:
+		_start_editing(hero)
+	elif _party.heroes.size() < Party.MAX_HEROES:
+		_start_new_hero(seat)
+
+
+## Like every other change in the editor, this only counts once it is saved with Done.
+func _move_draft(seat: int) -> void:
+	_name_edit.release_focus()
+	_draft.seat = seat
+	_refresh_seats()
+	var token: SeatToken = _seats[seat]
+	token.pop()
+	_seat_sound.play()
 
 
 ## Copies the choices into the party and saves it.
@@ -434,19 +401,23 @@ func _commit_draft() -> void:
 	_party.save()
 
 
-func _seat_hero(seat: int) -> void:
+## Saves the hero and sends their picture to the seat.
+func _finish_editing() -> void:
 	_commit_draft()
+	# The draft may now be the party's hero, which a card read during the flight must not change.
+	_view = View.PARTY
+	_stop_reveal()
+	var seat := _draft.seat
 	var token: SeatToken = _seats[seat]
 	# Input stays blocked for the flight, as the seats are about to change under it.
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	for other: SeatToken in _seats:
 		other.set_mode(SeatToken.Mode.IDLE)
-	# The hero moves there now, and may be leaving another seat.
 	_refresh_seat_pictures()
 	token.show_hero(null)
 
 	var flyer := TextureRect.new()
-	flyer.texture = _portrait.texture
+	flyer.texture = load(HeroOptions.RACES[_draft.race].art)
 	flyer.material = PortraitMaterial.new(0.5, 0.04)
 	flyer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	flyer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -476,7 +447,7 @@ func _seat_hero(seat: int) -> void:
 
 func _start_battle() -> void:
 	_fanfare_sound.play()
-	_burst_sparks(_next.global_position + _next.size / 2.0)
+	_burst_sparks(_primary.global_position + _primary.size / 2.0)
 	_fade.modulate.a = 0.0
 	_fade.show()
 	var fade := create_tween()
@@ -495,26 +466,25 @@ func _show_view(view: View, direction := 1.0) -> void:
 	_stop_reveal()
 	_taken_notice = ""
 	_ignore_codes_in_view()
-	_disarm_remove()
+	_disarm_delete()
 	_refresh_seats()
 
-	var in_wizard := view != View.PARTY
-	_wizard.visible = in_wizard
-	_party_view.visible = not in_wizard
-	_pips_box.visible = in_wizard
-	_party_hint.visible = not in_wizard
-	if in_wizard:
+	var editing := view == View.EDITOR
+	_editor.visible = editing
+	_party_view.visible = not editing
+	_party_hint.visible = not editing
+	if editing:
 		_title.text = _t("hero") % (_party.heroes.find(_editing) + 1 if _editing != null else _party.heroes.size() + 1)
 		_title.theme_type_variation = &"Heading"
-		_show_wizard_step()
+		_refresh_pictures()
+		_refresh_tiles()
 	else:
 		_title.text = _t("title")
 		_title.theme_type_variation = &"Title"
 		_build_party_view()
-	_refresh_step_controls()
-	_pop_current_pip()
+	_refresh_controls()
 
-	var content: Control = _wizard if in_wizard else _party_view
+	var content: Control = _editor if editing else _party_view
 	content.modulate.a = 0.0
 	var slide := create_tween().set_parallel()
 	slide.tween_method(_slide_content.bind(content), 36.0 * direction, 0.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -528,49 +498,43 @@ func _slide_content(x: float, content: Control) -> void:
 	content.offset_right = x
 
 
-func _show_wizard_step() -> void:
-	_fill_tiles()
-	_refresh_tiles()
-	match _view:
-		View.CHARACTER:
-			_portrait.texture = load(HeroOptions.RACES[_draft.race].art) if not _draft.race.is_empty() else null
-			_badge.texture = null
-			_prompt.text = _t("prompt_character")
-		View.CLASS:
-			_portrait.texture = load(HeroOptions.CLASSES[_draft.hero_class].art) if not _draft.hero_class.is_empty() else null
-			_badge.texture = load(HeroOptions.RACES[_draft.race].art)
-			_prompt.text = _t("prompt_class")
-		View.SEAT:
-			_portrait.texture = load(HeroOptions.RACES[_draft.race].art)
-			_badge.texture = load(HeroOptions.CLASSES[_draft.hero_class].art)
-			_prompt.text = _t("prompt_seat")
-	_refresh_scan_prompt()
+func _refresh_pictures() -> void:
+	_portrait.texture = load(HeroOptions.RACES[_draft.race].art) if not _draft.race.is_empty() else null
+	_badge.texture = load(HeroOptions.CLASSES[_draft.hero_class].art) if not _draft.hero_class.is_empty() else null
 
 
-func _refresh_step_controls() -> void:
+func _refresh_controls() -> void:
 	_refresh_hint()
-	_refresh_pips()
+	_refresh_seat_pictures()
+	_refresh_prompt()
 	_refresh_scan_prompt()
-	_set_name_row_shown(_view != View.PARTY and not _draft.race.is_empty())
-	_back.visible = _view != View.PARTY and (_view != View.CHARACTER or not _party.heroes.is_empty())
-	_remove.visible = _view != View.PARTY and _editing != null
-	_remove.text = _t("remove_confirm") if _remove_armed else _t("remove")
+	var editing := _view == View.EDITOR
+	# A name needs a race to be suggested from, typing one works at any time.
+	_dice.disabled = _draft.race.is_empty()
+	_dice.modulate.a = 0.35 if _dice.disabled else 1.0
+	_cancel.visible = editing
+	_delete.visible = editing and _editing != null
+	_delete.text = _t("delete_confirm") if _delete_armed else _t("delete")
+	_party_hint.text = _t("party_hint") if _party.heroes.size() < Party.MAX_HEROES else _t("party_hint_full")
+	_primary.text = _t("done") if editing else _t("battle")
+	if editing:
+		_set_primary_shown(not _draft.race.is_empty() and not _draft.hero_class.is_empty() and not _draft.name.is_empty())
+	else:
+		_set_primary_shown(not _party.heroes.is_empty())
 
-	var can_go_on := false
-	var label := "done" if _editing != null else "next"
-	match _view:
-		View.PARTY:
-			can_go_on = true
-			label = "battle"
-		View.CHARACTER:
-			can_go_on = not _draft.race.is_empty() and not _draft.name.is_empty()
-		View.CLASS:
-			can_go_on = not _draft.hero_class.is_empty() and not _draft.name.is_empty()
-		View.SEAT:
-			# A new hero's seat is chosen by tapping it, so this only keeps an old one.
-			can_go_on = _editing != null and not _draft.name.is_empty()
-	_next.text = _t(label)
-	_set_next_shown(can_go_on)
+
+## Says what is still missing, or once nothing is, what was chosen.
+func _refresh_prompt() -> void:
+	var has_race := not _draft.race.is_empty()
+	var has_class := not _draft.hero_class.is_empty()
+	if has_race and has_class:
+		_prompt.text = "%s · %s" % [_title_of(HeroOptions.RACES[_draft.race]), _title_of(HeroOptions.CLASSES[_draft.hero_class])]
+	elif has_race:
+		_prompt.text = _t("prompt_class")
+	elif has_class:
+		_prompt.text = _t("prompt_character")
+	else:
+		_prompt.text = _t("prompt_both")
 
 
 func _refresh_hint() -> void:
@@ -583,46 +547,26 @@ func _refresh_hint() -> void:
 		_hint.add_theme_color_override("font_color", TAKEN)
 		return
 	_hint.remove_theme_color_override("font_color")
-	match _view:
-		View.SEAT:
-			_hint.text = _t("hint_seat")
-		View.CHARACTER when not _draft.race.is_empty():
-			_hint.text = _t("hint_edit")
-		View.CLASS when not _draft.hero_class.is_empty():
-			_hint.text = _t("hint_edit")
-		_:
-			_hint.text = "" if _camera_running else _t("camera_starting")
+	if not _camera_running:
+		_hint.text = _t("camera_starting")
+	elif _draft.race.is_empty() or _draft.hero_class.is_empty():
+		_hint.text = _t("hint_show")
+	else:
+		_hint.text = _t("hint_edit")
 
 
-func _set_name_row_shown(shown: bool) -> void:
-	# Stays in the layout, so that the tiles do not jump when it appears.
-	_name_edit.editable = shown
-	_dice.disabled = not shown
-	_name_row.mouse_filter = Control.MOUSE_FILTER_PASS if shown else Control.MOUSE_FILTER_IGNORE
-	_name_edit.mouse_filter = Control.MOUSE_FILTER_STOP if shown else Control.MOUSE_FILTER_IGNORE
-	_dice.mouse_filter = Control.MOUSE_FILTER_STOP if shown else Control.MOUSE_FILTER_IGNORE
-	if shown != (_name_row.modulate.a > 0.5):
-		create_tween().tween_property(_name_row, "modulate:a", 1.0 if shown else 0.0, 0.3)
-
-
-func _set_next_shown(shown: bool) -> void:
-	if _next_tween != null:
-		_next_tween.kill()
-		_next_tween = null
-	_next.pivot_offset = _next.size / 2.0
-	_next.disabled = not shown
-	_next.modulate.a = 1.0 if shown else 0.0
-	_next.scale = Vector2.ONE
-	if shown:
-		_next_tween = create_tween().set_loops()
-		_next_tween.tween_property(_next, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
-		_next_tween.tween_property(_next, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_SINE)
+func _set_primary_shown(shown: bool) -> void:
+	_primary.disabled = not shown
+	_primary.modulate.a = 1.0 if shown else 0.0
 
 
 func _refresh_scan_prompt() -> void:
-	var waiting := (_view == View.CHARACTER and _draft.race.is_empty()) or (_view == View.CLASS and _draft.hero_class.is_empty())
+	var waiting := _view == View.EDITOR and (_draft.race.is_empty() or _draft.hero_class.is_empty())
+	# The chosen character has to stay recognizable behind the camera picture.
+	_camera_view.modulate.a = 0.55 if not _draft.race.is_empty() else 1.0
 	if waiting == _scan_prompt.visible and (_prompt_tween != null) == waiting:
 		return
+	_scan_prompt.visible = waiting
 	_scan_prompt.visible = waiting
 	if _prompt_tween != null:
 		_prompt_tween.kill()
@@ -654,123 +598,52 @@ func _move_sweep(at: float) -> void:
 
 func _refresh_seat_pictures() -> void:
 	for token: SeatToken in _seats:
-		token.show_hero(_party.hero_at(token.seat))
+		token.show_hero(_hero_shown_at(token.seat))
+
+
+## While editing, the seats already show the hero as they would be saved.
+func _hero_shown_at(seat: int) -> Party.Hero:
+	var hero := _party.hero_at(seat)
+	if _view != View.EDITOR:
+		return hero
+	if seat == _draft.seat:
+		return _draft if not _draft.race.is_empty() and not _draft.hero_class.is_empty() else null
+	return null if hero == _editing else hero
 
 
 func _refresh_seats() -> void:
 	_refresh_seat_pictures()
+	var has_room := _party.heroes.size() < Party.MAX_HEROES
 	for token: SeatToken in _seats:
+		var mode := SeatToken.Mode.DIMMED
 		var hero := _party.hero_at(token.seat)
-		var is_own := _editing != null and hero == _editing
-		var mode := SeatToken.Mode.IDLE
-		match _view:
-			View.PARTY:
-				mode = SeatToken.Mode.SELECTABLE if hero != null else SeatToken.Mode.DIMMED
-			View.SEAT:
-				mode = SeatToken.Mode.SELECTABLE if hero == null or is_own else SeatToken.Mode.DIMMED
-			_:
-				mode = SeatToken.Mode.DIMMED
+		if _view == View.EDITOR:
+			if token.seat == _draft.seat:
+				mode = SeatToken.Mode.ACTIVE
+			elif hero == null or hero == _editing:
+				mode = SeatToken.Mode.QUIET_SELECTABLE
+		elif has_room or hero != null:
+			mode = SeatToken.Mode.SELECTABLE
 		token.set_mode(mode)
-
-
-# Step markers --------------------------------------------------------------------
-
-
-func _build_pips() -> void:
-	for step: View in [View.CHARACTER, View.CLASS, View.SEAT]:
-		# Each step also shows what was chosen, and tapping it goes back there to change it.
-		var column := VBoxContainer.new()
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		column.add_theme_constant_override("separation", 0)
-		column.mouse_filter = Control.MOUSE_FILTER_STOP
-		column.gui_input.connect(_on_pip_input.bind(step))
-		var row := HBoxContainer.new()
-		row.alignment = BoxContainer.ALIGNMENT_CENTER
-		row.add_theme_constant_override("separation", 8)
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var holder := Control.new()
-		holder.custom_minimum_size = Vector2(16, 16)
-		holder.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var diamond := ColorRect.new()
-		diamond.size = Vector2(10, 10)
-		diamond.position = Vector2(3, 3)
-		diamond.pivot_offset = Vector2(5, 5)
-		diamond.rotation_degrees = 45.0
-		diamond.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		holder.add_child(diamond)
-		var label := Label.new()
-		label.text = _t(STEP_KEYS[step])
-		label.add_theme_font_size_override("font_size", 22)
-		var value := Label.new()
-		value.add_theme_font_size_override("font_size", 17)
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		value.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		row.add_child(holder)
-		row.add_child(label)
-		column.add_child(row)
-		column.add_child(value)
-		_pips_box.add_child(column)
-		_pips.append({ "step": step, "column": column, "diamond": diamond, "label": label, "value": value })
-
-
-func _refresh_pips() -> void:
-	for pip in _pips:
-		var step: View = pip.step
-		var reachable := _can_open(step)
-		var color := FAINT
-		if step == _view:
-			color = GOLD
-		elif reachable:
-			color = CREAM
-		pip.diamond.color = color
-		pip.label.add_theme_color_override("font_color", color)
-		pip.value.add_theme_color_override("font_color", color)
-		pip.value.text = _chosen_text(step)
-		pip.column.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if reachable and step != _view else Control.CURSOR_ARROW
-
-
-func _chosen_text(step: View) -> String:
-	if step == View.CHARACTER and not _draft.race.is_empty():
-		return _title_of(HeroOptions.RACES[_draft.race])
-	if step == View.CLASS and not _draft.hero_class.is_empty():
-		return _title_of(HeroOptions.CLASSES[_draft.hero_class])
-	return ""
-
-
-func _pop_current_pip() -> void:
-	for pip in _pips:
-		if pip.step == _view:
-			var diamond: Control = pip.diamond
-			diamond.scale = Vector2(2.0, 2.0)
-			create_tween().tween_property(diamond, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # Choice tiles --------------------------------------------------------------------
 
 
 func _fill_tiles() -> void:
-	for child in _tiles_box.get_children():
-		_tiles_box.remove_child(child)
-		child.queue_free()
-	_tiles.clear()
-	var options: Dictionary = {}
-	match _view:
-		View.CHARACTER:
-			options = HeroOptions.RACES
-		View.CLASS:
-			options = HeroOptions.CLASSES
-	_tiles_box.visible = not options.is_empty()
-	for id: String in options:
-		_tiles[id] = _make_tile(id, options[id])
-		_tiles_box.add_child(_tiles[id])
+	for id: String in HeroOptions.RACES:
+		_tiles[id] = _make_tile(id, HeroOptions.RACES[id])
+		_race_tiles.add_child(_tiles[id])
+	for id: String in HeroOptions.CLASSES:
+		_tiles[id] = _make_tile(id, HeroOptions.CLASSES[id])
+		_class_tiles.add_child(_tiles[id])
 
 
 func _make_tile(id: String, option: Dictionary) -> Control:
 	var tile := Button.new()
 	tile.flat = true
 	tile.focus_mode = Control.FOCUS_NONE
-	tile.custom_minimum_size = Vector2(98, 126)
+	tile.custom_minimum_size = Vector2(124, 104)
 	# Choosing happens with the cards. Debug builds also allow a tap, for trying out the
 	# screen without a camera or printed cards.
 	if OS.is_debug_build():
@@ -786,8 +659,8 @@ func _make_tile(id: String, option: Dictionary) -> Control:
 	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	picture.position = Vector2(8, 2)
-	picture.size = Vector2(82, 82)
+	picture.position = Vector2(30, 2)
+	picture.size = Vector2(64, 64)
 	tile.add_child(picture)
 
 	var caption := Label.new()
@@ -797,35 +670,36 @@ func _make_tile(id: String, option: Dictionary) -> Control:
 	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	caption.position = Vector2(0, 85)
-	caption.size = Vector2(98, 40)
+	caption.position = Vector2(0, 67)
+	caption.size = Vector2(124, 36)
 	tile.add_child(caption)
 	return tile
 
 
 func _on_tile_pressed(id: String) -> void:
 	_last_selection_msec = -SELECTION_DWELL_MSEC
-	if _view == View.CHARACTER:
+	if HeroOptions.RACES.has(id):
 		_select_race(id)
-	elif _view == View.CLASS:
+	else:
 		_select_class(id)
 
 
 func _refresh_tiles() -> void:
-	var selected := _draft.race if _view == View.CHARACTER else _draft.hero_class
 	for id: String in _tiles:
+		var is_race := HeroOptions.RACES.has(id)
 		var tile: Button = _tiles[id]
 		var picture: TextureRect = tile.get_node("Picture")
 		var caption: Label = tile.get_node("Caption")
+		var selected := _draft.race if is_race else _draft.hero_class
 		var is_selected: bool = id == selected
-		var owner_hero := _owner_of_option(id)
+		var owner_hero := _party.hero_with_race(id, _editing) if is_race else _party.hero_with_class(id, _editing)
 		var material_of: ShaderMaterial = picture.material
 		var faded := owner_hero != null or (not selected.is_empty() and not is_selected)
 		material_of.set_shader_parameter("desaturate", 1.0 if owner_hero != null else (0.75 if faded else 0.0))
 		material_of.set_shader_parameter("brightness", 0.3 if owner_hero != null else (0.55 if faded else 1.0))
 		material_of.set_shader_parameter("ring_width", 0.07 if is_selected else 0.03)
 		# Taken options name their owner, so everyone can see what is still free.
-		var option: Dictionary = HeroOptions.RACES[id] if _view == View.CHARACTER else HeroOptions.CLASSES[id]
+		var option: Dictionary = HeroOptions.RACES[id] if is_race else HeroOptions.CLASSES[id]
 		caption.text = owner_hero.name if owner_hero != null else _title_of(option)
 		var caption_color := CREAM
 		if owner_hero != null:
@@ -835,17 +709,14 @@ func _refresh_tiles() -> void:
 		elif faded:
 			caption_color = FAINT
 		caption.add_theme_color_override("font_color", caption_color)
-		if is_selected:
-			tile.scale = Vector2(1.3, 1.3)
-			create_tween().tween_property(tile, "scale", Vector2(1.08, 1.08), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		else:
-			tile.scale = Vector2.ONE
+		tile.scale = Vector2(TILE_SELECTED_SCALE, TILE_SELECTED_SCALE) if is_selected else Vector2.ONE
 
 
-func _owner_of_option(id: String) -> Party.Hero:
-	if _view == View.CHARACTER:
-		return _party.hero_with_race(id, _editing)
-	return _party.hero_with_class(id, _editing)
+func _pop_tile(id: String) -> void:
+	var tile: Button = _tiles[id]
+	tile.scale = Vector2(1.3, 1.3)
+	var settled := Vector2(TILE_SELECTED_SCALE, TILE_SELECTED_SCALE)
+	create_tween().tween_property(tile, "scale", settled, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # Party view ----------------------------------------------------------------------
@@ -861,14 +732,6 @@ func _build_party_view() -> void:
 		_party_grid.add_child(card)
 		_animate_card_in(card, index)
 		index += 1
-	if _party.heroes.size() < Party.MAX_HEROES:
-		var add := Button.new()
-		add.text = "+\n" + _t("add_hero")
-		add.focus_mode = Control.FOCUS_NONE
-		add.custom_minimum_size = Vector2(190, 246)
-		add.pressed.connect(_start_new_hero)
-		_party_grid.add_child(add)
-		_animate_card_in(add, index)
 
 
 func _make_hero_card(hero: Party.Hero) -> Control:
@@ -954,15 +817,15 @@ func _play_intro() -> void:
 	drift.tween_property(_table, "scale", Vector2.ONE, 24.0).set_trans(Tween.TRANS_SINE)
 
 
-## The frame turns like a card to show the new picture, with a flash and sparks.
-func _reveal(texture: Texture2D) -> void:
+## The frame turns like a card to show the choices, with a flash and sparks.
+func _reveal() -> void:
 	_reveal_sound.play()
 	_stop_reveal()
 	_frame.pivot_offset = _frame.size / 2.0
 	_reveal_tween = create_tween()
 	_reveal_tween.tween_property(_frame, "scale:x", 0.0, 0.13).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	_reveal_tween.tween_callback(func() -> void:
-		_portrait.texture = texture
+		_refresh_pictures()
 		_flash.modulate.a = 0.9
 		_rays.modulate.a = 1.0
 		_burst_sparks(_frame.global_position + _frame.size / 2.0))
@@ -971,7 +834,7 @@ func _reveal(texture: Texture2D) -> void:
 	_reveal_tween.parallel().tween_property(_rays, "modulate:a", 0.0, 1.6).set_delay(0.3)
 
 
-## A reveal still under way must not put its picture into the view that comes next.
+## A reveal still under way must not change the pictures of the view that comes next.
 func _stop_reveal() -> void:
 	if _reveal_tween != null:
 		_reveal_tween.kill()

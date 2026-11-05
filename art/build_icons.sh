@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates the project and launcher icons from art/FossFighters.png.
+# Regenerates the project and launcher icons and the splash from art/FossFighters.png.
 # Requires ImageMagick 7.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -30,3 +30,14 @@ magick -size 432x432 xc:'#130b23' -strip assets/icon_adaptive_background.png
 magick "$src" -crop 276x266+490+380 +repage -colorspace Gray -blur 0x1 -threshold 72% \
 	-filter Lanczos -resize 200x200 -threshold 50% -alpha copy -fill white -colorize 100 \
 	-background none -gravity center -extent 432x432 -strip assets/icon_adaptive_monochrome.png
+
+# Boot splash, which the Splash node in onboarding.tscn takes over from without a jump.
+# Square, so that the logo keeps its size relative to the short side of any screen. The
+# ember glow behind it uses the colours of the artwork, on its dark edge colour.
+magick -size 1024x1024 xc:'#130b23' \
+	\( "$rounded" -filter Lanczos -resize 800x800 -background none -gravity center -extent 1024x1024 \
+		-alpha extract -blur 0x38 -level 0%,100%,0.8 \) \
+	\( -clone 1 -fill '#c8641e' -colorize 100 -clone 1 -compose CopyOpacity -composite -channel A -evaluate multiply 0.55 +channel \) \
+	-delete 1 -compose Over -composite \
+	\( "$rounded" -filter Lanczos -resize 800x800 \) -gravity center -compose Over -composite \
+	-alpha off -depth 8 -strip assets/splash.png

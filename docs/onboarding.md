@@ -5,32 +5,40 @@ four players set up their heroes around it. Why it works this way is in [game_de
 
 ## Flow
 
-Each hero goes through three steps:
+The screen shows the table. Players tap their place around the edge of the screen, which stands for their real place
+at the table:
 
-1. **Character:** show a character card. This chooses the race and suggests a name that fits. Tap the name to type
-   another, or roll the dice for a new suggestion.
-2. **Class:** show a class card.
-3. **Seat:** tap one of the 7 places around the edge of the screen, which stand for the real places at the table.
+- **A free seat** opens the editor for a new hero.
+- **A taken seat** opens the editor for the hero sitting there. So does tapping a hero in the middle of the screen.
 
-Then the party screen shows all heroes. From there, players add a hero, tap a hero to change or remove them, or
-start the game with *To Battle!*, which loads `main.tscn`.
+*To Battle!* appears once there is a hero, and loads `main.tscn`. With 4 heroes, free seats can no longer be tapped.
 
-## Changing your mind
+## Editor
 
-- **During setup:** the steps at the top show what was chosen. Tap one to go back to it, or forward to a step that
-  is already possible. Nothing is lost by moving around. The name can be edited in every step.
-- **Later:** tap the hero on the party screen or at their seat, change what you like and press *Done*. *Back* on
-  the first step leaves without saving the change.
+Everything about a hero is on one page, and can be done in any order:
 
-The party is saved in `user://party.json` (`scripts/party.gd`) after every change. If a saved party exists, the
-game opens on the party screen, so a returning group only needs one tap. A hero that is still being set up is not
-saved.
+- **Character card:** chooses the race and suggests a name that fits.
+- **Class card:** chooses the class.
+- **Name:** tap it to type another, or roll the dice for a new suggestion.
+
+The buttons at the bottom:
+
+- *Done* saves the hero and appears once there is a character, a class and a name.
+- *Cancel* leaves without saving.
+- *Delete* is there for a hero that already exists, and asks once more.
+
+To move a hero, tap a free seat while the editor is open. The seats show the move at once. *Done* saves it and
+*Cancel* puts the hero back.
+
+The party is saved in `user://party.json` (`scripts/party.gd`) after every change. If a saved party exists, a returning
+group only needs one tap. A hero that is still in the editor is not saved.
 
 ## Rules for cards
 
-- A card only counts in the step it matches: all other cards and unknown codes do nothing, without any message.
-- Showing another matching card replaces the choice.
-- A card that was in view when the step began only counts after it has been out of view for 2 s. Otherwise a card
+- Only character and class cards count, and only in the editor. All other cards and unknown codes do nothing, without
+  any message.
+- Showing another card of the same kind replaces the choice.
+- A card that was in view when the editor opened only counts after it has been out of view for 2 s. Otherwise a card
   a player is still holding would choose for the next hero, too.
 - Each race and each class can only be picked once. A taken one is refused, the hint says who has it, and its tile
   shows that hero's name. A hero's own choices do not count as taken while changing them.
@@ -39,6 +47,12 @@ saved.
 
 Seats are numbered clockwise as seen on the screen: 0 to 2 down the right side, 3 at the table head at the bottom,
 4 to 6 up the left side. Each seat is turned to face its player.
+
+## Splash
+
+The app starts on the logo (`assets/splash.png`, made by `art/build_icons.sh`). The engine's boot splash shows it while
+loading, and the `Splash` node in the scene takes over with the same picture in the same place. It holds for about a
+second, then fades while the table's intro plays. A tap skips the wait.
 
 ## Trying it out
 

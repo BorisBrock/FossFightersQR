@@ -3,6 +3,8 @@ extends Node
 ## Needs a rendering device, so not headless: godot res://tests/test_onboarding.tscn
 
 const PARTY_PATH := "user://test_onboarding_party.json"
+## The catalog that goes with the QR codes in these pictures.
+const CARDS_PATH := "res://tests/fixtures/onboarding_cards.json"
 const DWARF := "res://tests/fixtures/qr_char_dwarf.png"
 const ELF := "res://tests/fixtures/qr_char_elf.png"
 const THIEF := "res://tests/fixtures/qr_class_thief.png"
@@ -10,15 +12,13 @@ const DRUID := "res://tests/fixtures/qr_class_druid.png"
 const FIREBALL := "res://tests/fixtures/qr_card.png"
 const NOTHING := "res://tests/fixtures/no_code.png"
 const VIEW_PARTY := 0
-const VIEW_CHARACTER := 1
-const VIEW_CLASS := 2
-const VIEW_SEAT := 3
+const VIEW_EDITOR := 1
 const READ_TIMEOUT_SEC := 2.0
 ## Longer than the code needs to count as taken away.
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 41
+const EXPECTED_CHECKS := 56
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -28,6 +28,8 @@ var _frame_accumulator := 0.0
 
 
 func _ready() -> void:
+	# German has the longest words, so this is where the layout is tightest.
+	TranslationServer.set_locale("de")
 	DirAccess.remove_absolute(PARTY_PATH)
 	_feed = FakeCameraFeed.new("Fake front camera", CameraFeed.FEED_FRONT)
 	CameraServer.add_feed(_feed)
@@ -53,119 +55,114 @@ func _process(delta: float) -> void:
 
 func _run() -> void:
 	_open_scene()
-	await get_tree().create_timer(0.6).timeout
-	var next: Button = _scene.get_node("Stage/Margin/Layout/Footer/Next")
-	var remove: Button = _scene.get_node("Stage/Margin/Layout/Footer/Remove")
-	var back: Button = _scene.get_node("Stage/Margin/Layout/Footer/Back")
+	var splash: Splash = _scene.get_node("Splash")
+	_check(splash.visible and splash.modulate.a == 1.0, "the logo covers the table at the start")
+	await _until(func() -> bool: return splash.modulate.a < 1.0, 2.0)
+	_check(is_instance_valid(splash) and splash.mouse_filter == Control.MOUSE_FILTER_IGNORE, "the table can be tapped once the logo starts to fade")
+	await _until(func() -> bool: return not _scene.has_node("Splash"), 2.0)
+	_check(not _scene.has_node("Splash"), "the logo goes away by itself")
+	var done: Button = _scene.get_node("Stage/Margin/Layout/Footer/Primary")
+	var delete: Button = _scene.get_node("Stage/Margin/Layout/Footer/Delete")
+	var cancel: Button = _scene.get_node("Stage/Margin/Layout/Footer/Cancel")
+	var seat_three: SeatToken = _scene.get_node("Seats/Seat3")
+	var seat_five: SeatToken = _scene.get_node("Seats/Seat5")
 
-	# The first player chooses a character.
-	_check(_scene._view == VIEW_CHARACTER, "an empty party starts with the first hero's character")
+	# An empty party starts at the table.
+	_check(_scene._view == VIEW_PARTY, "an empty party starts at the table")
 	_check(_scene.get_node("Seats").get_child_count() == 7 and Party.SEAT_COUNT == 7, "the table has seven seats")
+	_check(seat_three.mode == SeatToken.Mode.SELECTABLE, "free seats can be tapped")
+	_check(done.disabled, "cannot go to battle without heroes")
+
+	# Tapping a seat opens the editor for it, and cancelling leaves nothing behind.
+	seat_three.pressed.emit()
+	_check(_scene._view == VIEW_EDITOR and _scene._draft.seat == 3, "tapping a free seat opens the editor for it")
+	_check(seat_three.mode == SeatToken.Mode.ACTIVE and seat_five.mode == SeatToken.Mode.QUIET_SELECTABLE, "the seat being edited stands out")
 	_check(_scene._camera_problem.is_empty() and _scene._camera_view.visible, "debug builds show the camera while waiting for a card")
-	_check(next.disabled and not back.visible, "cannot go on or back before choosing")
-	_feed.show_image(THIEF)
-	await get_tree().create_timer(IGNORE_SEC).timeout
-	_check(_scene._draft.race.is_empty() and _scene._draft.hero_class.is_empty(), "a class card is ignored when choosing a character")
+	_check(done.disabled and cancel.visible and not delete.visible, "a new hero can be cancelled, but not yet finished or deleted")
+	cancel.pressed.emit()
+	_check(_scene._view == VIEW_PARTY and _scene._party.heroes.is_empty(), "cancelling a new hero leaves the party empty")
+	seat_three.pressed.emit()
+
+	# Cards choose on the one page, in any order.
 	_feed.show_image(FIREBALL)
 	await get_tree().create_timer(IGNORE_SEC).timeout
-	_check(_scene._draft.race.is_empty(), "a playing card is ignored")
+	_check(_scene._draft.race.is_empty() and _scene._draft.hero_class.is_empty(), "a playing card is ignored")
 	_feed.show_image(DWARF)
 	await _until(func() -> bool: return not _scene._draft.race.is_empty(), READ_TIMEOUT_SEC)
 	_check(_scene._draft.race == "dwarf", "a character card chooses the race: '%s'" % _scene._draft.race)
 	_check(_scene._draft.name in HeroOptions.RACES.dwarf.names, "the race suggests a name: '%s'" % _scene._draft.name)
-	_check(not next.disabled, "can go on after choosing")
+	_check(done.disabled, "cannot finish without a class")
 
 	# Another card replaces the choice, and the suggested name goes along with it.
 	await get_tree().create_timer(0.9).timeout
 	_feed.show_image(ELF)
 	await _until(func() -> bool: return _scene._draft.race == "elf", READ_TIMEOUT_SEC)
 	_check(_scene._draft.race == "elf" and _scene._draft.name in HeroOptions.RACES.elf.names, "another card changes race and suggested name")
-	var name_edit: LineEdit = _scene.get_node("Stage/Margin/Layout/Views/Wizard/Info/NameRow/NameEdit")
+	var name_edit: LineEdit = _scene._name_edit
 	name_edit.text = "Boris"
 	name_edit.text_changed.emit("Boris")
 	await get_tree().create_timer(0.9).timeout
 	_feed.show_image(DWARF)
 	await _until(func() -> bool: return _scene._draft.race == "dwarf", READ_TIMEOUT_SEC)
 	_check(_scene._draft.name == "Boris", "a typed name survives changing the race")
+
+	_feed.show_image(THIEF)
+	await _until(func() -> bool: return not _scene._draft.hero_class.is_empty(), READ_TIMEOUT_SEC)
+	_check(_scene._draft.hero_class == "thief" and _scene._draft.race == "dwarf", "a class card chooses the class on the same page")
+	_check(not done.disabled, "can finish with character, class and name")
 	name_edit.text = "  "
 	name_edit.text_changed.emit("  ")
-	_check(next.disabled, "cannot go on without a name")
+	_check(done.disabled, "cannot finish without a name")
 	name_edit.text = "Boris"
 	name_edit.text_changed.emit("Boris")
 
-	# The class step takes only class cards.
-	next.pressed.emit()
-	_check(_scene._view == VIEW_CLASS and next.disabled, "goes on to the class")
-	await get_tree().create_timer(IGNORE_SEC).timeout
-	_check(_scene._draft.hero_class.is_empty() and _scene._draft.race == "dwarf", "the character card still in view is ignored")
-	_feed.show_image(THIEF)
-	await _until(func() -> bool: return not _scene._draft.hero_class.is_empty(), READ_TIMEOUT_SEC)
-	_check(_scene._draft.hero_class == "thief", "a class card chooses the class")
-
-	# The seat step takes no cards at all, just a tap. Moving on at once leaves the
-	# reveal of the class card unfinished, which must not overwrite the picture.
-	next.pressed.emit()
-	await get_tree().create_timer(0.5).timeout
-	var shown: TextureRect = _scene.get_node("Stage/Margin/Layout/Views/Wizard/CardArea/Frame/Portrait")
-	_check(shown.texture.resource_path == HeroOptions.RACES.dwarf.art, "the seat step shows the character, not the crest being revealed")
-	_check(_scene._view == VIEW_SEAT and next.disabled, "goes on to the seat, which a new hero must tap")
-	_tap_step(VIEW_CHARACTER)
-	_check(_scene._view == VIEW_CHARACTER and _scene._draft.race == "dwarf" and _scene._draft.hero_class == "thief", "tapping a step goes back to change it, keeping all choices")
-	await get_tree().create_timer(0.9).timeout
-	_feed.show_image(ELF)
-	await _until(func() -> bool: return _scene._draft.race == "elf", READ_TIMEOUT_SEC)
-	_check(_scene._draft.race == "elf" and _scene._draft.name == "Boris", "the race can be changed that way")
-	_tap_step(VIEW_SEAT)
-	_check(_scene._view == VIEW_SEAT, "tapping a later step that is complete jumps there")
-	_tap_step(VIEW_CHARACTER)
-	await get_tree().create_timer(0.9).timeout
-	_feed.show_image(DWARF)
-	await _until(func() -> bool: return _scene._draft.race == "dwarf", READ_TIMEOUT_SEC)
-	_tap_step(VIEW_SEAT)
-	var seat_three: SeatToken = _scene.get_node("Seats/Seat3")
-	_check(seat_three.mode == SeatToken.Mode.SELECTABLE, "free seats can be tapped")
-	seat_three.pressed.emit()
-	await _until(func() -> bool: return _scene._view == VIEW_PARTY, READ_TIMEOUT_SEC)
-	_check(_scene._view == VIEW_PARTY and _scene._party.hero_at(3) != null, "tapping seats the hero and shows the party")
+	# Finishing at once leaves the reveal unfinished, which must not get in the way.
+	done.pressed.emit()
+	var flyer: TextureRect = _scene._overlay.get_child(0)
+	_check(flyer.texture.resource_path == HeroOptions.RACES.dwarf.art, "the character flies to the seat")
+	_scene._apply_card(_scene._cards.find("CHAR-ELF"))
+	_check(_scene._party.hero_at(3).race == "dwarf", "a card read during the flight changes nothing")
+	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
+	_check(_scene._view == VIEW_PARTY and _scene._party.hero_at(3) != null, "finishing seats the hero")
 	_check(seat_three.get_node("NamePlate/Name").text == "Boris", "the seat shows the hero")
+	_check(not done.disabled, "with a hero, the party can go to battle")
 
 	# The second player still has the first player's card in front of the camera.
 	_feed.show_image(DWARF)
 	await get_tree().create_timer(0.5).timeout
-	_scene._start_new_hero()
+	seat_five.pressed.emit()
 	await get_tree().create_timer(IGNORE_SEC).timeout
-	_check(_scene._draft.race.is_empty(), "a card still in view does not count for the next hero")
-	_tap_step(VIEW_SEAT)
-	_check(_scene._view == VIEW_CHARACTER, "steps that are not complete cannot be opened")
+	_check(_scene._draft.race.is_empty() and not _scene._hint.text.contains("Boris"), "a card still in view does not count for the next hero")
+	_check(seat_three.mode == SeatToken.Mode.DIMMED, "another hero's seat stays in the background")
 	_feed.show_image(NOTHING)
 	await get_tree().create_timer(AWAY_SEC).timeout
 
-	# Every character and class can only be picked once.
-	_feed.show_image(DWARF)
+	# Every character and class can only be picked once, and the class may come first.
+	_feed.show_image(THIEF)
 	var hint: Label = _scene._hint
 	await _until(func() -> bool: return hint.text.contains("Boris"), READ_TIMEOUT_SEC)
-	_check(_scene._draft.race.is_empty() and hint.text.contains("Boris"), "a character that is taken is refused, saying by whom: '%s'" % hint.text)
-	_feed.show_image(ELF)
-	await _until(func() -> bool: return not _scene._draft.race.is_empty(), READ_TIMEOUT_SEC)
-	_check(_scene._draft.race == "elf", "a free character can be picked")
-	next.pressed.emit()
-	await get_tree().create_timer(0.3).timeout
-	_feed.show_image(THIEF)
-	await _until(func() -> bool: return hint.text.contains("Boris"), READ_TIMEOUT_SEC)
-	_check(_scene._draft.hero_class.is_empty(), "a class that is taken is refused")
+	_check(_scene._draft.hero_class.is_empty() and hint.text.contains("Boris"), "a class that is taken is refused, saying by whom: '%s'" % hint.text)
 	_feed.show_image(DRUID)
 	await _until(func() -> bool: return not _scene._draft.hero_class.is_empty(), READ_TIMEOUT_SEC)
-	_check(_scene._draft.hero_class == "druid", "a free class can be picked")
-	next.pressed.emit()
-	_check(seat_three.mode == SeatToken.Mode.DIMMED, "another hero's seat cannot be tapped")
-	var seat_five: SeatToken = _scene.get_node("Seats/Seat5")
-	seat_five.pressed.emit()
-	await _until(func() -> bool: return _scene._view == VIEW_PARTY, READ_TIMEOUT_SEC)
+	_check(_scene._draft.hero_class == "druid" and _scene._draft.name.is_empty(), "the class can come first")
+	await get_tree().create_timer(0.9).timeout
+	_feed.show_image(DWARF)
+	await _until(func() -> bool: return hint.text.contains("Boris"), READ_TIMEOUT_SEC)
+	_check(_scene._draft.race.is_empty(), "a character that is taken is refused")
+	_feed.show_image(ELF)
+	await _until(func() -> bool: return not _scene._draft.race.is_empty(), READ_TIMEOUT_SEC)
+	_check(_scene._draft.race == "elf" and not done.disabled, "a free character completes the hero")
+	done.pressed.emit()
+	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
 
 	# Next time the game starts, everything is still there.
 	_scene.queue_free()
 	await get_tree().process_frame
 	_open_scene()
+	var tap := InputEventMouseButton.new()
+	tap.pressed = true
+	_scene.get_node("Splash")._gui_input(tap)
+	_check(_scene.get_node("Splash").mouse_filter == Control.MOUSE_FILTER_IGNORE, "a tap skips the wait for the logo")
 	await get_tree().create_timer(0.6).timeout
 	var reloaded: Party = _scene._party
 	_check(_scene._view == VIEW_PARTY and reloaded.heroes.size() == 2, "the party is remembered between runs")
@@ -173,15 +170,22 @@ func _run() -> void:
 	var loaded_token: SeatToken = _scene.get_node("Seats/Seat5")
 	_check(reloaded.hero_at(5) != null and loaded_token.get_node("NamePlate").visible, "and seats")
 
-	# Changing a hero: one change is enough, without walking through the other steps.
-	remove = _scene.get_node("Stage/Margin/Layout/Footer/Remove")
-	next = _scene.get_node("Stage/Margin/Layout/Footer/Next")
-	back = _scene.get_node("Stage/Margin/Layout/Footer/Back")
+	# Changing a hero.
+	delete = _scene.get_node("Stage/Margin/Layout/Footer/Delete")
+	done = _scene.get_node("Stage/Margin/Layout/Footer/Primary")
+	cancel = _scene.get_node("Stage/Margin/Layout/Footer/Cancel")
 	var token: SeatToken = _scene.get_node("Seats/Seat3")
 	_feed.show_image(NOTHING)
 	await get_tree().create_timer(AWAY_SEC).timeout
 	token.pressed.emit()
-	_check(_scene._view == VIEW_CHARACTER and not next.disabled, "tapping a seated hero opens them for changes")
+	_check(_scene._view == VIEW_EDITOR and not done.disabled and delete.visible, "tapping a seated hero opens them for changes")
+	# The question on the delete button is its longest text.
+	delete.pressed.emit()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var stage_width: float = _scene.size.x - _scene.get_node("Ornaments").offset_left + _scene.get_node("Ornaments").offset_right
+	_check(is_equal_approx(_scene._stage.size.x, stage_width), "all footer buttons fit, so the panel stays clear of the seats: %s of %s" % [_scene._stage.size.x, stage_width])
+	_scene._disarm_delete()
 	await get_tree().create_timer(0.9).timeout
 	_feed.show_image(ELF)
 	await get_tree().create_timer(IGNORE_SEC).timeout
@@ -192,24 +196,78 @@ func _run() -> void:
 	var renamed: LineEdit = _scene._name_edit
 	renamed.text = "Boris II"
 	renamed.text_changed.emit("Boris II")
-	back.pressed.emit()
-	_check(_scene._view == VIEW_PARTY and reloaded.hero_at(3).name == "Boris", "leaving with back discards the change")
+	cancel.pressed.emit()
+	_check(_scene._view == VIEW_PARTY and reloaded.hero_at(3).name == "Boris", "cancel discards the change")
 	token.pressed.emit()
+	_check(renamed.text == "Boris", "and the editor starts from the saved hero again")
 	renamed.text = "Boris II"
 	renamed.text_changed.emit("Boris II")
-	next.pressed.emit()
-	_check(_scene._view == VIEW_PARTY and Party.load_file(PARTY_PATH).hero_at(3).name == "Boris II", "done saves it right away, keeping the seat")
+	done.pressed.emit()
+	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
+	_check(_scene._view == VIEW_PARTY and Party.load_file(PARTY_PATH).hero_at(3).name == "Boris II", "done saves it, keeping the seat")
 
-	# Removing asks once more.
+	# Moving to another seat: shown at once, but only saved with done.
+	var free_target: SeatToken = _scene.get_node("Seats/Seat6")
+	var saved_hero: Party.Hero = reloaded.hero_at(3)
 	token.pressed.emit()
-	remove.pressed.emit()
-	_check(reloaded.heroes.size() == 2, "the first tap on remove only asks")
-	remove.pressed.emit()
-	_check(reloaded.hero_at(3) == null and Party.load_file(PARTY_PATH).heroes.size() == 1, "the second removes the hero for good")
+	await get_tree().create_timer(0.5).timeout
+	_check(done.scale == Vector2.ONE, "the buttons keep still")
+	_check(free_target.mode == SeatToken.Mode.QUIET_SELECTABLE and loaded_token.mode == SeatToken.Mode.DIMMED, "free seats can be moved to, those of other heroes not")
+	loaded_token.pressed.emit()
+	_check(_scene._draft.seat == 3, "tapping another hero's seat does not move there")
+	free_target.pressed.emit()
+	_check(free_target.mode == SeatToken.Mode.ACTIVE and free_target.get_node("NamePlate/Name").text == "Boris II" and not token.get_node("NamePlate").visible, "tapping a free seat shows the hero there")
+	_check(reloaded.hero_at(3) == saved_hero and Party.load_file(PARTY_PATH).hero_at(3) != null, "which is not saved yet")
+	cancel.pressed.emit()
+	_check(reloaded.hero_at(3) == saved_hero and token.get_node("NamePlate").visible and not free_target.get_node("NamePlate").visible, "cancel leaves the hero where they were")
+	token.pressed.emit()
+	free_target.pressed.emit()
+	done.pressed.emit()
+	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
+	var moved := Party.load_file(PARTY_PATH)
+	_check(moved.hero_at(6) != null and moved.hero_at(6).name == "Boris II" and moved.hero_at(3) == null, "done saves the new seat")
+	free_target.pressed.emit()
+	token.pressed.emit()
+	done.pressed.emit()
+	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
+
+	# Two quick choices: the first reveal is cut short, but its choice must still show.
+	_scene.get_node("Seats/Seat0").pressed.emit()
+	_scene._on_tile_pressed("troll")
+	_scene._on_tile_pressed("shaman")
+	await get_tree().create_timer(0.5).timeout
+	_check(_scene._portrait.texture.resource_path == HeroOptions.RACES.troll.art and _scene._badge.texture.resource_path == HeroOptions.CLASSES.shaman.art, "quick choices both show")
+	cancel.pressed.emit()
+
+	# With four heroes there is no room for more.
+	for id: Array in [["goblin", "paladin", 0], ["troll", "warrior", 1]]:
+		var extra := Party.Hero.new()
+		extra.name = id[0]
+		extra.race = id[0]
+		extra.hero_class = id[1]
+		extra.seat = id[2]
+		reloaded.heroes.append(extra)
+	_scene._show_view(VIEW_PARTY)
+	var free_seat: SeatToken = _scene.get_node("Seats/Seat6")
+	free_seat.pressed.emit()
+	_check(free_seat.mode == SeatToken.Mode.DIMMED and _scene._view == VIEW_PARTY, "a full party cannot take another hero")
+	reloaded.heroes.resize(2)
+	_scene._show_view(VIEW_PARTY)
+
+	# Deleting asks once more, and works for the last hero too.
+	loaded_token.pressed.emit()
+	delete.pressed.emit()
+	_check(reloaded.heroes.size() == 2, "the first tap on delete only asks")
+	delete.pressed.emit()
+	_check(reloaded.hero_at(5) == null and Party.load_file(PARTY_PATH).heroes.size() == 1, "the second deletes the hero for good")
+	token.pressed.emit()
+	delete.pressed.emit()
+	delete.pressed.emit()
+	_check(_scene._view == VIEW_PARTY and reloaded.heroes.is_empty() and done.disabled, "without heroes it is back at the table, with no way to battle")
 
 	# A laptop webcam delivers colour frames instead of Android's format. The hero's card
 	# was just in view, so it has to leave first.
-	_scene._start_new_hero()
+	token.pressed.emit()
 	_feed.show_image(NOTHING)
 	await get_tree().create_timer(AWAY_SEC).timeout
 	_feed.deliver_rgb = true
@@ -218,16 +276,10 @@ func _run() -> void:
 	_check(_scene._draft.race == "dwarf", "reads a card from colour frames, as on a laptop")
 
 
-func _tap_step(view: int) -> void:
-	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = true
-	_scene._on_pip_input(event, view)
-
-
 func _open_scene() -> void:
 	_scene = load("res://onboarding.tscn").instantiate()
 	_scene.party_path = PARTY_PATH
+	_scene.cards_path = CARDS_PATH
 	add_child(_scene)
 
 

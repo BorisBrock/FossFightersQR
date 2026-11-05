@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "cards": [
+    { "qr": "CHAR-DWARF", "deck": "characters", "race": "dwarf" },
+    { "qr": "CHAR-ELF", "deck": "characters", "race": "elf" },
+    { "qr": "CLASS-THIEF", "deck": "classes", "hero_class": "thief" },
+    { "qr": "CLASS-DRUID", "deck": "classes", "hero_class": "druid" },
+    { "qr": "CORE-001", "deck": "loot" }
+  ]
+}

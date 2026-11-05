@@ -39,11 +39,11 @@ A hero has a name, a race, a class and a seat.
 
 ## Rules for reading cards
 
-- In each step, only matching cards are accepted. Everything else is ignored, without an error message: cards get
+- In the hero editor, only character and class cards are accepted. Everything else is ignored, without an error message: cards get
   moved around in view of the camera all the time, and a message for each would be noise.
 - The one exception is a card that fits but is not available, such as a taken race. This gets a short explanation,
   because the player did everything right and would otherwise think the scanner has failed.
-- A card only counts when it is newly shown. One still in view from before a step began has to leave for 2 s first.
+- A card only counts when it is newly shown. One still in view from before the editor opened has to leave for 2 s first.
 - The camera reads a card that stays in view over and over. Anything triggered by a read has to cope with that.
 
 ## Decisions
@@ -52,7 +52,9 @@ A hero has a name, a race, a class and a seat.
 |----------|-----|
 | A character card suggests a name, which players can change | A card cannot know a player's name, and typing should not be required to start playing. |
 | The setup is remembered between runs | The same group usually plays again, and it then only needs one tap. |
-| Everything can be changed at any time, without walking through all the steps | Changing one's mind should cost one tap, and is part of the normal flow at a table. |
+| Everything can be changed at any time | Changing one's mind should cost one tap, and is part of the normal flow at a table. |
+| A hero is set up on one page, opened by tapping a seat | Creating and changing a hero are then the same thing, in any order, and there are no steps to walk through. |
+| Buttons do not pulse or wiggle | It was more annoying than helpful. Animate a button only as a direct answer to something a player did. |
 | Removing a hero asks once more | It is the only action that cannot be undone by choosing again. |
 | The game has no camera picture in release builds | Saves power, and the device lies face up, so nobody needs to aim it. |
 | The text uses the device language, with German as the fallback | German is the language of the printed cards. |

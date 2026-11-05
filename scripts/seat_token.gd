@@ -12,6 +12,10 @@ enum Mode {
 	SELECTABLE,
 	## Stays in the background while the players are busy with something else.
 	DIMMED,
+	## The hero of this seat is being set up, which tapping it would not help with.
+	ACTIVE,
+	## A player can tap it, but it does not call for attention like a selectable seat.
+	QUIET_SELECTABLE,
 }
 
 const DASH_COUNT := 16
@@ -50,11 +54,13 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	if _hero != null:
-		return
 	var center := _portrait.position + _portrait.size / 2.0
-	var selectable := mode == Mode.SELECTABLE
+	var selectable := mode == Mode.SELECTABLE or mode == Mode.ACTIVE
 	var pulse := 0.5 + 0.5 * sin(_time * 4.0) if selectable else 0.0
+	if _hero != null:
+		if mode == Mode.ACTIVE:
+			draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.3 + pulse * 0.25))
+		return
 	if selectable:
 		draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.14 + pulse * 0.14))
 	draw_circle(center, RING_RADIUS, Color(0.06, 0.03, 0.02, 0.72))
@@ -84,9 +90,9 @@ func show_hero(hero: Party.Hero) -> void:
 
 func set_mode(new_mode: Mode) -> void:
 	mode = new_mode
-	_hit.mouse_filter = MOUSE_FILTER_STOP if mode == Mode.SELECTABLE else MOUSE_FILTER_IGNORE
+	_hit.mouse_filter = MOUSE_FILTER_STOP if mode == Mode.SELECTABLE or mode == Mode.QUIET_SELECTABLE else MOUSE_FILTER_IGNORE
 	# The tokens only need redrawing while their dashes are moving.
-	set_process(mode == Mode.SELECTABLE)
+	set_process(mode == Mode.SELECTABLE or mode == Mode.ACTIVE)
 	var target := Color(0.72, 0.72, 0.72, 0.7) if mode == Mode.DIMMED else Color.WHITE
 	create_tween().tween_property(self, "modulate", target, 0.25)
 	queue_redraw()
