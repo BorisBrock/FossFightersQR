@@ -7,9 +7,10 @@ const CODE_A := "FOSS-FIGHTER:VIVOSAUR:0137"
 const CODE_B := "Grüße aus dem Fossilien-Labor 🦖"
 const CODE_CARD := "CORE-001"
 const UNKNOWN_TITLE := "Unknown card"
+const UNKNOWN_TITLE_GERMAN := "Unbekannte Karte"
 const CAMERA_FPS := 30.0
 const READ_TIMEOUT_SEC := 2.0
-const EXPECTED_CHECKS := 24
+const EXPECTED_CHECKS := 26
 
 var _feed: FakeCameraFeed
 var _back_feed: FakeCameraFeed
@@ -20,6 +21,7 @@ var _frame_accumulator := 0.0
 
 
 func _ready() -> void:
+	TranslationServer.set_locale("en")
 	# A new feed takes the first id no registered feed uses, so each one has to be
 	# registered before the next is created. Otherwise both get the same id.
 	_feed = FakeCameraFeed.new("Fake front camera", CameraFeed.FEED_FRONT)
@@ -29,6 +31,8 @@ func _ready() -> void:
 	_feed.show_image("res://tests/fixtures/no_code.png")
 	_back_feed.show_image("res://tests/fixtures/qr_unicode.png")
 	_main = load("res://main.tscn").instantiate()
+	# The real catalog changes, while the code in the picture of a card stays.
+	_main._cards = CardDatabase.load_file("res://tests/fixtures/game_cards.json")
 	add_child(_main)
 	await _run()
 	_check(_checks_run == EXPECTED_CHECKS, "all checks ran")
@@ -103,16 +107,23 @@ func _run() -> void:
 	_feed.show_image("res://tests/fixtures/no_code.png")
 	await get_tree().create_timer(0.5).timeout
 	_feed.show_image("res://tests/fixtures/qr_card.png")
-	await _until(func() -> bool: return title.text != UNKNOWN_TITLE, READ_TIMEOUT_SEC)
+	await _until(func() -> bool: return title.text == "Feuerball", READ_TIMEOUT_SEC)
 	_check(title.text == "Feuerball", "known card shows its title: '%s'" % title.text)
-	_check(label.text.begins_with(CODE_CARD + " · loot · Level 3\nAttack 3 · Support 1\nFüge"), "known card shows its data: '%s'" % label.text)
+	_check(label.text.begins_with(CODE_CARD + " · loot · Stufe 3\nAngriff 3 · Unterstützung 1\nFüge"), "known card shows its data: '%s'" % label.text)
 	_check(pling.playing, "known card plings")
 	var result_top := panel.global_position.y
 	_check(result_top >= 0.0 and panel.get_global_rect().end.y <= get_viewport().get_visible_rect().size.y, "card fits on the screen: top at %.0f" % result_top)
 
+	# Changing the language reaches what is on screen.
+	TranslationServer.set_locale("en")
+	await get_tree().process_frame
+	_check(label.text.contains("Level 3\nAttack 3 · Support 1"), "the card follows the language: '%s'" % label.text)
+	_check(_main.get_node("Hud/Status").text == "Hold a QR code over the camera", "the status follows the language")
+	TranslationServer.set_locale("de")
+
 	# Back to a short text: the panel shrinks again and the card data is gone.
 	_feed.show_image("res://tests/fixtures/qr_vivosaur.png")
-	await _until(func() -> bool: return title.text == UNKNOWN_TITLE, READ_TIMEOUT_SEC)
+	await _until(func() -> bool: return title.text == UNKNOWN_TITLE_GERMAN, READ_TIMEOUT_SEC)
 	await get_tree().process_frame
 	_check(label.text == CODE_A and panel.global_position.y > result_top, "unknown code replaces a card")
 	TranslationServer.set_locale("en")

@@ -3,7 +3,7 @@ extends SceneTree
 ## Run with: godot --headless -s tests/test_party.gd
 
 const PATH := "user://test_party.json"
-const EXPECTED_CHECKS := 14
+const EXPECTED_CHECKS := 18
 
 var _failures := 0
 var _checks_run := 0
@@ -32,6 +32,10 @@ func _check_round_trip() -> void:
 	var hero := loaded.hero_at(6)
 	_check(hero != null and hero.name == "Grüße" and hero.race == "elf" and hero.hero_class == "druid", "keeps what they chose")
 	_check(typeof(hero.seat) == TYPE_INT and loaded.hero_at(0) == null, "seat is a whole number and other seats are free")
+	_check(loaded.party_name.is_empty(), "a party starts without a name")
+	party.party_name = "Furious Four"
+	party.save()
+	_check(Party.load_file(PATH).party_name == "Furious Four", "keeps the name of the party")
 
 
 func _check_damaged_files() -> void:
@@ -59,6 +63,11 @@ func _check_damaged_files() -> void:
 		crowd.append({ "name": "H%d" % i, "race": HeroOptions.RACES.keys()[i], "hero_class": HeroOptions.CLASSES.keys()[i], "seat": i })
 	_write(JSON.stringify({ "version": Party.SAVE_VERSION, "heroes": crowd }))
 	_check(Party.load_file(PATH).heroes.size() == Party.MAX_HEROES, "keeps no more than the allowed heroes")
+	_write(JSON.stringify({ "version": Party.SAVE_VERSION, "heroes": [good] }))
+	loaded = Party.load_file(PATH)
+	_check(loaded.party_name.is_empty() and loaded.heroes.size() == 1, "a file from before party names still loads")
+	_write(JSON.stringify({ "version": Party.SAVE_VERSION, "name": "  %s  " % "x".repeat(99), "heroes": [good] }))
+	_check(Party.load_file(PATH).party_name == "x".repeat(Party.MAX_PARTY_NAME_LENGTH), "trims a saved party name that is too long")
 
 
 func _check_options() -> void:

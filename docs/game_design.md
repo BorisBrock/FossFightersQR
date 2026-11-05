@@ -57,7 +57,7 @@ A hero has a name, a race, a class and a seat.
 | Buttons do not pulse or wiggle | It was more annoying than helpful. Animate a button only as a direct answer to something a player did. |
 | Removing a hero asks once more | It is the only action that cannot be undone by choosing again. |
 | The game has no camera picture in release builds | Saves power, and the device lies face up, so nobody needs to aim it. |
-| The text uses the device language, with German as the fallback | German is the language of the printed cards. |
+| The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
 
 ## Hints for development
 

@@ -9,6 +9,7 @@ const MAX_HEROES := 4
 ## 3 at the table head at the bottom, 4 to 6 up the left side.
 const SEAT_COUNT := 7
 const MAX_NAME_LENGTH := 16
+const MAX_PARTY_NAME_LENGTH := 24
 
 
 class Hero:
@@ -25,6 +26,8 @@ class Hero:
 		seat = other.seat
 
 
+## What the group calls itself. Empty until they have chosen one.
+var party_name := ""
 var heroes: Array[Hero] = []
 var _path: String
 
@@ -46,6 +49,10 @@ static func load_file(path := SAVE_PATH) -> Party:
 	var document: Variant = json.data
 	if not document is Dictionary or document.get("version") != SAVE_VERSION or not document.get("heroes") is Array:
 		return party
+	# Files from before parties had names do not have this.
+	var name_value: Variant = document.get("name")
+	if name_value is String:
+		party.party_name = name_value.strip_edges().left(MAX_PARTY_NAME_LENGTH)
 	for entry: Variant in document.heroes:
 		var hero := _hero_from_data(entry)
 		if hero != null and party.heroes.size() < MAX_HEROES and party._has_room_for(hero):
@@ -63,7 +70,7 @@ func save() -> bool:
 	if file == null:
 		push_error("Cannot save the party: ", error_string(FileAccess.get_open_error()))
 		return false
-	file.store_string(JSON.stringify({ "version": SAVE_VERSION, "heroes": entries }, "\t"))
+	file.store_string(JSON.stringify({ "version": SAVE_VERSION, "name": party_name, "heroes": entries }, "\t"))
 	file.close()
 	var result := DirAccess.rename_absolute(temporary, _path)
 	if result != OK:

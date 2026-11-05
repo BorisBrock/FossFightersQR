@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=21 format=3]
+[gd_resource type="Theme" load_steps=27 format=3]
 
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="1_regular"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="2_bold"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_secondary.svg" id="secondary_art"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_primary.svg" id="primary_art"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_danger.svg" id="danger_art"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_on.svg" id="toggle_on"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_off.svg" id="toggle_off"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/slider_grabber.svg" id="slider_grabber"]
 
 [sub_resource type="StyleBoxTexture" id="secondary_normal"]
 content_margin_left = 16.0
@@ -146,6 +149,15 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="title_edit_normal"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 2
+border_color = Color(0.72, 0.54, 0.22, 0.45)
+
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.085, 0.05, 0.035, 0.82)
 border_width_left = 3
@@ -160,6 +172,24 @@ corner_radius_bottom_left = 22
 shadow_color = Color(0, 0, 0, 0.65)
 shadow_size = 24
 shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="slider_track"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.05, 0.03, 0.02, 0.9)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="slider_filled"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.72, 0.54, 0.22, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [resource]
 default_font = ExtResource("1_regular")
@@ -185,6 +215,15 @@ PrimaryButton/constants/outline_size = 0
 PrimaryButton/styles/hover = SubResource("primary_hover")
 PrimaryButton/styles/normal = SubResource("primary_normal")
 PrimaryButton/styles/pressed = SubResource("primary_pressed")
+CheckButton/colors/font_color = Color(0.95, 0.88, 0.74, 1)
+CheckButton/colors/font_hover_color = Color(0.95, 0.88, 0.74, 1)
+CheckButton/colors/font_pressed_color = Color(0.98, 0.82, 0.48, 1)
+CheckButton/colors/font_hover_pressed_color = Color(0.98, 0.82, 0.48, 1)
+CheckButton/colors/font_focus_color = Color(0.95, 0.88, 0.74, 1)
+CheckButton/font_sizes/font_size = 26
+CheckButton/fonts/font = ExtResource("2_bold")
+CheckButton/icons/checked = ExtResource("toggle_on")
+CheckButton/icons/unchecked = ExtResource("toggle_off")
 DangerButton/base_type = &"Button"
 DangerButton/colors/font_color = Color(1, 0.8, 0.72, 1)
 DangerButton/colors/font_hover_color = Color(1, 0.9, 0.85, 1)
@@ -206,9 +245,25 @@ Title/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
 Title/constants/outline_size = 6
 Title/font_sizes/font_size = 40
 Title/fonts/font = ExtResource("3_title")
+TitleEdit/base_type = &"LineEdit"
+TitleEdit/colors/font_color = Color(0.98, 0.82, 0.48, 1)
+TitleEdit/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
+TitleEdit/constants/outline_size = 6
+TitleEdit/font_sizes/font_size = 40
+TitleEdit/fonts/font = ExtResource("3_title")
+TitleEdit/styles/normal = SubResource("title_edit_normal")
 Hint/base_type = &"Label"
 Hint/colors/font_color = Color(0.82, 0.74, 0.6, 1)
 Hint/font_sizes/font_size = 21
+SettingLabel/base_type = &"Label"
+SettingLabel/font_sizes/font_size = 26
+SettingLabel/fonts/font = ExtResource("2_bold")
+HSlider/icons/grabber = ExtResource("slider_grabber")
+HSlider/icons/grabber_disabled = ExtResource("slider_grabber")
+HSlider/icons/grabber_highlight = ExtResource("slider_grabber")
+HSlider/styles/grabber_area = SubResource("slider_filled")
+HSlider/styles/grabber_area_highlight = SubResource("slider_filled")
+HSlider/styles/slider = SubResource("slider_track")
 LineEdit/colors/font_color = Color(1, 0.95, 0.82, 1)
 LineEdit/colors/font_placeholder_color = Color(0.7, 0.6, 0.45, 1)
 LineEdit/colors/caret_color = Color(0.98, 0.84, 0.5, 1)

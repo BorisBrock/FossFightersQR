@@ -24,7 +24,8 @@ When a code is read, `scripts/main.gd` looks up its exact value in the `qr` fiel
 - **Match:** the title, then QR code, deck and level, then the symbols, then the effect.
 - **No match:** "Unknown card" and the value of the code.
 
-Text uses the device language, falling back to `de`, the language of the printed cards.
+Text uses the language from the settings, by default the device language, falling back to `de`, the language of the
+printed cards.
 
 If the file has a problem, the status line at the top says why. If the file cannot be read at all, every card
 shows as unknown. A card that is invalid or repeats a QR code is skipped and shows as unknown, the others still

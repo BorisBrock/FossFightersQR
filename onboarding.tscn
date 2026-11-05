@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -17,6 +17,8 @@
 [ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="15_fanfare"]
 [ext_resource type="Script" path="res://scripts/splash.gd" id="16_splash"]
 [ext_resource type="Texture2D" path="res://assets/splash.png" id="17_splash"]
+[ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="18_settings_icon"]
+[ext_resource type="Script" path="res://scripts/settings_button.gd" id="19_settings"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("7_table_shader")
@@ -234,9 +236,17 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_constants/separation = 6
 
+[node name="PartyName" type="LineEdit" parent="Stage/Margin/Layout/Header"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_type_variation = &"TitleEdit"
+alignment = 1
+select_all_on_focus = true
+right_icon = ExtResource("11_pen")
+
 [node name="Title" type="Label" parent="Stage/Margin/Layout/Header"]
 layout_mode = 2
-theme_type_variation = &"Title"
+theme_type_variation = &"Heading"
 horizontal_alignment = 1
 
 [node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header"]
@@ -542,6 +552,21 @@ texture_normal = ExtResource("12_switch")
 ignore_texture_size = true
 stretch_mode = 5
 
+[node name="Settings" type="TextureButton" parent="."]
+modulate = Color(1, 1, 1, 0.75)
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = -1
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 76.0
+offset_bottom = 76.0
+focus_mode = 0
+texture_normal = ExtResource("18_settings_icon")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("19_settings")
+
 [node name="Overlay" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -602,9 +627,12 @@ stretch_mode = 5
 
 [node name="RevealSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("13_reveal")
+bus = &"SFX"
 
 [node name="SeatSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("14_seat")
+bus = &"SFX"
 
 [node name="FanfareSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("15_fanfare")
+bus = &"SFX"

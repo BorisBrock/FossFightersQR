@@ -9,12 +9,26 @@ const TEXT_DURATION_SEC := 5.0
 const REPEAT_AFTER_ABSENCE_SEC := 2.0
 const FADE_OUT_SEC := 0.3
 const CARDS_PATH := "res://cards/cards.json"
+const TEXT := {
+	"camera_starting": { "de": "Die Kamera startet…", "en": "Starting camera…" },
+	"show_code": { "de": "Halte einen QR-Code über die Kamera", "en": "Hold a QR code over the camera" },
+	"cards_not_loaded": { "de": "Kartendatenbank nicht geladen: %s", "en": "Card database not loaded: %s" },
+	"unknown_card": { "de": "Unbekannte Karte", "en": "Unknown card" },
+	"level": { "de": "Stufe %d", "en": "Level %d" },
+}
+const SYMBOLS := {
+	"attack": { "de": "Angriff", "en": "Attack" },
+	"support": { "de": "Unterstützung", "en": "Support" },
+	"heal": { "de": "Heilung", "en": "Heal" },
+}
 
 var _cards := CardDatabase.load_file(CARDS_PATH)
 var _current_text := ""
 var _has_current_text := false
 var _last_seen_msec := 0
 var _text_timer := 0.0
+var _camera_running := false
+var _camera_problem := ""
 
 @onready var _scanner: QrCameraScanner = $QrCameraScanner
 @onready var _result_panel: PanelContainer = $Hud/Result
@@ -34,7 +48,7 @@ func _ready() -> void:
 	_switch_camera.hide()
 	_result_panel.hide()
 	_stats_label.visible = OS.is_debug_build()
-	_status_label.text = "Starting camera…"
+	_refresh_status()
 
 
 func _process(delta: float) -> void:
@@ -52,10 +66,33 @@ func _process(delta: float) -> void:
 			]
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and is_node_ready():
+		_refresh_status()
+		if _result_panel.visible:
+			_show_card(_current_text)
+
+
+func _t(key: String) -> String:
+	return CardDatabase.localized(TEXT[key], TranslationServer.get_locale())
+
+
+func _refresh_status() -> void:
+	if not _camera_problem.is_empty():
+		_status_label.text = _camera_problem
+	elif not _camera_running:
+		_status_label.text = _t("camera_starting")
+	elif not _cards.error.is_empty():
+		# Without this, every card would look unknown with no hint at the real problem.
+		_status_label.text = _t("cards_not_loaded") % _cards.error
+	else:
+		_status_label.text = _t("show_code")
+
+
 func _on_camera_started() -> void:
-	# Without this, every card would look unknown with no hint at the real problem.
-	var has_cards := _cards.error.is_empty()
-	_status_label.text = "Hold a QR code over the camera" if has_cards else "Card database not loaded: " + _cards.error
+	_camera_running = true
+	_camera_problem = ""
+	_refresh_status()
 	_switch_camera.visible = _scanner.can_switch_camera()
 	_switch_camera.disabled = false
 
@@ -68,7 +105,8 @@ func _on_switch_camera_pressed() -> void:
 
 
 func _on_scanner_failed(reason: String) -> void:
-	_status_label.text = reason
+	_camera_problem = reason
+	_refresh_status()
 
 
 func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vector2i) -> void:
@@ -90,7 +128,7 @@ func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vect
 func _show_card(qr: String) -> void:
 	var card := _cards.find(qr)
 	if card == null:
-		_title_label.text = "Unknown card"
+		_title_label.text = _t("unknown_card")
 		_details_label.text = qr
 		return
 	var locale := TranslationServer.get_locale()
@@ -98,12 +136,13 @@ func _show_card(qr: String) -> void:
 
 	var facts := PackedStringArray([card.qr, card.deck])
 	if card.level > 0:
-		facts.append("Level %d" % card.level)
+		facts.append(_t("level") % card.level)
 	var lines := PackedStringArray([" · ".join(facts)])
 	if not card.symbols.is_empty():
 		var symbols := PackedStringArray()
 		for symbol: Card.Symbol in card.symbols:
-			symbols.append("%s %d" % [symbol.type.capitalize(), symbol.strength])
+			var symbol_name: String = CardDatabase.localized(SYMBOLS[symbol.type], locale) if SYMBOLS.has(symbol.type) else symbol.type.capitalize()
+			symbols.append("%s %d" % [symbol_name, symbol.strength])
 		lines.append(" · ".join(symbols))
 	if not card.effect.is_empty():
 		lines.append(CardDatabase.localized(card.effect, locale))

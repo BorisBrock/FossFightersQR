@@ -11,7 +11,8 @@ extends Node
 signal code_read(text: String, corners: PackedVector2Array, frame_size: Vector2i)
 ## The current camera started delivering frames.
 signal camera_started
-## Scanning cannot run, with a reason to show the player.
+## Scanning cannot run, with a reason to show the player. Fires again when the language
+## changes.
 signal failed(reason: String)
 
 const PERMISSION_CAMERA := "CAMERA"
@@ -23,6 +24,17 @@ const FEED_SEARCH_GRACE_SEC := 2.0
 ## GPU copies take a few rendered frames. Letting them overlap means that no camera
 ## frames get skipped because of that delay.
 const MAX_READBACKS_IN_FLIGHT := 2
+const TEXT := {
+	"decoder_missing": {
+		"de": "Die QR-Decoder-Bibliothek fehlt für diese Plattform.\nFühre native/build.sh aus.",
+		"en": "The QR decoder library is missing for this platform.\nRun native/build.sh.",
+	},
+	"permission_denied": {
+		"de": "Kein Zugriff auf die Kamera.\nErlaube ihn in den Systemeinstellungen.",
+		"en": "Camera permission denied.\nAllow camera access in the system settings.",
+	},
+	"no_camera": { "de": "Keine Kamera gefunden.", "en": "No camera found." },
+}
 
 ## Upper limit for the camera resolution. On a Pixel 8 with a normally lit scene, 1080p
 ## drew about 780 mW more than 720p while decoding every frame. The price is range:
@@ -41,6 +53,8 @@ var _decoder: RefCounted
 var _app_paused := false
 var _recovery_timer := 0.0
 var _reported_camera_start := false
+## The key in TEXT of what keeps scanning from running, empty if nothing does.
+var _problem := ""
 
 var _uses_native_camera := false
 var _native_front := true
@@ -61,7 +75,7 @@ func _ready() -> void:
 
 func _begin() -> void:
 	if not ClassDB.can_instantiate("QrDecoder"):
-		failed.emit("The QR decoder library is missing for this platform.\nRun native/build.sh.")
+		_fail("decoder_missing")
 		set_process(false)
 		return
 	_decoder = ClassDB.instantiate("QrDecoder")
@@ -91,6 +105,9 @@ func _notification(what: int) -> void:
 			_app_paused = false
 			_readbacks_in_flight = 0 # Whatever was in flight will not arrive any more.
 			_recovery_timer = 0.0
+		NOTIFICATION_TRANSLATION_CHANGED:
+			if not _problem.is_empty():
+				_fail(_problem)
 
 
 func _process(delta: float) -> void:
@@ -148,6 +165,11 @@ func switch_camera() -> void:
 	_activate_feed(target)
 
 
+func _fail(problem: String) -> void:
+	_problem = problem
+	failed.emit(CardDatabase.localized(TEXT[problem], TranslationServer.get_locale()))
+
+
 func _has_camera_permission() -> bool:
 	return OS.get_granted_permissions().has("android.permission.CAMERA")
 
@@ -159,7 +181,7 @@ func _on_permission_result(permission: String, granted: bool) -> void:
 	if granted:
 		_start_camera()
 	else:
-		failed.emit("Camera permission denied.\nAllow camera access in the system settings.")
+		_fail("permission_denied")
 
 
 func _start_camera() -> void:
@@ -181,6 +203,7 @@ func _start_native_camera() -> void:
 
 func _report_camera_start() -> void:
 	_reported_camera_start = true
+	_problem = ""
 	camera_started.emit()
 
 
@@ -196,7 +219,7 @@ func _start_feed_search() -> void:
 	_try_select_feed()
 	await get_tree().create_timer(FEED_SEARCH_GRACE_SEC).timeout
 	if _feed == null:
-		failed.emit("No camera found.")
+		_fail("no_camera")
 
 
 ## The Linux backend calls this from its own thread, where the camera would be half set

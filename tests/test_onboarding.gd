@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 56
+const EXPECTED_CHECKS := 66
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -73,9 +73,25 @@ func _run() -> void:
 	_check(seat_three.mode == SeatToken.Mode.SELECTABLE, "free seats can be tapped")
 	_check(done.disabled, "cannot go to battle without heroes")
 
+	# The party's name takes the place of a title, and can be typed right there.
+	var party_name: LineEdit = _scene._party_name_edit
+	_check(party_name.visible and party_name.text.is_empty() and not party_name.placeholder_text.is_empty(), "an unnamed party is asked for its name")
+	party_name.text = " Furious Four "
+	party_name.text_changed.emit(" Furious Four ")
+	_check(Party.load_file(PARTY_PATH).party_name == "Furious Four", "the name of the party is saved as it is typed")
+	var full_size: int = party_name.get_theme_font_size("font_size")
+	var long_name := "W".repeat(Party.MAX_PARTY_NAME_LENGTH)
+	party_name.text = long_name
+	party_name.text_changed.emit(long_name)
+	await get_tree().process_frame
+	_check(party_name.get_theme_font_size("font_size") < full_size and party_name.size.x <= _scene._stage.size.x, "a long name gets smaller and leaves the panel as it is")
+	party_name.text = "Furious Four"
+	party_name.text_changed.emit("Furious Four")
+
 	# Tapping a seat opens the editor for it, and cancelling leaves nothing behind.
 	seat_three.pressed.emit()
 	_check(_scene._view == VIEW_EDITOR and _scene._draft.seat == 3, "tapping a free seat opens the editor for it")
+	_check(not party_name.visible and _scene._title.visible, "the editor shows the hero's number instead of the party's name")
 	_check(seat_three.mode == SeatToken.Mode.ACTIVE and seat_five.mode == SeatToken.Mode.QUIET_SELECTABLE, "the seat being edited stands out")
 	_check(_scene._camera_problem.is_empty() and _scene._camera_view.visible, "debug builds show the camera while waiting for a card")
 	_check(done.disabled and cancel.visible and not delete.visible, "a new hero can be cancelled, but not yet finished or deleted")
@@ -166,6 +182,7 @@ func _run() -> void:
 	await get_tree().create_timer(0.6).timeout
 	var reloaded: Party = _scene._party
 	_check(_scene._view == VIEW_PARTY and reloaded.heroes.size() == 2, "the party is remembered between runs")
+	_check(_scene._party_name_edit.text == "Furious Four", "with its name")
 	_check(reloaded.hero_at(3).name == "Boris" and reloaded.hero_at(3).race == "dwarf" and reloaded.hero_at(3).hero_class == "thief", "with names and choices")
 	var loaded_token: SeatToken = _scene.get_node("Seats/Seat5")
 	_check(reloaded.hero_at(5) != null and loaded_token.get_node("NamePlate").visible, "and seats")
@@ -205,6 +222,7 @@ func _run() -> void:
 	done.pressed.emit()
 	await _until(func() -> bool: return _scene._editor.visible == false, READ_TIMEOUT_SEC)
 	_check(_scene._view == VIEW_PARTY and Party.load_file(PARTY_PATH).hero_at(3).name == "Boris II", "done saves it, keeping the seat")
+	_check(Party.load_file(PARTY_PATH).party_name == "Furious Four", "saving a hero keeps the name of the party")
 
 	# Moving to another seat: shown at once, but only saved with done.
 	var free_target: SeatToken = _scene.get_node("Seats/Seat6")
@@ -274,6 +292,18 @@ func _run() -> void:
 	_feed.show_image(DWARF)
 	await _until(func() -> bool: return not _scene._draft.race.is_empty(), READ_TIMEOUT_SEC)
 	_check(_scene._draft.race == "dwarf", "reads a card from colour frames, as on a laptop")
+
+	# Changing the language reaches what is on screen, in both views.
+	var caption: Label = _scene._tiles["dwarf"].get_node("Caption")
+	_check(cancel.text == "Abbrechen" and caption.text == "Kupfer-Zwerg", "the editor starts in German")
+	TranslationServer.set_locale("en")
+	await get_tree().process_frame
+	_check(cancel.text == "Cancel" and done.text == "Done" and caption.text == "Dwarf", "the open editor follows the language")
+	cancel.pressed.emit()
+	_check(done.text == "To Battle!", "the table stays in that language")
+	TranslationServer.set_locale("de")
+	await get_tree().process_frame
+	_check(done.text == "Zur Schlacht!" and _scene._party_name_edit.placeholder_text == "Name der Gruppe", "the table follows the language")
 
 
 func _open_scene() -> void:

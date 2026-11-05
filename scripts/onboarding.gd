@@ -17,6 +17,8 @@ const DELETE_CONFIRM_SEC := 3.0
 ## How much bigger the tile of the current choice stays.
 const TILE_SELECTED_SCALE := 1.08
 const TAKEN_NOTICE_SEC := 3.0
+## Keeps the caret from pushing a name that just fits out of view.
+const PARTY_NAME_SPARE_WIDTH := 6.0
 const GOLD := Color(0.98, 0.82, 0.48)
 const CREAM := Color(0.95, 0.88, 0.74)
 const FAINT := Color(0.6, 0.53, 0.42)
@@ -39,7 +41,7 @@ const TEXT := {
 	"battle": { "de": "Zur Schlacht!", "en": "To Battle!" },
 	"party_hint": { "de": "Tippe auf deinen Platz am Tisch, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table to create or change a hero." },
 	"party_hint_full": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
-	"title": { "de": "Foss Fighters", "en": "Foss Fighters" },
+	"party_name_placeholder": { "de": "Name der Gruppe", "en": "Party name" },
 }
 
 ## Where the party is saved. Set before adding the scene to the tree to use another file.
@@ -66,6 +68,7 @@ var _delete_armed := false
 var _delete_timer: SceneTreeTimer
 var _taken_notice := ""
 var _taken_notice_until_msec := 0
+var _party_name_font_size := 0
 
 @onready var _scanner: QrCameraScanner = $QrCameraScanner
 @onready var _table: TextureRect = $Table
@@ -73,6 +76,7 @@ var _taken_notice_until_msec := 0
 @onready var _seats: Array[Node] = $Seats.get_children()
 @onready var _stage: Control = $Stage
 @onready var _ornaments: Control = $Ornaments
+@onready var _party_name_edit: LineEdit = $Stage/Margin/Layout/Header/PartyName
 @onready var _title: Label = $Stage/Margin/Layout/Header/Title
 @onready var _party_hint: Label = $Stage/Margin/Layout/Header/PartyHint
 @onready var _editor: Control = $Stage/Margin/Layout/Views/Editor
@@ -127,7 +131,14 @@ func _ready() -> void:
 	_name_edit.max_length = Party.MAX_NAME_LENGTH
 	_name_edit.placeholder_text = _t("name_placeholder")
 	_cancel.text = _t("cancel")
-	_title.text = _t("title")
+	_party_name_font_size = _party_name_edit.get_theme_font_size("font_size")
+	_party_name_edit.max_length = Party.MAX_PARTY_NAME_LENGTH
+	_party_name_edit.placeholder_text = _t("party_name_placeholder")
+	_party_name_edit.text = _party.party_name
+	_party_name_edit.text_changed.connect(_on_party_name_changed)
+	_party_name_edit.text_submitted.connect(func(_text: String) -> void: _party_name_edit.release_focus())
+	_party_name_edit.resized.connect(_fit_party_name)
+	_fit_party_name()
 	_fill_tiles()
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
@@ -150,6 +161,21 @@ func _on_resized() -> void:
 
 func _t(key: String) -> String:
 	return CardDatabase.localized(TEXT[key], TranslationServer.get_locale())
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED and is_node_ready():
+		_refresh_language()
+
+
+## Nothing of what is on screen may stay in the old language.
+func _refresh_language() -> void:
+	_name_edit.placeholder_text = _t("name_placeholder")
+	_cancel.text = _t("cancel")
+	_party_name_edit.placeholder_text = _t("party_name_placeholder")
+	_fit_party_name()
+	_taken_notice = ""
+	_refresh_view()
 
 
 func _title_of(option: Dictionary) -> String:
@@ -307,6 +333,26 @@ func _on_name_changed(text: String) -> void:
 	_draft.name = text.strip_edges()
 	_name_is_suggested = false
 	_refresh_controls()
+
+
+func _on_party_name_changed(text: String) -> void:
+	_fit_party_name()
+	var party_name := text.strip_edges()
+	if party_name != _party.party_name:
+		_party.party_name = party_name
+		_party.save()
+
+
+## Long names get smaller instead of being cut off, as the title has to fit between the seats.
+func _fit_party_name() -> void:
+	var edit := _party_name_edit
+	var shown := edit.text if not edit.text.is_empty() else edit.placeholder_text
+	var width := edit.get_theme_font("font").get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, _party_name_font_size).x
+	var room := edit.size.x - edit.get_theme_stylebox("normal").get_minimum_size().x - edit.right_icon.get_width() - PARTY_NAME_SPARE_WIDTH
+	var font_size := _party_name_font_size
+	if width > room:
+		font_size = maxi(int(_party_name_font_size * room / width), 1)
+	edit.add_theme_font_size_override("font_size", font_size)
 
 
 # Flow ----------------------------------------------------------------------------
@@ -473,22 +519,25 @@ func _show_view(view: View, direction := 1.0) -> void:
 	_editor.visible = editing
 	_party_view.visible = not editing
 	_party_hint.visible = not editing
-	if editing:
-		_title.text = _t("hero") % (_party.heroes.find(_editing) + 1 if _editing != null else _party.heroes.size() + 1)
-		_title.theme_type_variation = &"Heading"
-		_refresh_pictures()
-		_refresh_tiles()
-	else:
-		_title.text = _t("title")
-		_title.theme_type_variation = &"Title"
-		_build_party_view()
-	_refresh_controls()
+	_party_name_edit.visible = not editing
+	_title.visible = editing
+	_refresh_view()
 
 	var content: Control = _editor if editing else _party_view
 	content.modulate.a = 0.0
 	var slide := create_tween().set_parallel()
 	slide.tween_method(_slide_content.bind(content), 36.0 * direction, 0.0, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	slide.tween_property(content, "modulate:a", 1.0, 0.25)
+
+
+func _refresh_view() -> void:
+	if _view == View.EDITOR:
+		_title.text = _t("hero") % (_party.heroes.find(_editing) + 1 if _editing != null else _party.heroes.size() + 1)
+		_refresh_pictures()
+		_refresh_tiles()
+	else:
+		_build_party_view()
+	_refresh_controls()
 
 
 ## Moves by the offsets, as setting the position of an anchored control would freeze

@@ -13,6 +13,9 @@ at the table:
 
 *To Battle!* appears once there is a hero, and loads `main.tscn`. With 4 heroes, free seats can no longer be tapped.
 
+The name of the party is at the top of the screen. Tap it to type another one. It is optional, and long names get
+smaller so that they stay readable between the seats.
+
 ## Editor
 
 Everything about a hero is on one page, and can be done in any order:
@@ -73,6 +76,9 @@ On a laptop, press F5 in the editor or run `godot --path .`. The window is scale
 - **Artwork:** `art/import_onboarding_art.sh <folder>` takes the finished images from a folder, with the same file
   names as now (`CharacterDwarf.png`, `ClassThief.png`, `Table.png`, …).
 - **Sounds:** `art/make_onboarding_sounds.py` creates them.
+- **Music:** `music.tscn` is an autoload, so the track keeps playing from the onboarding into the game. It sets the
+  track and its volume, which together with the default of the [music slider](settings.md) is kept low so that players
+  can talk over it. New tracks need Loop on in their import settings.
 
 ## Credits
 

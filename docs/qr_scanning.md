@@ -49,6 +49,7 @@ export needs a camera usage description. It would use Godot's camera feed, as th
     godot --headless -s tests/test_decoder.gd      # decoder only
     godot --headless -s tests/test_cards.gd        # card database
     godot --headless -s tests/test_party.gd        # saving and loading the party
+    godot --headless res://tests/test_settings.tscn  # settings, audio buses and the dialog
     godot res://tests/test_game.tscn               # the game with a fake camera; opens a window
     godot res://tests/test_onboarding.tscn         # the onboarding with a fake camera; opens a window
 

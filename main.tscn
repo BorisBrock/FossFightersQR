@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="2_scanner"]
@@ -6,6 +6,8 @@
 [ext_resource type="AudioStream" path="res://assets/pling.wav" id="5_pling"]
 
 [ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="6_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="7_settings_icon"]
+[ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_result"]
 bg_color = Color(0.05, 0.08, 0.12, 0.88)
@@ -127,5 +129,19 @@ theme_override_styles/disabled = SubResource("StyleBoxFlat_button")
 icon = ExtResource("6_icon")
 icon_alignment = 1
 
+[node name="Settings" type="Button" parent="Hud"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 112.0
+offset_bottom = 112.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+icon = ExtResource("7_settings_icon")
+icon_alignment = 1
+script = ExtResource("8_settings")
+
 [node name="Pling" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_pling")
+bus = &"SFX"

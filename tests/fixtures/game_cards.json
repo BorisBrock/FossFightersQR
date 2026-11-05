@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "cards": [
+    {
+      "qr": "CORE-001",
+      "deck": "loot",
+      "level": 3,
+      "title": {
+        "de": "Feuerball",
+        "en": "Fireball"
+      },
+      "symbols": [
+        {
+          "type": "attack",
+          "strength": 3
+        },
+        {
+          "type": "support",
+          "strength": 1
+        }
+      ],
+      "effect": {
+        "de": "Füge einem Ziel 3 Schaden zu.\nBrennt es, sagt es \"au\""
+      }
+    }
+  ]
+}
