@@ -33,3 +33,8 @@ work.
 To fill the file from physical cards, see [tools/README.md](../tools/README.md).
 
 `title`, `effect`, `level` and `symbols` are left out for cards that do not have them.
+
+## Character and class cards
+
+A `race` field makes a card a character card, a `hero_class` field makes it a class card. The
+[onboarding](onboarding.md) only reacts to these. In the catalog editor, choose it under *Character or class card*.

@@ -16,12 +16,14 @@
 4. Reads surface through `QrCameraScanner.code_read`. `scripts/main.gd` turns them into the sound and the
    [card display](cards.md).
 
-The game shows no camera picture. `scripts/placeholder_scene.gd` stands in for the game's animated scene.
+The game shows no camera picture, except in debug builds during onboarding, to help aiming a laptop camera.
+`scripts/placeholder_scene.gd` stands in for the game's animated scene.
 
 Decoding uses [ZXing-C++](https://github.com/zxing-cpp/zxing-cpp) (Apache 2.0).
 
 **Cameras:** the game starts on the front camera, because the device lies on the table with its screen up.
-The button switches between front and back.
+The button switches between front and back. Cameras that do not say where they are, as on a laptop, are
+switched between in the order they are listed, and infrared cameras are avoided at the start.
 
 **Display rule:** the card stays until 5 s after the code was last seen. A code that stays in view plings
 once. It plings again after 2 s out of view, and a different code plings immediately.
@@ -46,7 +48,9 @@ export needs a camera usage description. It would use Godot's camera feed, as th
 
     godot --headless -s tests/test_decoder.gd      # decoder only
     godot --headless -s tests/test_cards.gd        # card database
+    godot --headless -s tests/test_party.gd        # saving and loading the party
     godot res://tests/test_game.tscn               # the game with a fake camera; opens a window
+    godot res://tests/test_onboarding.tscn         # the onboarding with a fake camera; opens a window
 
 The game test runs Godot's camera feed path. The native camera can only be tested on an Android device or emulator.
 

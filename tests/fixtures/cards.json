@@ -3,7 +3,7 @@
   "cards": [
     {
       "qr": "FULL",
-      "deck": "core",
+      "deck": "loot",
       "level": 3,
       "title": { "de": "Feuerball", "en": "Fireball" },
       "symbols": [ { "type": "attack", "strength": 3 }, { "type": "support", "strength": 1 } ],
@@ -11,7 +11,7 @@
     },
     {
       "qr": "MINIMAL",
-      "deck": "core"
+      "deck": "loot"
     }
   ]
 }

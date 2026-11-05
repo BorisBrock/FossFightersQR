@@ -12,6 +12,10 @@ var qr: String
 var deck: String
 ## 0 if the card has no level.
 var level := 0
+## Set on character cards, see [HeroOptions]. Empty on all other cards.
+var race := ""
+## Set on class cards, see [HeroOptions]. Empty on all other cards.
+var hero_class := ""
 ## Text by language code, see [method CardDatabase.localized]. Empty if the card has none.
 var title: Dictionary
 var effect: Dictionary
@@ -28,6 +32,8 @@ static func from_data(data: Variant) -> Card:
 	var qr_value: Variant = data.get("qr")
 	var deck_value: Variant = data.get("deck")
 	var level_value: Variant = data.get("level", 0)
+	var race_value: Variant = data.get("race", "")
+	var hero_class_value: Variant = data.get("hero_class", "")
 	var title_value: Variant = data.get("title", {})
 	var effect_value: Variant = data.get("effect", {})
 	var symbols_value: Variant = data.get("symbols", [])
@@ -35,11 +41,13 @@ static func from_data(data: Variant) -> Card:
 		return null
 	if not _is_integer(level_value) or not _is_text(title_value) or not _is_text(effect_value):
 		return null
-	if not symbols_value is Array:
+	if not symbols_value is Array or not race_value is String or not hero_class_value is String:
 		return null
 	card.qr = qr_value
 	card.deck = deck_value
 	card.level = int(level_value)
+	card.race = race_value
+	card.hero_class = hero_class_value
 	card.title = title_value
 	card.effect = effect_value
 	for entry: Variant in symbols_value:

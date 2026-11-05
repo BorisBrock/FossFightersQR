@@ -1,0 +1,142 @@
+[gd_resource type="Theme" load_steps=11 format=3]
+
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="1_regular"]
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="2_bold"]
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/CinzelDecorative-Bold.ttf" id="3_title"]
+
+[sub_resource type="StyleBoxFlat" id="button_normal"]
+content_margin_left = 26.0
+content_margin_top = 8.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+bg_color = Color(0.25, 0.13, 0.07, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="button_hover"]
+content_margin_left = 26.0
+content_margin_top = 8.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+bg_color = Color(0.36, 0.2, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.98, 0.84, 0.5, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(1, 0.75, 0.3, 0.3)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="button_pressed"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 8.0
+bg_color = Color(0.16, 0.08, 0.04, 1)
+border_width_left = 2
+border_width_top = 4
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[sub_resource type="StyleBoxFlat" id="edit_normal"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.05, 0.03, 0.02, 0.75)
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="edit_focus"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.1, 0.06, 0.03, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.84, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+bg_color = Color(0.085, 0.05, 0.035, 0.93)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.54, 0.22, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 24
+shadow_offset = Vector2(0, 6)
+
+[resource]
+default_font = ExtResource("1_regular")
+default_font_size = 22
+Button/colors/font_color = Color(0.98, 0.88, 0.62, 1)
+Button/colors/font_hover_color = Color(1, 0.96, 0.8, 1)
+Button/colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+Button/colors/font_focus_color = Color(0.98, 0.88, 0.62, 1)
+Button/font_sizes/font_size = 26
+Button/fonts/font = ExtResource("2_bold")
+Button/styles/focus = SubResource("empty")
+Button/styles/hover = SubResource("button_hover")
+Button/styles/normal = SubResource("button_normal")
+Button/styles/pressed = SubResource("button_pressed")
+Label/colors/font_color = Color(0.95, 0.88, 0.74, 1)
+Heading/base_type = &"Label"
+Heading/colors/font_color = Color(0.98, 0.82, 0.48, 1)
+Heading/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
+Heading/constants/outline_size = 4
+Heading/font_sizes/font_size = 30
+Heading/fonts/font = ExtResource("2_bold")
+Title/base_type = &"Label"
+Title/colors/font_color = Color(0.98, 0.82, 0.48, 1)
+Title/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
+Title/constants/outline_size = 6
+Title/font_sizes/font_size = 40
+Title/fonts/font = ExtResource("3_title")
+Hint/base_type = &"Label"
+Hint/colors/font_color = Color(0.82, 0.74, 0.6, 1)
+Hint/font_sizes/font_size = 21
+LineEdit/colors/font_color = Color(1, 0.95, 0.82, 1)
+LineEdit/colors/font_placeholder_color = Color(0.7, 0.6, 0.45, 1)
+LineEdit/colors/caret_color = Color(0.98, 0.84, 0.5, 1)
+LineEdit/font_sizes/font_size = 28
+LineEdit/fonts/font = ExtResource("2_bold")
+LineEdit/styles/focus = SubResource("edit_focus")
+LineEdit/styles/normal = SubResource("edit_normal")
+PanelContainer/styles/panel = SubResource("panel")

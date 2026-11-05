@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="280" viewBox="0 0 100 140">
+  <rect x="3" y="3" width="94" height="134" rx="9" fill="#f6e7c3" stroke="#d6a648" stroke-width="5"/>
+  <rect x="11" y="11" width="78" height="118" rx="5" fill="none" stroke="#8a6420" stroke-width="1.5"/>
+  <g fill="#23160a">
+    <path d="M24 34h20v20h-20z M28 38v12h12v-12z" fill-rule="evenodd"/><rect x="31" y="41" width="6" height="6"/>
+    <path d="M56 34h20v20h-20z M60 38v12h12v-12z" fill-rule="evenodd"/><rect x="63" y="41" width="6" height="6"/>
+    <path d="M24 86h20v20h-20z M28 90v12h12v-12z" fill-rule="evenodd"/><rect x="31" y="93" width="6" height="6"/>
+    <rect x="48" y="36" width="4" height="8"/><rect x="48" y="48" width="4" height="4"/>
+    <rect x="24" y="60" width="8" height="4"/><rect x="36" y="60" width="4" height="8"/><rect x="48" y="58" width="8" height="4"/>
+    <rect x="60" y="60" width="4" height="4"/><rect x="68" y="58" width="8" height="8"/><rect x="28" y="72" width="8" height="4"/>
+    <rect x="44" y="68" width="4" height="12"/><rect x="52" y="70" width="12" height="4"/><rect x="68" y="72" width="8" height="4"/>
+    <rect x="50" y="84" width="8" height="8"/><rect x="62" y="80" width="4" height="12"/><rect x="70" y="84" width="6" height="6"/>
+    <rect x="50" y="98" width="4" height="8"/><rect x="58" y="96" width="8" height="4"/><rect x="60" y="102" width="16" height="4"/>
+  </g>
+</svg>

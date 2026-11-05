@@ -17,6 +17,9 @@ signal failed(reason: String)
 const PERMISSION_CAMERA := "CAMERA"
 const CAMERA_RECOVERY_INTERVAL_SEC := 1.0
 const READBACK_TIMEOUT_MSEC := 1000
+## How long to wait for a camera to show up before telling the player there is none.
+## The Linux backend takes about half a second to list them.
+const FEED_SEARCH_GRACE_SEC := 2.0
 ## GPU copies take a few rendered frames. Letting them overlap means that no camera
 ## frames get skipped because of that delay.
 const MAX_READBACKS_IN_FLIGHT := 2
@@ -51,6 +54,12 @@ var _last_scan_msec := 0
 
 
 func _ready() -> void:
+	# Children are ready before their parents. Waiting a moment means that whoever owns
+	# this node has connected its signals, and hears about a camera that cannot start.
+	_begin.call_deferred()
+
+
+func _begin() -> void:
 	if not ClassDB.can_instantiate("QrDecoder"):
 		failed.emit("The QR decoder library is missing for this platform.\nRun native/build.sh.")
 		set_process(false)
@@ -118,6 +127,11 @@ func can_switch_camera() -> bool:
 	return _opposite_feed() != null
 
 
+## The camera picture, for debugging. Null on the native camera, which has no picture.
+func get_preview_texture() -> Texture2D:
+	return _texture
+
+
 ## Moves scanning to the camera on the other side. camera_started fires once the
 ## new camera delivers its first frame.
 func switch_camera() -> void:
@@ -180,12 +194,15 @@ func _start_feed_search() -> void:
 	CameraServer.camera_feed_added.connect(_on_feed_added)
 	CameraServer.monitoring_feeds = true
 	_try_select_feed()
+	await get_tree().create_timer(FEED_SEARCH_GRACE_SEC).timeout
 	if _feed == null:
 		failed.emit("No camera found.")
 
 
+## The Linux backend calls this from its own thread, where the camera would be half set
+## up while _process already looks at it.
 func _on_feed_added(_id: int) -> void:
-	_try_select_feed()
+	_try_select_feed.call_deferred()
 
 
 func _try_select_feed() -> void:
@@ -194,12 +211,15 @@ func _try_select_feed() -> void:
 	var feeds := CameraServer.feeds()
 	if feeds.is_empty():
 		return
-	# The first feed of a position is that side's main camera.
+	# The first feed of a position is that side's main camera. Laptops do not say what
+	# position a camera has, but may list a face recognition camera next to the real one.
 	var chosen: CameraFeed = feeds[0]
 	for candidate: CameraFeed in feeds:
 		if candidate.get_position() == CameraFeed.FEED_FRONT:
 			chosen = candidate
 			break
+		if chosen.get_name().contains(" IR ") and not candidate.get_name().contains(" IR "):
+			chosen = candidate
 	_activate_feed(chosen)
 
 
@@ -210,6 +230,11 @@ func _opposite_feed() -> CameraFeed:
 	for candidate: CameraFeed in CameraServer.feeds():
 		if candidate.get_position() == wanted:
 			return candidate
+	# Cameras of unknown position, as on a laptop: any other one will do.
+	if _feed.get_position() == CameraFeed.FEED_UNSPECIFIED:
+		for candidate: CameraFeed in CameraServer.feeds():
+			if candidate != _feed:
+				return candidate
 	return null
 
 

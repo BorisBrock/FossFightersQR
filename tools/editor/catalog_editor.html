@@ -102,7 +102,7 @@
 <main>
   <div class="bar">
     <input id="search" type="search" placeholder="Search QR, title, effect…">
-    <select id="deck"><option value="">All decks</option><option>core</option><option>expansion1</option></select>
+    <select id="deck"><option value="">All decks</option></select>
     <select id="filter">
       <option value="">All cards</option>
       <option value="nosym">Without symbols</option>
@@ -164,9 +164,22 @@
     <div class="hint" id="reviewHint" hidden></div>
     <div class="grid3">
       <label>QR code<input id="f_qr" required></label>
-      <label>Deck<select id="f_deck"><option>core</option><option>expansion1</option></select></label>
+      <label>Deck<select id="f_deck"></select></label>
       <label>Level (1–10)<input id="f_level" type="number" min="1" max="10"></label>
     </div>
+    <label>Character or class card (chosen by players during onboarding)
+      <select id="f_hero">
+        <option value="">Neither</option>
+        <optgroup label="Character card">
+          <option value="race:halfling">Halfling</option><option value="race:dwarf">Dwarf</option><option value="race:elf">Elf</option>
+          <option value="race:troll">Troll</option><option value="race:goblin">Goblin inventor</option><option value="race:dryad">Forest dryad</option>
+        </optgroup>
+        <optgroup label="Class card">
+          <option value="hero_class:paladin">Paladin</option><option value="hero_class:magician">Magician</option><option value="hero_class:warrior">Warrior</option>
+          <option value="hero_class:thief">Thief</option><option value="hero_class:druid">Druid</option><option value="hero_class:shaman">Shaman</option>
+        </optgroup>
+      </select>
+    </label>
     <div class="grid2">
       <label>Title (German, empty if the card has none)<input id="f_title_de"></label>
       <label class="en">Title (English)<input id="f_title_en"></label>
@@ -193,13 +206,20 @@
 
 <script>
 const SCHEMA_VERSION = 2;
+const DECKS = [
+  "classes", "characters",
+  "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
+  "thief", "magician", "warrior", "paladin", "shaman", "druid",
+  "loot", "items",
+];
+for (const id of ["deck", "f_deck"]) document.getElementById(id).append(...DECKS.map(d => new Option(d)));
 
 // One line per field keeps the file readable and its diffs small.
 function serializeCatalog(cards) {
   const oneLine = value => JSON.stringify(value, null, 1).replace(/\n\s*/g, " ");
   const present = v => v != null && (typeof v !== "object" || Object.keys(v).length > 0);
   const entries = cards.map(c => {
-    const fields = ["qr", "deck", "level", "title", "symbols", "effect"].filter(k => present(c[k]));
+    const fields = ["qr", "deck", "race", "hero_class", "level", "title", "symbols", "effect"].filter(k => present(c[k]));
     return "    {\n" + fields.map(k => `      ${JSON.stringify(k)}: ${oneLine(c[k])}`).join(",\n") + "\n    }";
   });
   return `{\n  "$schema": "./cards.schema.json",\n  "schema_version": ${SCHEMA_VERSION},\n  "cards": [\n${entries.join(",\n")}\n  ]\n}\n`;
@@ -209,9 +229,10 @@ function serializeCatalog(cards) {
 function validateCard(c, all) {
   const e = [];
   if (!/^[A-Za-z0-9_+/=-]{1,15}$/.test(c.qr ?? "")) e.push("QR must be 1–15 characters of A-Z a-z 0-9 _ - + / =");
-  if (!["core", "expansion1"].includes(c.deck)) e.push("deck must be core or expansion1");
+  if (!DECKS.includes(c.deck)) e.push("deck must be one of: " + DECKS.join(", "));
   if (Object.keys(c.title ?? {}).length && !c.title.de) e.push("German title is required when a title exists");
   if (c.effect && Object.keys(c.effect).length && !c.effect.de) e.push("German effect is required when an effect exists");
+  if (c.race && c.hero_class) e.push("a card cannot be both a character and a class card");
   if (c.level != null && !(Number.isInteger(c.level) && c.level >= 1 && c.level <= 10)) e.push("level must be 1–10");
   for (const s of c.symbols ?? []) if (!["attack", "support", "heal"].includes(s.type) || !(Number.isInteger(s.strength) && s.strength >= 0)) e.push("invalid symbol");
   if (all.some(o => o !== c && o.qr === c.qr)) e.push("QR code is used by another card");
@@ -373,9 +394,10 @@ if (typeof document !== "undefined") (() => {
     $("discard").hidden = $("retake").hidden = !scanMode;
     $("reviewHint").hidden = true;
     $("photoWrap").hidden = !scanMode;
-    const c = card ?? { qr: "", deck: "core", title: {}, symbols: [] };
+    const c = card ?? { qr: "", deck: DECKS[0], title: {}, symbols: [] };
     $("dlgTitle").textContent = card ? `Edit ${c.qr}` : scanMode ? "Check the scanned card" : "Add card";
     $("f_qr").value = c.qr; $("f_deck").value = c.deck; $("f_level").value = c.level ?? "";
+    $("f_hero").value = c.race ? `race:${c.race}` : c.hero_class ? `hero_class:${c.hero_class}` : "";
     $("f_title_de").value = c.title.de ?? ""; $("f_title_en").value = c.title.en ?? "";
     $("f_eff_de").value = c.effect?.de ?? ""; $("f_eff_en").value = c.effect?.en ?? "";
     $("symbols").replaceChildren(); c.symbols.forEach(symbolRow);
@@ -407,6 +429,9 @@ if (typeof document !== "undefined") (() => {
       symbols,
     };
     if (level) draft.level = parseInt(level, 10); else delete draft.level;
+    delete draft.race; delete draft.hero_class;
+    const [heroField, heroValue] = $("f_hero").value.split(":");
+    if (heroValue) draft[heroField] = heroValue;
     const others = cards.filter(c => c !== editing);
     const errs = validateCard(draft, [...others, draft]);
     if (errs.length) { e.preventDefault(); $("formErr").textContent = errs.join("; "); return; }

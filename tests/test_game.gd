@@ -105,7 +105,7 @@ func _run() -> void:
 	_feed.show_image("res://tests/fixtures/qr_card.png")
 	await _until(func() -> bool: return title.text != UNKNOWN_TITLE, READ_TIMEOUT_SEC)
 	_check(title.text == "Feuerball", "known card shows its title: '%s'" % title.text)
-	_check(label.text.begins_with(CODE_CARD + " · core · Level 3\nAttack 3 · Support 1\nFüge"), "known card shows its data: '%s'" % label.text)
+	_check(label.text.begins_with(CODE_CARD + " · loot · Level 3\nAttack 3 · Support 1\nFüge"), "known card shows its data: '%s'" % label.text)
 	_check(pling.playing, "known card plings")
 	var result_top := panel.global_position.y
 	_check(result_top >= 0.0 and panel.get_global_rect().end.y <= get_viewport().get_visible_rect().size.y, "card fits on the screen: top at %.0f" % result_top)

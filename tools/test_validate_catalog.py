@@ -8,7 +8,7 @@ def catalog(*cards):
     return json.dumps({"schema_version": 2, "cards": list(cards)})
 
 
-CARD = {"qr": "A", "deck": "core"}
+CARD = {"qr": "A", "deck": "loot"}
 
 
 class FindProblems(unittest.TestCase):
@@ -25,10 +25,31 @@ class FindProblems(unittest.TestCase):
         self.assertIn("not valid JSON", find_problems('{"cards": [')[0])
 
     def test_rejects_a_repeated_key(self):
-        self.assertIn("key used twice: qr", find_problems('{"schema_version": 2, "cards": [{"qr": "A", "qr": "B", "deck": "core"}]}')[0])
+        self.assertIn("key used twice: qr", find_problems('{"schema_version": 2, "cards": [{"qr": "A", "qr": "B", "deck": "loot"}]}')[0])
 
     def test_rejects_a_duplicate_qr_code(self):
-        self.assertEqual(find_problems(catalog(CARD, {**CARD, "deck": "expansion1"})), ["QR code used by two cards: A"])
+        self.assertEqual(find_problems(catalog(CARD, {**CARD, "deck": "items"})), ["QR code used by two cards: A"])
+
+    def test_accepts_every_deck(self):
+        decks = ["classes", "characters", "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
+                 "thief", "magician", "warrior", "paladin", "shaman", "druid", "loot", "items"]
+        self.assertEqual(find_problems(catalog(*({"qr": str(i), "deck": d} for i, d in enumerate(decks)))), [])
+
+    def test_rejects_an_unknown_deck(self):
+        self.assertTrue(find_problems(catalog({**CARD, "deck": "robot"})))
+
+    def test_rejects_the_removed_decks(self):
+        self.assertTrue(find_problems(catalog({**CARD, "deck": "core"})))
+        self.assertTrue(find_problems(catalog({**CARD, "deck": "expansion1"})))
+
+    def test_accepts_character_and_class_cards(self):
+        self.assertEqual(find_problems(catalog({**CARD, "race": "dwarf"}, {"qr": "B", "deck": "classes", "hero_class": "thief"})), [])
+
+    def test_rejects_a_card_that_is_both_character_and_class(self):
+        self.assertTrue(find_problems(catalog({**CARD, "race": "dwarf", "hero_class": "thief"})))
+
+    def test_rejects_an_unknown_race(self):
+        self.assertTrue(find_problems(catalog({**CARD, "race": "robot"})))
 
     def test_rejects_a_card_without_deck(self):
         self.assertIn("'deck' is a required property", find_problems(catalog({"qr": "A"}))[0])

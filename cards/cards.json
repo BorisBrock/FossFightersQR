@@ -3,24 +3,184 @@
   "schema_version": 2,
   "cards": [
     {
-      "qr": "CORE-001",
-      "deck": "core",
-      "level": 3,
-      "title": { "de": "Feuerball", "en": "Fireball" },
-      "symbols": [ { "type": "attack", "strength": 3 }, { "type": "support", "strength": 1 } ],
-      "effect": { "de": "Füge einem Ziel 3 Schaden zu.\nBrennt es, füge stattdessen 5 zu.", "en": "Deal 3 damage to a target.\nIf it is burning, deal 5 instead." }
+      "qr": "bQAAAA==",
+      "deck": "characters",
+      "race": "halfling",
+      "level": 1,
+      "title": { "de": "Hügel-Halbling", "en": "Halfling" }
     },
     {
-      "qr": "CORE-002",
-      "deck": "core",
-      "title": { "de": "Heilkraut", "en": "Healing Herb" }
+      "qr": "agAAAA==",
+      "deck": "characters",
+      "race": "dwarf",
+      "level": 1,
+      "title": { "de": "Kupfer-Zwerg", "en": "Dwarf" }
     },
     {
-      "qr": "1AEAAA==",
-      "deck": "core",
-      "level": 7,
-      "title": { "de": "Magmahorn" },
-      "effect": { "de": "Darchsuche deinen nach Karie und spiele sie, Mische danach deinen Nachzichstapel, Entferne die herausgesuchte Karte für den restlichen Besskampf aus dem Spiel." }
+      "qr": "bAAAAA==",
+      "deck": "characters",
+      "race": "elf",
+      "level": 1,
+      "title": { "de": "Wald-Elfe", "en": "Elf" }
+    },
+    {
+      "qr": "hAEAAA==",
+      "deck": "characters",
+      "race": "goblin",
+      "level": 1,
+      "title": { "de": "Goblin-Tüftler", "en": "Goblin Inventor" }
+    },
+    {
+      "qr": "hQEAAA==",
+      "deck": "characters",
+      "race": "dryad",
+      "level": 1,
+      "title": { "de": "Dryaden-Hüterin", "en": "Forest Dryad" }
+    },
+    {
+      "qr": "tgEAAA==",
+      "deck": "classes",
+      "hero_class": "paladin",
+      "level": 1,
+      "title": { "de": "Paladin", "en": "Paladin" }
+    },
+    {
+      "qr": "cQAAAA==",
+      "deck": "classes",
+      "hero_class": "magician",
+      "level": 1,
+      "title": { "de": "Magier", "en": "Magician" }
+    },
+    {
+      "qr": "cAAAAA==",
+      "deck": "classes",
+      "hero_class": "warrior",
+      "level": 1,
+      "title": { "de": "Krieger", "en": "Warrior" }
+    },
+    {
+      "qr": "cwAAAA==",
+      "deck": "classes",
+      "hero_class": "druid",
+      "level": 1,
+      "title": { "de": "Druide", "en": "Druid" }
+    },
+    {
+      "qr": "hgEAAA==",
+      "deck": "classes",
+      "hero_class": "shaman",
+      "level": 1,
+      "title": { "de": "Schamane", "en": "Shaman" }
+    },
+    {
+      "qr": "KwEAAA==",
+      "deck": "classes",
+      "hero_class": "druid",
+      "level": 8,
+      "title": { "de": "Hochdruide" },
+      "effect": { "de": "In jeder Runde bekommt der erste Schutz, den du spielst, ein Blitz-Symbol." }
+    },
+    {
+      "qr": "ugEAAA==",
+      "deck": "classes",
+      "hero_class": "paladin",
+      "level": 8,
+      "title": { "de": "Himmelspaladin" },
+      "effect": { "de": "Jedes Mal, wenn du in einer Runde die erste Person bist, die den ersten Angriff einer Schadensart spielt, erhältst du 3 Lebenspunkte." }
+    },
+    {
+      "qr": "iQEAAA==",
+      "deck": "classes",
+      "hero_class": "shaman",
+      "level": 8,
+      "title": { "de": "Seelenschamane" },
+      "effect": { "de": "In jeder Runde erhält das erste Totem, das du spielst, einen Blitz." }
+    },
+    {
+      "qr": "KQEAAA==",
+      "deck": "classes",
+      "hero_class": "magician",
+      "level": 8,
+      "title": { "de": "Erzmagier" },
+      "effect": { "de": "Immer wenn du 1 oder mehr Lebenspunkte verlierst, darfst du 1 Karte ziehen." }
+    },
+    {
+      "qr": "cgAAAA==",
+      "deck": "classes",
+      "hero_class": "thief",
+      "level": 1,
+      "title": { "de": "Schurke" }
+    },
+    {
+      "qr": "/QAAAA==",
+      "deck": "characters",
+      "race": "elf",
+      "level": 5,
+      "title": { "de": "Elfen-Bewahrerin" },
+      "effect": { "de": "Deine Verstärkungen fügen 2 Schaden mehr zu, wenn du in der laufenden Runde bereits einen Angriff der entsprechenden Art gespielt hast." }
+    },
+    {
+      "qr": "iAEAAA==",
+      "deck": "characters",
+      "race": "dryad",
+      "level": 5,
+      "title": { "de": "Dryaden-Urgewalt" },
+      "effect": { "de": "Du kannst als Aktion eine neue Form annehmen. In jeder Runde erhält die erste Form, die du spielst, einen Blitz." }
+    },
+    {
+      "qr": "AAEAAA==",
+      "deck": "characters",
+      "race": "halfling",
+      "level": 5,
+      "title": { "de": "Halbling-Glücksmeisterin" },
+      "effect": { "de": "Zerstörst du einen Boss-Schild, verliert der Boss sofort 4 Leben." }
+    },
+    {
+      "qr": "aQAAAA==",
+      "deck": "characters",
+      "race": "troll",
+      "level": 1,
+      "title": { "de": "Dschungel-Troll" }
+    },
+    {
+      "qr": "hwEAAA==",
+      "deck": "characters",
+      "race": "goblin",
+      "level": 5,
+      "title": { "de": "Goblin-Genie" },
+      "effect": { "de": "Du kannst einen Kampfroboter bauen. Solange dein Kampfroboter funktionsfähig ist, sind alle deine Angriffe um 2 erhöht." }
+    },
+    {
+      "qr": "/gAAAA==",
+      "deck": "characters",
+      "race": "troll",
+      "level": 5,
+      "title": { "de": "Troll-Häuptling" },
+      "effect": { "de": "Fügst du das erste Mal in deinem Zug dem Boss mit einem Angriff Schaden zu, spiele die oberste Karte deines Decks oder nutze Opas Glasauge." }
+    },
+    {
+      "qr": "/wAAAA==",
+      "deck": "characters",
+      "race": "dwarf",
+      "level": 5,
+      "title": { "de": "Zwergen-Schatzhüter" },
+      "effect": { "de": "Senkst du mit einem Schutz eine Boss-Attacke auf 0, darfst du eine Handkarte mit einem Angriff spielen oder den Trinkschlauch nutzen." }
+    },
+    {
+      "qr": "KgEAAA==",
+      "deck": "classes",
+      "hero_class": "thief",
+      "level": 8,
+      "title": { "de": "Schurkenkönig" },
+      "effect": { "de": "Du darfst Verstärkungen spielen, ohne dass zuvor ein Angriff gespielt werden muss." }
+    },
+    {
+      "qr": "KAEAAA==",
+      "deck": "classes",
+      "hero_class": "warrior",
+      "level": 8,
+      "title": { "de": "Elitekrieger" },
+      "effect": { "de": "Greifst du mit deinem ersten Angriff in einer Runde einen Boss-Schild an, ignoriere dessen Schild-Effekt." }
     }
   ]
 }

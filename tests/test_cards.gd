@@ -2,7 +2,7 @@ extends SceneTree
 ## Card database checks.
 ## Run with: godot --headless -s tests/test_cards.gd
 
-const EXPECTED_CHECKS := 28
+const EXPECTED_CHECKS := 32
 
 var _failures := 0
 var _checks_run := 0
@@ -23,7 +23,7 @@ func _check_database() -> void:
 	_check(database.size() == 2, "has both cards")
 
 	var full := database.find("FULL")
-	_check(full != null and full.deck == "core", "finds a card by its QR code")
+	_check(full != null and full.deck == "loot", "finds a card by its QR code")
 	_check(typeof(full.level) == TYPE_INT and full.level == 3, "reads the level as an integer")
 	_check(full.symbols.size() == 2 and full.symbols[1].type == "support" and typeof(full.symbols[1].strength) == TYPE_INT and full.symbols[1].strength == 1, "reads symbols")
 	_check(full.effect.get("de") == "Füge einem Ziel 3 Schaden zu.\nBrennt es, sagt es \"au\"", "reads a multi-line text ending in a quote")
@@ -36,6 +36,12 @@ func _check_database() -> void:
 
 	var catalog := CardDatabase.load_file("res://cards/cards.json")
 	_check(catalog.error.is_empty() and catalog.size() > 0, "loads the real catalog: '%s'" % catalog.error)
+	_check(full.race.is_empty() and full.hero_class.is_empty(), "a playing card is neither a character nor a class")
+
+	var dwarf := Card.from_data({ "qr": "A", "deck": "characters", "race": "dwarf" })
+	_check(dwarf != null and dwarf.race == "dwarf" and dwarf.hero_class.is_empty(), "reads the race of a character card")
+	var thief := Card.from_data({ "qr": "A", "deck": "classes", "hero_class": "thief" })
+	_check(thief != null and thief.hero_class == "thief" and thief.race.is_empty(), "reads the class of a class card")
 
 
 func _check_localized() -> void:
@@ -52,20 +58,21 @@ func _check_bad_databases() -> void:
 	var syntax_error := _load_text("{\n\"cards\": [").error
 	_check(syntax_error.begins_with("line 2:"), "reports the line of a syntax error: '%s'" % syntax_error)
 
-	var cards := "{\"qr\": \"A\", \"deck\": \"core\"}, {\"qr\": \"A\", \"deck\": \"expansion1\"}, {\"qr\": \"B\", \"deck\": \"core\"}"
+	var cards := "{\"qr\": \"A\", \"deck\": \"loot\"}, {\"qr\": \"A\", \"deck\": \"items\"}, {\"qr\": \"B\", \"deck\": \"loot\"}"
 	var duplicate := _load_text("{\"schema_version\": 2, \"cards\": [%s]}" % cards)
 	_check(duplicate.error.contains("two cards"), "reports a duplicate QR code: '%s'" % duplicate.error)
-	_check(duplicate.size() == 2 and duplicate.find("A").deck == "core", "keeps the other cards")
+	_check(duplicate.size() == 2 and duplicate.find("A").deck == "loot", "keeps the other cards")
 
 	for bad: Variant in [
 		"text",
-		{ "deck": "core" },
+		{ "deck": "loot" },
 		{ "qr": "A" },
-		{ "qr": 1, "deck": "core" },
-		{ "qr": "A", "deck": "core", "level": 1.5 },
-		{ "qr": "A", "deck": "core", "title": "text" },
-		{ "qr": "A", "deck": "core", "effect": { "de": 1 } },
-		{ "qr": "A", "deck": "core", "symbols": [{ "type": "attack" }] },
+		{ "qr": 1, "deck": "loot" },
+		{ "qr": "A", "deck": "loot", "level": 1.5 },
+		{ "qr": "A", "deck": "loot", "title": "text" },
+		{ "qr": "A", "deck": "loot", "effect": { "de": 1 } },
+		{ "qr": "A", "deck": "loot", "symbols": [{ "type": "attack" }] },
+		{ "qr": "A", "deck": "characters", "race": 1 },
 	]:
 		_check(Card.from_data(bad) == null, "rejects %s" % [bad])
 

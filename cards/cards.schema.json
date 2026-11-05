@@ -34,13 +34,29 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["qr", "deck"],
+      "not": { "required": ["race", "hero_class"] },
       "properties": {
         "qr": {
           "description": "Unique card ID, printed as a QR code. 1-15 characters: letters, digits and _ - + / = (so base64 values like BAEAAA== work).",
           "type": "string",
           "pattern": "^[A-Za-z0-9_+/=-]{1,15}$"
         },
-        "deck": { "enum": ["core", "expansion1"] },
+        "deck": {
+          "enum": [
+            "classes", "characters",
+            "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
+            "thief", "magician", "warrior", "paladin", "shaman", "druid",
+            "loot", "items"
+          ]
+        },
+        "race": {
+          "description": "Makes this a character card: players show it during onboarding to choose this race.",
+          "enum": ["halfling", "dwarf", "elf", "troll", "goblin", "dryad"]
+        },
+        "hero_class": {
+          "description": "Makes this a class card: players show it during onboarding to choose this class.",
+          "enum": ["paladin", "magician", "warrior", "thief", "druid", "shaman"]
+        },
         "title": {
           "description": "Left out for cards without a title.",
           "$ref": "#/definitions/localizedText"

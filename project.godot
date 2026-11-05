@@ -11,18 +11,20 @@ config_version=5
 [application]
 
 config/name="FossFightersQR"
+run/main_scene="res://onboarding.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.png"
-run/main_scene="res://main.tscn"
 run/max_fps=30
+config/icon="res://icon.png"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/handheld/orientation=4
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=450
+window/size/window_height_override=800
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [physics]
 

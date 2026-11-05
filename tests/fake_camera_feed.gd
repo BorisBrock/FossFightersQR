@@ -3,6 +3,8 @@ extends CameraFeed
 ## Stands in for a phone camera: delivers frames the way the Android backend does,
 ## as a luminance image with a separate half-size chroma image.
 
+## Delivers colour frames the way a laptop webcam does, instead of the Android format.
+var deliver_rgb := false
 var luma: Image
 var _chroma: Image
 
@@ -20,7 +22,13 @@ func show_image(path: String) -> void:
 
 
 func deliver_frame() -> void:
-	if feed_is_active and luma:
+	if not feed_is_active or not luma:
+		return
+	if deliver_rgb:
+		var color: Image = luma.duplicate()
+		color.convert(Image.FORMAT_RGB8)
+		set_rgb_image(color)
+	else:
 		set_ycbcr_images(luma, _chroma)
 
 

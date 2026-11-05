@@ -1,0 +1,581 @@
+[gd_scene load_steps=21 format=3]
+
+[ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://seat_token.tscn" id="3_seat"]
+[ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="4_scanner"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/table.png" id="5_table"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/corner.svg" id="6_corner"]
+[ext_resource type="Shader" path="res://assets/onboarding/shaders/table.gdshader" id="7_table_shader"]
+[ext_resource type="Shader" path="res://assets/onboarding/shaders/rays.gdshader" id="8_rays"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/card_scan.svg" id="9_card"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/dice.svg" id="10_dice"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/pen.svg" id="11_pen"]
+[ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="12_switch"]
+[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/reveal.wav" id="13_reveal"]
+[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/seat.wav" id="14_seat"]
+[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="15_fanfare"]
+
+[sub_resource type="ShaderMaterial" id="table_material"]
+shader = ExtResource("7_table_shader")
+
+[sub_resource type="ShaderMaterial" id="rays_material"]
+shader = ExtResource("8_rays")
+
+[sub_resource type="Gradient" id="dot_gradient"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.55, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_gradient")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="ember_ramp"]
+offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
+colors = PackedColorArray(1, 0.75, 0.35, 0, 1, 0.75, 0.35, 0.9, 1, 0.45, 0.15, 0.6, 0.8, 0.2, 0.05, 0)
+
+[sub_resource type="Gradient" id="spark_ramp"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.97, 0.8, 1, 1, 0.8, 0.35, 1, 1, 0.45, 0.1, 0)
+
+[sub_resource type="StyleBoxFlat" id="frame_empty"]
+bg_color = Color(0.03, 0.02, 0.015, 0.8)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.54, 0.22, 1)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
+
+[node name="Onboarding" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="QrCameraScanner" type="Node" parent="."]
+script = ExtResource("4_scanner")
+
+[node name="Table" type="TextureRect" parent="."]
+material = SubResource("table_material")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_table")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Embers" type="CPUParticles2D" parent="."]
+amount = 22
+lifetime = 7.0
+preprocess = 7.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(700, 8)
+direction = Vector2(0, -1)
+spread = 18.0
+gravity = Vector2(0, -3)
+initial_velocity_min = 25.0
+initial_velocity_max = 70.0
+angular_velocity_min = -20.0
+angular_velocity_max = 20.0
+scale_amount_min = 0.15
+scale_amount_max = 0.5
+color_ramp = SubResource("ember_ramp")
+
+[node name="Seats" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Seat0" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 0.22
+anchor_right = 1
+anchor_bottom = 0.22
+offset_left = -138
+offset_top = -54
+offset_right = 18
+offset_bottom = 54
+seat = 0
+facing_degrees = -90.0
+
+[node name="Seat1" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 0.46
+anchor_right = 1
+anchor_bottom = 0.46
+offset_left = -138
+offset_top = -54
+offset_right = 18
+offset_bottom = 54
+seat = 1
+facing_degrees = -90.0
+
+[node name="Seat2" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 0.7
+anchor_right = 1
+anchor_bottom = 0.7
+offset_left = -138
+offset_top = -54
+offset_right = 18
+offset_bottom = 54
+seat = 2
+facing_degrees = -90.0
+
+[node name="Seat3" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1
+anchor_right = 0.5
+anchor_bottom = 1
+offset_left = -78
+offset_top = -114
+offset_right = 78
+offset_bottom = -6
+seat = 3
+facing_degrees = 0.0
+
+[node name="Seat4" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 0.7
+anchor_right = 0
+anchor_bottom = 0.7
+offset_left = -18
+offset_top = -54
+offset_right = 138
+offset_bottom = 54
+seat = 4
+facing_degrees = 90.0
+
+[node name="Seat5" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 0.46
+anchor_right = 0
+anchor_bottom = 0.46
+offset_left = -18
+offset_top = -54
+offset_right = 138
+offset_bottom = 54
+seat = 5
+facing_degrees = 90.0
+
+[node name="Seat6" parent="Seats" instance=ExtResource("3_seat")]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 0.22
+anchor_right = 0
+anchor_bottom = 0.22
+offset_left = -18
+offset_top = -54
+offset_right = 138
+offset_bottom = 54
+seat = 6
+facing_degrees = 90.0
+
+[node name="Stage" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 122.0
+offset_top = 14.0
+offset_right = -122.0
+offset_bottom = -122.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Stage"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 24
+
+[node name="Layout" type="VBoxContainer" parent="Stage/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="VBoxContainer" parent="Stage/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Stage/Margin/Layout/Header"]
+layout_mode = 2
+theme_type_variation = &"Title"
+horizontal_alignment = 1
+
+[node name="Pips" type="HBoxContainer" parent="Stage/Margin/Layout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header"]
+layout_mode = 2
+theme_type_variation = &"Hint"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Views" type="Control" parent="Stage/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Wizard" type="VBoxContainer" parent="Stage/Margin/Layout/Views"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="CardArea" type="AspectRatioContainer" parent="Stage/Margin/Layout/Views/Wizard"]
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Frame" type="Panel" parent="Stage/Margin/Layout/Views/Wizard/CardArea"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("frame_empty")
+
+[node name="Rays" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+modulate = Color(1, 1, 1, 0)
+show_behind_parent = true
+material = SubResource("rays_material")
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -150.0
+offset_right = 150.0
+offset_bottom = 150.0
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Flash" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(1, 0.95, 0.8, 1)
+
+[node name="ScanPrompt" type="Control" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="CameraView" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+flip_h = true
+
+[node name="CardIcon" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -62.0
+offset_top = -87.0
+offset_right = 62.0
+offset_bottom = 87.0
+mouse_filter = 2
+texture = ExtResource("9_card")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Sweep" type="ColorRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame/ScanPrompt"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.1
+anchor_right = 0.92
+anchor_bottom = 0.1
+offset_bottom = 4.0
+mouse_filter = 2
+color = Color(1, 0.8, 0.35, 0.9)
+
+[node name="Badge" type="TextureRect" parent="Stage/Margin/Layout/Views/Wizard/CardArea/Frame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.66
+anchor_top = 0.66
+anchor_right = 1.04
+anchor_bottom = 1.04
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Info" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Wizard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+layout_mode = 2
+theme_type_variation = &"Hint"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Views/Wizard/Info/NameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_length = 16
+select_all_on_focus = true
+right_icon = ExtResource("11_pen")
+
+[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Views/Wizard/Info/NameRow"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+focus_mode = 0
+texture_normal = ExtResource("10_dice")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Tiles" type="GridContainer" parent="Stage/Margin/Layout/Views/Wizard/Info"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 22
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="PartyView" type="CenterContainer" parent="Stage/Margin/Layout/Views"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PartyGrid" type="GridContainer" parent="Stage/Margin/Layout/Views/PartyView"]
+layout_mode = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 24
+columns = 2
+
+[node name="Footer" type="HBoxContainer" parent="Stage/Margin/Layout"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Back" type="Button" parent="Stage/Margin/Layout/Footer"]
+layout_mode = 2
+focus_mode = 0
+
+[node name="Remove" type="Button" parent="Stage/Margin/Layout/Footer"]
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.62, 0.55, 1)
+theme_override_colors/font_hover_color = Color(1, 0.75, 0.7, 1)
+
+[node name="Spacer" type="Control" parent="Stage/Margin/Layout/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Next" type="Button" parent="Stage/Margin/Layout/Footer"]
+layout_mode = 2
+focus_mode = 0
+
+[node name="Ornaments" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 122.0
+offset_top = 14.0
+offset_right = -122.0
+offset_bottom = -122.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopLeft" type="TextureRect" parent="Ornaments"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 0
+anchor_right = 0
+anchor_bottom = 0
+offset_left = -2
+offset_top = -2
+offset_right = 82
+offset_bottom = 82
+mouse_filter = 2
+texture = ExtResource("6_corner")
+expand_mode = 1
+flip_h = false
+flip_v = false
+
+[node name="TopRight" type="TextureRect" parent="Ornaments"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 0
+anchor_right = 1
+anchor_bottom = 0
+offset_left = -82
+offset_top = -2
+offset_right = 2
+offset_bottom = 82
+mouse_filter = 2
+texture = ExtResource("6_corner")
+expand_mode = 1
+flip_h = true
+flip_v = false
+
+[node name="BottomLeft" type="TextureRect" parent="Ornaments"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 1
+anchor_right = 0
+anchor_bottom = 1
+offset_left = -2
+offset_top = -82
+offset_right = 82
+offset_bottom = 2
+mouse_filter = 2
+texture = ExtResource("6_corner")
+expand_mode = 1
+flip_h = false
+flip_v = true
+
+[node name="BottomRight" type="TextureRect" parent="Ornaments"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 1
+anchor_right = 1
+anchor_bottom = 1
+offset_left = -82
+offset_top = -82
+offset_right = 2
+offset_bottom = 2
+mouse_filter = 2
+texture = ExtResource("6_corner")
+expand_mode = 1
+flip_h = true
+flip_v = true
+
+[node name="SwitchCamera" type="TextureButton" parent="."]
+modulate = Color(1, 1, 1, 0.75)
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -76.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 76.0
+grow_horizontal = 0
+focus_mode = 0
+texture_normal = ExtResource("12_switch")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Overlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Sparks" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 48
+lifetime = 0.9
+one_shot = true
+explosiveness = 0.95
+texture = SubResource("dot")
+spread = 180.0
+gravity = Vector2(0, 160)
+initial_velocity_min = 90.0
+initial_velocity_max = 340.0
+damping_min = 60.0
+damping_max = 120.0
+scale_amount_min = 0.25
+scale_amount_max = 0.7
+color_ramp = SubResource("spark_ramp")
+
+[node name="Fade" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="RevealSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("13_reveal")
+
+[node name="SeatSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("14_seat")
+
+[node name="FanfareSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("15_fanfare")
