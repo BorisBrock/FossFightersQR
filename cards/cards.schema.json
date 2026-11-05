@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/cards.schema.json",
+  "title": "Card collection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "card"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "card": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/card" }
+    }
+  },
+  "definitions": {
+    "localizedText": {
+      "description": "Text keyed by language code, e.g. en, de, pt-BR. 'en' is required as fallback.",
+      "type": "object",
+      "required": ["en"],
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "strength"],
+      "properties": {
+        "type": { "enum": ["attack", "support", "heal"] },
+        "strength": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "qr", "deck", "title"],
+      "properties": {
+        "name": {
+          "description": "Internal name in lowercase kebab-case, e.g. mana-potion. Not shown to players.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "qr": {
+          "description": "Unique card ID, printed as a QR code. 1-15 characters.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,15}$"
+        },
+        "deck": { "enum": ["core", "expansion1"] },
+        "title": { "$ref": "#/definitions/localizedText" },
+        "effect": { "$ref": "#/definitions/localizedText" },
+        "symbols": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/symbol" }
+        },
+        "level": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    }
+  }
+}

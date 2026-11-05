@@ -1,0 +1,11 @@
+[configuration]
+
+entry_symbol = "qr_scanner_init"
+compatibility_minimum = "4.5"
+reloadable = false
+
+[libraries]
+
+linux.x86_64 = "bin/libqr_scanner.linux.x86_64.so"
+android.arm64 = "bin/libqr_scanner.android.arm64.so"
+android.x86_64 = "bin/libqr_scanner.android.x86_64.so"

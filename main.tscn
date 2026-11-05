@@ -1,0 +1,131 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="2_scanner"]
+[ext_resource type="Script" path="res://scripts/placeholder_scene.gd" id="3_placeholder"]
+[ext_resource type="AudioStream" path="res://assets/pling.wav" id="5_pling"]
+
+[ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="6_icon"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_result"]
+bg_color = Color(0.05, 0.08, 0.12, 0.88)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.05, 0.08, 0.12, 0.6)
+corner_radius_top_left = 48
+corner_radius_top_right = 48
+corner_radius_bottom_right = 48
+corner_radius_bottom_left = 48
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="QrCameraScanner" type="Node" parent="."]
+script = ExtResource("2_scanner")
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Backdrop" type="ColorRect" parent="Background"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.05, 0.08, 1)
+
+[node name="PlaceholderScene" type="Node2D" parent="Background"]
+script = ExtResource("3_placeholder")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="Status" type="Label" parent="Hud"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 128.0
+offset_top = 16.0
+offset_right = -128.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Stats" type="Label" parent="Hud"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -34.0
+offset_right = 620.0
+offset_bottom = -8.0
+grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+
+[node name="Result" type="PanelContainer" parent="Hud"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = -160.0
+offset_right = -48.0
+offset_bottom = -48.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_result")
+
+[node name="Margin" type="MarginContainer" parent="Hud/Result"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="Content" type="VBoxContainer" parent="Hud/Result/Margin"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Hud/Result/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2
+
+[node name="Details" type="Label" parent="Hud/Result/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 8
+
+[node name="SwitchCamera" type="Button" parent="Hud"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -112.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 112.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_button")
+icon = ExtResource("6_icon")
+icon_alignment = 1
+
+[node name="Pling" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_pling")

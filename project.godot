@@ -13,9 +13,14 @@ config_version=5
 config/name="FossFightersQR"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
+run/main_scene="res://main.tscn"
+run/max_fps=30
 
 [display]
 
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/handheld/orientation=4
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -27,3 +32,4 @@ window/stretch/aspect="expand"
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
