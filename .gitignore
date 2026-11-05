@@ -4,3 +4,8 @@
 
 # Native extension build trees
 /native/build/
+
+# Front images saved by the card editor
+/scans/
+__pycache__/
+/.venv/

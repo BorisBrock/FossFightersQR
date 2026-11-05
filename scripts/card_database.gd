@@ -1,11 +1,12 @@
 class_name CardDatabase
 extends RefCounted
-## The playing cards from a TOML file (cards/cards.schema.json describes the format),
+## The playing cards from a JSON file (cards/cards.schema.json describes the format),
 ## looked up by the value of their QR code.
 
-const FALLBACK_LOCALE := "en"
+const SCHEMA_VERSION := 2
+const FALLBACK_LOCALE := "de"
 
-## Why loading failed, empty if it worked.
+## Why the file or some of its cards could not be loaded, empty if everything loaded.
 var error := ""
 
 var _cards_by_qr := {}
@@ -23,9 +24,9 @@ static func load_file(path: String) -> CardDatabase:
 	return database
 
 
-## Returns the card with this QR code, or {} if there is none.
-func find(qr: String) -> Dictionary:
-	return _cards_by_qr.get(qr, {})
+## Returns the card with this QR code, or null if there is none.
+func find(qr: String) -> Card:
+	return _cards_by_qr.get(qr)
 
 
 func size() -> int:
@@ -42,21 +43,28 @@ static func localized(text: Dictionary, locale: String) -> String:
 
 
 func _read(text: String) -> void:
-	var parser := TomlParser.new()
-	var document := parser.parse(text)
-	if not parser.error.is_empty():
-		error = parser.error
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		# Godot counts the lines of JSON errors from 0.
+		error = "line %d: %s" % [json.get_error_line() + 1, json.get_error_message()]
 		return
-	var cards: Variant = document.get("card")
-	if not cards is Array:
+	var document: Variant = json.data
+	if not document is Dictionary or document.get("schema_version") != SCHEMA_VERSION:
+		error = "Expected schema version %d" % SCHEMA_VERSION
+		return
+	var entries: Variant = document.get("cards")
+	if not entries is Array:
 		error = "No cards found"
 		return
-	for card: Dictionary in cards:
-		var qr: Variant = card.get("qr")
-		if not qr is String or not card.get("title") is Dictionary:
-			error = "Card without qr or title: %s" % card
-			return
-		if _cards_by_qr.has(qr):
-			error = "QR code used by two cards: %s" % qr
-			return
-		_cards_by_qr[qr] = card
+	# A bad card only costs that card, the status line reports it.
+	var problems := PackedStringArray()
+	for entry: Variant in entries:
+		var card := Card.from_data(entry)
+		if card == null:
+			problems.append("Invalid card: %s" % entry)
+		elif _cards_by_qr.has(card.qr):
+			problems.append("QR code used by two cards: %s" % card.qr)
+		else:
+			_cards_by_qr[card.qr] = card
+	if not problems.is_empty():
+		error = "%d card(s) skipped. %s" % [problems.size(), problems[0]]

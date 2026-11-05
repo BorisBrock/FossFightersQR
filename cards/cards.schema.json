@@ -4,20 +4,20 @@
   "title": "Card collection",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "card"],
+  "required": ["schema_version", "cards"],
   "properties": {
-    "schema_version": { "const": 1 },
-    "card": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": 2 },
+    "cards": {
       "type": "array",
       "items": { "$ref": "#/definitions/card" }
     }
   },
   "definitions": {
     "localizedText": {
-      "description": "Text keyed by language code, e.g. en, de, pt-BR. 'en' is required as fallback.",
+      "description": "Text keyed by language code, e.g. de, en, pt-BR. 'de', the language of the printed cards, is required as fallback.",
       "type": "object",
-      "required": ["en"],
-      "minProperties": 1,
+      "required": ["de"],
       "propertyNames": { "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
       "additionalProperties": { "type": "string", "minLength": 1 }
     },
@@ -33,20 +33,18 @@
     "card": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "qr", "deck", "title"],
+      "required": ["qr", "deck"],
       "properties": {
-        "name": {
-          "description": "Internal name in lowercase kebab-case, e.g. mana-potion. Not shown to players.",
-          "type": "string",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
-        },
         "qr": {
-          "description": "Unique card ID, printed as a QR code. 1-15 characters.",
+          "description": "Unique card ID, printed as a QR code. 1-15 characters: letters, digits and _ - + / = (so base64 values like BAEAAA== work).",
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{1,15}$"
+          "pattern": "^[A-Za-z0-9_+/=-]{1,15}$"
         },
         "deck": { "enum": ["core", "expansion1"] },
-        "title": { "$ref": "#/definitions/localizedText" },
+        "title": {
+          "description": "Left out for cards without a title.",
+          "$ref": "#/definitions/localizedText"
+        },
         "effect": { "$ref": "#/definitions/localizedText" },
         "symbols": {
           "type": "array",

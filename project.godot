@@ -12,7 +12,7 @@ config_version=5
 
 config/name="FossFightersQR"
 config/features=PackedStringArray("4.7", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 run/main_scene="res://main.tscn"
 run/max_fps=30
 

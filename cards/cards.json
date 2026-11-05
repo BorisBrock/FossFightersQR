@@ -1,0 +1,26 @@
+{
+  "$schema": "./cards.schema.json",
+  "schema_version": 2,
+  "cards": [
+    {
+      "qr": "CORE-001",
+      "deck": "core",
+      "level": 3,
+      "title": { "de": "Feuerball", "en": "Fireball" },
+      "symbols": [ { "type": "attack", "strength": 3 }, { "type": "support", "strength": 1 } ],
+      "effect": { "de": "Füge einem Ziel 3 Schaden zu.\nBrennt es, füge stattdessen 5 zu.", "en": "Deal 3 damage to a target.\nIf it is burning, deal 5 instead." }
+    },
+    {
+      "qr": "CORE-002",
+      "deck": "core",
+      "title": { "de": "Heilkraut", "en": "Healing Herb" }
+    },
+    {
+      "qr": "1AEAAA==",
+      "deck": "core",
+      "level": 7,
+      "title": { "de": "Magmahorn" },
+      "effect": { "de": "Darchsuche deinen nach Karie und spiele sie, Mische danach deinen Nachzichstapel, Entferne die herausgesuchte Karte für den restlichen Besskampf aus dem Spiel." }
+    }
+  ]
+}

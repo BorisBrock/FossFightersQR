@@ -45,7 +45,7 @@ export needs a camera usage description. It would use Godot's camera feed, as th
 ## Testing
 
     godot --headless -s tests/test_decoder.gd      # decoder only
-    godot --headless -s tests/test_cards.gd        # card database and TOML parser
+    godot --headless -s tests/test_cards.gd        # card database
     godot res://tests/test_game.tscn               # the game with a fake camera; opens a window
 
 The game test runs Godot's camera feed path. The native camera can only be tested on an Android device or emulator.

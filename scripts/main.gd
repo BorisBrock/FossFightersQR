@@ -8,7 +8,7 @@ const TEXT_DURATION_SEC := 5.0
 ## a code stays in view, it plings only once.
 const REPEAT_AFTER_ABSENCE_SEC := 2.0
 const FADE_OUT_SEC := 0.3
-const CARDS_PATH := "res://cards/cards.toml"
+const CARDS_PATH := "res://cards/cards.json"
 
 var _cards := CardDatabase.load_file(CARDS_PATH)
 var _current_text := ""
@@ -89,7 +89,7 @@ func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vect
 
 func _show_card(qr: String) -> void:
 	var card := _cards.find(qr)
-	if card.is_empty():
+	if card == null:
 		_title_label.text = "Unknown card"
 		_details_label.text = qr
 		return
@@ -97,14 +97,14 @@ func _show_card(qr: String) -> void:
 	_title_label.text = CardDatabase.localized(card.title, locale)
 
 	var facts := PackedStringArray([card.qr, card.deck])
-	if card.has("level"):
+	if card.level > 0:
 		facts.append("Level %d" % card.level)
 	var lines := PackedStringArray([" · ".join(facts)])
-	if card.has("symbols"):
+	if not card.symbols.is_empty():
 		var symbols := PackedStringArray()
-		for symbol: Dictionary in card.symbols:
+		for symbol: Card.Symbol in card.symbols:
 			symbols.append("%s %d" % [symbol.type.capitalize(), symbol.strength])
 		lines.append(" · ".join(symbols))
-	if card.has("effect"):
+	if not card.effect.is_empty():
 		lines.append(CardDatabase.localized(card.effect, locale))
 	_details_label.text = "\n".join(lines)

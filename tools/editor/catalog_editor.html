@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card catalog editor</title>
+<style>
+  :root { --bg:#f6f7f9; --panel:#fff; --line:#d9dde3; --text:#1d2330; --muted:#69758a; --accent:#2f6fed; --bad:#c62828; --warn:#b26a00; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171d; --panel:#1d222b; --line:#323a47; --text:#e6e9ef; --muted:#93a0b5; --accent:#6c9cff; --bad:#ff6b6b; --warn:#ffb54d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  header { position:sticky; top:0; z-index:5; display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); }
+  header h1 { font-size:16px; margin:0 12px 0 0; }
+  button, select, input, textarea { font:inherit; color:inherit; }
+  button { padding:5px 12px; border:1px solid var(--line); border-radius:6px; background:var(--panel); cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.danger { color:var(--bad); }
+  button:disabled { opacity:.45; cursor:default; }
+  input, select, textarea { padding:5px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); }
+  .spacer { flex:1; }
+  #status { color:var(--muted); }
+  #status.dirty { color:var(--warn); font-weight:600; }
+  main { padding:16px; max-width:1400px; margin:0 auto; }
+  .bar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+  .bar input[type=search] { width:260px; }
+  #problems { background:var(--panel); border:1px solid var(--bad); border-radius:8px; padding:8px 14px; margin-bottom:12px; color:var(--bad); }
+  #problems ul { margin:4px 0; padding-left:20px; }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); cursor:pointer; user-select:none; white-space:nowrap; }
+  tr.row:hover { background:color-mix(in srgb, var(--accent) 8%, transparent); cursor:pointer; }
+  td.effect { color:var(--muted); max-width:420px; }
+  .tag { display:inline-block; padding:0 7px; margin:1px 2px 1px 0; border-radius:10px; border:1px solid var(--line); font-size:12px; white-space:nowrap; }
+  .tag.attack { color:#c62828; } .tag.support { color:#1565c0; } .tag.heal { color:#2e7d32; }
+  .missing { color:var(--warn); font-style:italic; }
+  .empty { padding:40px; text-align:center; color:var(--muted); }
+  dialog { width:min(720px, 94vw); padding:0; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); }
+  dialog::backdrop { background:rgba(0,0,0,.45); }
+  dialog form { padding:18px 20px; display:grid; gap:12px; }
+  dialog h2 { margin:0; font-size:17px; }
+  label { display:grid; gap:3px; font-size:12px; color:var(--muted); }
+  label input, label select, label textarea { font-size:14px; color:var(--text); width:100%; }
+  textarea { min-height:84px; resize:vertical; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid3 { display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px; }
+  .sym { display:flex; gap:6px; margin-bottom:6px; }
+  .sym input { width:80px; }
+  .err { color:var(--bad); font-size:12px; min-height:16px; }
+  .actions { display:flex; gap:8px; justify-content:flex-end; }
+  .actions .left { margin-right:auto; }
+  #scan { max-width:100%; max-height:300px; border-radius:6px; border:1px solid var(--line); display:none; }
+  #scanDlg form { padding:18px 20px; display:grid; gap:12px; }
+  .steps { display:flex; gap:8px; }
+  .chip { flex:1; padding:6px 10px; border:1px solid var(--line); border-radius:8px; color:var(--muted); font-size:13px; text-align:center; }
+  .chip.active { border-color:var(--accent); color:var(--text); font-weight:600; background:color-mix(in srgb, var(--accent) 12%, transparent); }
+  .chip.done { color:#2e7d32; border-color:#2e7d32; }
+  #scanStep { font-size:17px; min-height:46px; }
+  .camwrap { position:relative; background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; }
+  #camVideo { display:block; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }  /* mirrored like a mirror, only the preview: the photos are not */
+  #guide { position:absolute; top:2%; left:50%; height:96%; aspect-ratio:5/7; transform:translateX(-50%); border:3px dashed #fff; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,.5); pointer-events:none; }
+  #camMsg { position:absolute; left:0; right:0; bottom:0; padding:6px 12px; background:rgba(0,0,0,.65); color:#fff; display:none; }
+  #camMsg.ok { background:rgba(21,128,61,.9); } #camMsg.bad { background:rgba(180,40,40,.9); }
+  .camrow { display:flex; gap:8px; }
+  .camrow select { flex:1; min-width:0; }
+  .hint { font-size:13px; color:var(--muted); }
+  #dlg.scan .en { display:none; }
+  #dlg.scan .grid2 { grid-template-columns:1fr; }
+  #dlg.scan { width:min(1040px, 96vw); }
+  #dlg.scan form { grid-template-columns:300px 1fr; column-gap:20px; }
+  #dlg.scan form > * { grid-column:2; }
+  #dlg.scan form > h2, #dlg.scan form > .actions { grid-column:1 / -1; }
+  #dlg.scan form > #photoWrap { grid-column:1; grid-row:2 / span 8; align-self:start; position:sticky; top:0; }
+  #photoWrap { display:grid; gap:6px; }
+  #photoBox { position:relative; touch-action:none; cursor:crosshair; line-height:0; }
+  #photo { width:100%; border-radius:6px; user-select:none; -webkit-user-drag:none; }
+  .box { position:absolute; border:2px solid; pointer-events:none; box-shadow:0 0 0 1px rgba(0,0,0,.5); }
+  .box span { position:absolute; left:0; top:0; transform:translateY(-100%); font:600 11px/1 system-ui; padding:2px 4px; color:#fff; }
+  .box.title { border-color:#2f6fed; } .box.title span { background:#2f6fed; }
+  .box.effect { border-color:#16a34a; } .box.effect span { background:#16a34a; }
+  .boxtools { display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13px; }
+  .boxtools label { display:inline-flex; flex-direction:row; align-items:center; gap:4px; color:var(--text); font-size:13px; }
+  .boxtools label input { width:auto; }
+  #scan.card { max-height:240px; justify-self:center; }
+  .actions { position:sticky; bottom:-18px; background:var(--panel); padding:10px 0 2px; }
+  footer { color:var(--muted); font-size:12px; padding:16px; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Card catalog</h1>
+  <button id="open">Open…</button>
+  <button id="save" class="primary" disabled>Save</button>
+  <button id="saveas" disabled>Save as…</button>
+  <button id="scanBtn" class="primary" hidden disabled>📷 Scan card</button>
+  <button id="scans" hidden title="Choose the scans/ folder to see the scanned front image while editing">Scans folder…</button>
+  <span class="spacer"></span>
+  <span id="status">No file open</span>
+</header>
+<main>
+  <div class="bar">
+    <input id="search" type="search" placeholder="Search QR, title, effect…">
+    <select id="deck"><option value="">All decks</option><option>core</option><option>expansion1</option></select>
+    <select id="filter">
+      <option value="">All cards</option>
+      <option value="nosym">Without symbols</option>
+      <option value="noeffect">Without effect</option>
+      <option value="noen">English missing / same as German</option>
+      <option value="invalid">With problems</option>
+    </select>
+    <span id="count" class="missing" style="font-style:normal"></span>
+    <span class="spacer"></span>
+    <button id="add" disabled>+ Add card</button>
+  </div>
+  <div id="problems" hidden></div>
+  <table>
+    <thead><tr>
+      <th data-sort="qr">QR</th><th data-sort="deck">Deck</th><th data-sort="level">Lvl</th>
+      <th data-sort="title">Title</th><th>Effect</th><th>Symbols</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div id="empty" class="empty">Open <code>cards/cards.json</code> to begin.</div>
+</main>
+<footer>Everything runs locally in this page.</footer>
+
+<dialog id="scanDlg">
+  <form method="dialog">
+    <h2>Scan card</h2>
+    <div class="steps"><div class="chip" id="chip1">1 · Back (QR code)</div><div class="chip" id="chip2">2 · Front (text)</div><div class="chip">3 · Check &amp; add</div></div>
+    <div id="scanStep"></div>
+    <div class="camwrap"><video id="camVideo" playsinline muted></video><div id="guide" hidden></div><div id="camMsg"></div></div>
+    <div class="camrow">
+      <select id="camSel" title="Camera"></select>
+      <button type="button" id="camShot" title="Take the photo now (Space)" disabled>Take photo now</button>
+      <button type="button" id="camReset" title="Forget this card and wait for the next QR code">Start over</button>
+      <button type="submit">Close</button>
+    </div>
+    <div class="hint">For readable text: hold the card close so it fills the dashed frame, light it from the front without glare, keep it still.</div>
+  </form>
+</dialog>
+
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <h2 id="dlgTitle"></h2>
+    <div id="photoWrap" hidden>
+      <div class="boxtools">
+        <span>Draw box for:</span>
+        <label><input type="radio" name="boxTarget" value="title" checked> Title</label>
+        <label><input type="radio" name="boxTarget" value="effect"> Effect</label>
+        <button type="button" id="resetBoxes" title="Back to the default positions">Reset boxes</button>
+        <button type="button" id="reread" title="Read the text again from the boxes">Read again</button>
+      </div>
+      <div id="photoBox">
+        <img id="photo" alt="Scanned front" draggable="false">
+        <div class="box title" id="boxTitle"><span>Title</span></div>
+        <div class="box effect" id="boxEffect"><span>Effect</span></div>
+      </div>
+      <div class="hint">Drag on the photo to move a box to where the title / effect is, then press Read again. Leave a field empty if the card has none.</div>
+    </div>
+    <img id="scan" alt="Scanned front">
+    <div class="hint" id="reviewHint" hidden></div>
+    <div class="grid3">
+      <label>QR code<input id="f_qr" required></label>
+      <label>Deck<select id="f_deck"><option>core</option><option>expansion1</option></select></label>
+      <label>Level (1–10)<input id="f_level" type="number" min="1" max="10"></label>
+    </div>
+    <div class="grid2">
+      <label>Title (German, empty if the card has none)<input id="f_title_de"></label>
+      <label class="en">Title (English)<input id="f_title_en"></label>
+    </div>
+    <div class="grid2">
+      <label>Effect (German)<textarea id="f_eff_de"></textarea></label>
+      <label class="en">Effect (English)<textarea id="f_eff_en"></textarea></label>
+    </div>
+    <div>
+      <label style="margin-bottom:4px">Symbols</label>
+      <div id="symbols"></div>
+      <button type="button" id="addSym">+ Symbol</button>
+    </div>
+    <div class="err" id="formErr"></div>
+    <div class="actions">
+      <button type="button" id="del" class="danger left">Delete</button>
+      <button type="button" id="discard" class="danger left" hidden>Discard card</button>
+      <button type="button" id="retake" hidden>Retake photo</button>
+      <button type="button" id="cancel">Cancel</button>
+      <button type="submit" class="primary" id="ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const SCHEMA_VERSION = 2;
+
+// One line per field keeps the file readable and its diffs small.
+function serializeCatalog(cards) {
+  const oneLine = value => JSON.stringify(value, null, 1).replace(/\n\s*/g, " ");
+  const present = v => v != null && (typeof v !== "object" || Object.keys(v).length > 0);
+  const entries = cards.map(c => {
+    const fields = ["qr", "deck", "level", "title", "symbols", "effect"].filter(k => present(c[k]));
+    return "    {\n" + fields.map(k => `      ${JSON.stringify(k)}: ${oneLine(c[k])}`).join(",\n") + "\n    }";
+  });
+  return `{\n  "$schema": "./cards.schema.json",\n  "schema_version": ${SCHEMA_VERSION},\n  "cards": [\n${entries.join(",\n")}\n  ]\n}\n`;
+}
+
+// ---------- validation (mirrors cards.schema.json plus the duplicate checks of the game) ----------
+function validateCard(c, all) {
+  const e = [];
+  if (!/^[A-Za-z0-9_+/=-]{1,15}$/.test(c.qr ?? "")) e.push("QR must be 1–15 characters of A-Z a-z 0-9 _ - + / =");
+  if (!["core", "expansion1"].includes(c.deck)) e.push("deck must be core or expansion1");
+  if (Object.keys(c.title ?? {}).length && !c.title.de) e.push("German title is required when a title exists");
+  if (c.effect && Object.keys(c.effect).length && !c.effect.de) e.push("German effect is required when an effect exists");
+  if (c.level != null && !(Number.isInteger(c.level) && c.level >= 1 && c.level <= 10)) e.push("level must be 1–10");
+  for (const s of c.symbols ?? []) if (!["attack", "support", "heal"].includes(s.type) || !(Number.isInteger(s.strength) && s.strength >= 0)) e.push("invalid symbol");
+  if (all.some(o => o !== c && o.qr === c.qr)) e.push("QR code is used by another card");
+  return e;
+}
+
+// ---------- app ----------
+if (typeof document !== "undefined") (() => {
+  const $ = id => document.getElementById(id);
+  let cards = [], fileHandle = null, fileName = "", dirty = false, sort = { key: "qr", dir: 1 }, scanDir = null, editing = null;
+  let serverMode = false, scanMode = false;  // serverMode: page is served by tools/server.py
+
+  const canFS = "showOpenFilePicker" in window;
+  if ("showDirectoryPicker" in window) $("scans").hidden = false;
+
+  function setDirty(v) { dirty = v; renderStatus(); }
+  function renderStatus() {
+    $("status").textContent = fileName ? `${fileName} · ${cards.length} cards${dirty ? " · unsaved changes" : ""}` : "No file open";
+    $("status").className = dirty ? "dirty" : "";
+    $("save").disabled = $("saveas").disabled = !fileName;
+    $("add").disabled = $("scanBtn").disabled = !fileName;
+  }
+  window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+  function load(text, name, handle) {
+    let doc;
+    try { doc = text.trim() ? JSON.parse(text) : { schema_version: SCHEMA_VERSION, cards: [] }; } catch (err) { alert("Cannot read file:\n" + err.message); return; }
+    if (doc.schema_version !== SCHEMA_VERSION) { alert(`Cannot read file: expected schema version ${SCHEMA_VERSION}`); return; }
+    cards = (doc.cards ?? []).map(c => ({ ...c, title: c.title ?? {}, symbols: c.symbols ?? [], effect: c.effect }));
+    fileName = name; fileHandle = handle; dirty = false;
+    render(); renderStatus();
+  }
+  $("open").onclick = async () => {
+    if (dirty && !confirm("Discard unsaved changes?")) return;
+    if (canFS) {
+      try {
+        const [h] = await showOpenFilePicker({ types: [{ description: "JSON", accept: { "application/json": [".json"] } }] });
+        load(await (await h.getFile()).text(), h.name, h);
+      } catch (e) { if (e.name !== "AbortError") alert(e.message); }
+    } else {
+      const input = document.createElement("input"); input.type = "file"; input.accept = ".json";
+      input.onchange = async () => { const f = input.files[0]; if (f) load(await f.text(), f.name, null); };
+      input.click();
+    }
+  };
+  async function save(as) {  // resolves to true when saved
+    const invalid = cards.filter(c => validateCard(c, cards).length).length;
+    if (invalid && serverMode) { alert(`${invalid} card(s) have problems, see the top of the page. Fix them to save.`); return false; }
+    if (invalid && !confirm(`${invalid} card(s) have problems and the game would not load them. Save anyway?`)) return false;
+    const text = serializeCatalog(cards);
+    if (serverMode) {
+      try {
+        const r = await fetch("/api/catalog", { method: "PUT", body: text });
+        if (!r.ok) throw new Error((await r.json()).error);
+      } catch (e) { alert("Saving failed: " + e.message); return false; }
+    } else if (canFS) {
+      try {
+        if (as || !fileHandle) fileHandle = await showSaveFilePicker({ suggestedName: fileName || "cards.json", types: [{ description: "JSON", accept: { "application/json": [".json"] } }] });
+        const w = await fileHandle.createWritable(); await w.write(text); await w.close();
+        fileName = fileHandle.name;
+      } catch (e) { if (e.name !== "AbortError") alert(e.message); return false; }
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      a.download = fileName || "cards.json"; a.click(); URL.revokeObjectURL(a.href);
+    }
+    setDirty(false);
+    return true;
+  }
+  $("save").onclick = () => save(false);
+  $("saveas").onclick = () => save(true);
+  $("scans").onclick = async () => { try { scanDir = await showDirectoryPicker(); } catch {} };
+  document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); if (fileName) save(false); } });
+
+  // ----- table -----
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const title = c => c.title.de || c.title.en || "";
+  function matches(c) {
+    const q = $("search").value.trim().toLowerCase();
+    if (q && ![c.qr, ...Object.values(c.title), ...Object.values(c.effect ?? {})].some(s => String(s).toLowerCase().includes(q))) return false;
+    if ($("deck").value && c.deck !== $("deck").value) return false;
+    switch ($("filter").value) {
+      case "nosym": return !c.symbols.length;
+      case "noeffect": return !c.effect || !Object.keys(c.effect).length;
+      case "noen": return !c.title.en || c.title.en === c.title.de;
+      case "invalid": return validateCard(c, cards).length > 0;
+    }
+    return true;
+  }
+  function render() {
+    const rows = $("rows"); rows.replaceChildren();
+    const get = { qr: c => c.qr, deck: c => c.deck, level: c => c.level ?? 99, title };
+    const shown = cards.filter(matches).sort((a, b) => {
+      const x = get[sort.key](a), y = get[sort.key](b);
+      return (typeof x === "number" ? x - y : String(x).localeCompare(String(y), "de", { numeric: true })) * sort.dir;
+    });
+    for (const c of shown) {
+      const tr = el("tr", "row");
+      tr.append(el("td", "", c.qr), el("td", "", c.deck), el("td", "", c.level ?? ""));
+      const t = el("td", title(c) ? "" : "missing", title(c) || "(no title)");
+      if (c.title.en && c.title.de && c.title.en !== c.title.de) t.title = c.title.en;
+      tr.append(t);
+      const eff = c.effect?.de || c.effect?.en;
+      tr.append(eff ? el("td", "effect", eff.replace(/\s*\n\s*/g, " ")) : el("td", "effect missing", "—"));
+      const sym = el("td");
+      if (!c.symbols.length) sym.append(el("span", "missing", "none"));
+      for (const s of c.symbols) sym.append(el("span", "tag " + s.type, `${s.type} ${s.strength}`));
+      tr.append(sym);
+      if (validateCard(c, cards).length) tr.style.boxShadow = "inset 3px 0 var(--bad)";
+      tr.onclick = () => edit(c);
+      rows.append(tr);
+    }
+    $("empty").hidden = !!fileName && cards.length > 0;
+    if (fileName && !cards.length) { $("empty").hidden = false; $("empty").textContent = "No cards yet. Add one."; }
+    $("count").textContent = fileName ? `${shown.length} of ${cards.length}` : "";
+    const problems = cards.flatMap(c => validateCard(c, cards).map(m => `${c.qr || "?"}: ${m}`));
+    $("problems").hidden = !problems.length;
+    if (problems.length) {
+      const ul = el("ul"); for (const m of problems.slice(0, 8)) ul.append(el("li", "", m));
+      if (problems.length > 8) ul.append(el("li", "", `…and ${problems.length - 8} more`));
+      $("problems").replaceChildren(el("strong", "", `${problems.length} problem(s) in the catalog`), ul);
+    }
+  }
+  for (const id of ["search", "deck", "filter"]) $(id).oninput = render;
+  document.querySelectorAll("th[data-sort]").forEach(th => th.onclick = () => {
+    sort = { key: th.dataset.sort, dir: sort.key === th.dataset.sort ? -sort.dir : 1 }; render();
+  });
+
+  // ----- dialog -----
+  function symbolRow(s = { type: "attack", strength: 1 }) {
+    const row = el("div", "sym");
+    const type = el("select"); for (const t of ["attack", "support", "heal"]) type.append(new Option(t, t, false, t === s.type));
+    const str = el("input"); str.type = "number"; str.min = 0; str.value = s.strength;
+    const rm = el("button", "danger", "✕"); rm.type = "button"; rm.onclick = () => row.remove();
+    row.append(type, str, rm); $("symbols").append(row);
+  }
+  $("addSym").onclick = () => symbolRow();
+
+  const scanFile = qr => qr.replace(/\//g, "~") + ".jpg";  // photos are stored as <qr>.jpg
+  async function showScan(c) {
+    const img = $("scan"); img.style.display = "none";
+    if (!c) return;
+    if (serverMode) {
+      img.onload = () => img.style.display = "block";
+      img.onerror = () => img.style.display = "none";
+      img.src = "/scans/" + encodeURIComponent(scanFile(c.qr));
+      return;
+    }
+    if (!scanDir) return;
+    for (const ext of ["jpg", "png"]) {
+      try { const f = await (await scanDir.getFileHandle(scanFile(c.qr).replace(/jpg$/, ext))).getFile(); img.src = URL.createObjectURL(f); img.style.display = "block"; return; } catch {}
+    }
+  }
+  function edit(card, opts) {
+    editing = card;
+    scanMode = !!opts?.scan;
+    $("dlg").classList.toggle("scan", scanMode);
+    $("ok").textContent = scanMode ? "Add card & scan next" : "OK";
+    $("cancel").textContent = scanMode ? "Stop scanning" : "Cancel";
+    $("discard").hidden = $("retake").hidden = !scanMode;
+    $("reviewHint").hidden = true;
+    $("photoWrap").hidden = !scanMode;
+    const c = card ?? { qr: "", deck: "core", title: {}, symbols: [] };
+    $("dlgTitle").textContent = card ? `Edit ${c.qr}` : scanMode ? "Check the scanned card" : "Add card";
+    $("f_qr").value = c.qr; $("f_deck").value = c.deck; $("f_level").value = c.level ?? "";
+    $("f_title_de").value = c.title.de ?? ""; $("f_title_en").value = c.title.en ?? "";
+    $("f_eff_de").value = c.effect?.de ?? ""; $("f_eff_en").value = c.effect?.en ?? "";
+    $("symbols").replaceChildren(); c.symbols.forEach(symbolRow);
+    $("formErr").textContent = ""; $("del").hidden = !card;
+    if (!scanMode) showScan(card);
+    $("dlg").showModal();
+  }
+  $("add").onclick = () => edit(null);
+  $("cancel").onclick = () => $("dlg").close();
+  $("del").onclick = () => {
+    if (!confirm(`Delete ${editing.qr} (${title(editing)})?`)) return;
+    cards.splice(cards.indexOf(editing), 1); $("dlg").close(); setDirty(true); render();
+  };
+  // closing one scan dialog to open the next is not the end of scanning
+  let handoff = false;
+  $("dlg").addEventListener("close", () => { if (scanMode && !handoff) endScan(); handoff = false; });
+  $("form").onsubmit = e => {
+    const text = (old, de, en) => {
+      const result = { ...(old ?? {}) };
+      for (const [l, id] of [["de", de], ["en", en]]) { const v = $(id).value.trim(); if (v) result[l] = v; else delete result[l]; }
+      return result;
+    };
+    const level = $("f_level").value.trim();
+    const symbols = [...$("symbols").children].map(r => ({ type: r.children[0].value, strength: parseInt(r.children[1].value || "0", 10) }));
+    const draft = {
+      ...(editing ?? {}), qr: $("f_qr").value.trim(), deck: $("f_deck").value,
+      title: text(editing?.title, "f_title_de", "f_title_en"),
+      effect: text(editing?.effect, "f_eff_de", "f_eff_en"),
+      symbols,
+    };
+    if (level) draft.level = parseInt(level, 10); else delete draft.level;
+    const others = cards.filter(c => c !== editing);
+    const errs = validateCard(draft, [...others, draft]);
+    if (errs.length) { e.preventDefault(); $("formErr").textContent = errs.join("; "); return; }
+    if (editing) cards[cards.indexOf(editing)] = draft; else cards.push(draft);
+    setDirty(true); render();
+    if (scanMode) { e.preventDefault(); finishScan(draft); }
+  };
+
+  // ----- scanning: scan dialog (camera) -> QR code -> front of the card -> check dialog (the edit form) -----
+  // The server reads the QR code (OpenCV) and the text (tesseract). The photo sent for OCR is cropped to the
+  // dashed guide frame, so the card fills as many pixels as possible and the server knows where to look.
+  const STABLE_MS = 800, MOTION_LEVEL = 6, TICK_MS = 150;
+  const GUIDE_H = 0.96, GUIDE_ASPECT = 5 / 7;  // keep in sync with #guide in the CSS
+  let cam = null;  // { stream, timer, phase: "qr" | "front" | "ocr" | "review", qr, ... }
+  const SCAN_STEPS = {
+    qr: "Show the <b>back</b> of the card (the QR code) to the camera.",
+    front: qr => `✓ <b>${qr}</b> read. Now turn the card over: show the <b>front</b>, fill the dashed frame and hold it still.`,
+    ocr: "Reading the text…",
+  };
+  function setPhase(phase) {
+    cam.phase = phase;
+    Object.assign(cam, { seen: "", seenCount: 0, prev: null, moved: false, stillSince: 0 });
+    $("scanStep").innerHTML = typeof SCAN_STEPS[phase] === "function" ? SCAN_STEPS[phase](cam.qr) : SCAN_STEPS[phase] ?? "";
+    $("chip1").className = "chip " + (phase === "qr" ? "active" : "done");
+    $("chip2").className = "chip " + (phase === "front" || phase === "ocr" ? "active" : "");
+    $("guide").hidden = phase === "qr";
+    $("camShot").disabled = phase !== "front";
+  }
+  let msgHoldUntil = 0;  // keeps a result visible although the next tick would clear the message
+  function camMsg(text = "", kind = "", holdMs = 0) {
+    if (!text && performance.now() < msgHoldUntil) return;
+    msgHoldUntil = performance.now() + holdMs;
+    $("camMsg").textContent = text; $("camMsg").className = kind; $("camMsg").style.display = text ? "block" : "none";
+  }
+  function grab(sx, sy, sw, sh, w, h) {
+    const c = Object.assign(document.createElement("canvas"), { width: w, height: h });
+    c.getContext("2d", { willReadFrequently: true }).drawImage($("camVideo"), sx, sy, sw, sh, 0, 0, w, h);
+    return c;
+  }
+  const guideRect = () => {
+    const vw = $("camVideo").videoWidth, vh = $("camVideo").videoHeight, h = vh * GUIDE_H, w = h * GUIDE_ASPECT;
+    return [(vw - w) / 2, (vh - h) / 2, w, h];
+  };
+  const toJpeg = (canvas, quality) => new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+  async function api(path, blob) {
+    const r = await fetch(path, { method: "POST", body: blob });
+    const result = await r.json();
+    if (!r.ok) throw new Error(result.error);
+    return result;
+  }
+  function beep() {
+    try {
+      const ctx = new AudioContext(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + 0.12); o.onended = () => ctx.close();
+    } catch {}
+  }
+
+  async function startCamera() {
+    stopCamera();
+    cam = { qr: "", blob: null, busy: false };
+    setPhase("qr"); camMsg("Starting camera…");
+    try {
+      const id = localStorage.getItem("camera");
+      // ask for the most pixels the camera has, the card text is small
+      const video = { width: { ideal: 3840 }, height: { ideal: 2160 }, ...(id ? { deviceId: { ideal: id } } : {}) };
+      cam.stream = await navigator.mediaDevices.getUserMedia({ video });
+    } catch (e) { cam = null; return camMsg("Camera not available: " + e.message, "bad"); }
+    const track = cam.stream.getVideoTracks()[0];
+    track.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+    $("camVideo").srcObject = cam.stream; await $("camVideo").play();
+    $("camVideo").parentElement.style.aspectRatio = $("camVideo").videoWidth / $("camVideo").videoHeight;
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+    const current = track.getSettings().deviceId;
+    $("camSel").replaceChildren(...devices.map((d, i) => new Option(d.label || `Camera ${i + 1}`, d.deviceId, false, d.deviceId === current)));
+    camMsg(`Camera ready (${$("camVideo").videoWidth}×${$("camVideo").videoHeight})`);
+    cam.timer = setInterval(tick, TICK_MS);
+  }
+  function stopCamera() {
+    if (!cam) return;
+    clearInterval(cam.timer); cam.stream?.getTracks().forEach(t => t.stop());
+    $("camVideo").srcObject = null; cam = null;
+  }
+  function endScan() {
+    stopCamera(); scanMode = false;
+    if ($("scanDlg").open) { handoff = true; $("scanDlg").close(); }
+  }
+  // back to the scan dialog; `again` waits for the front of the same card, otherwise for a new QR code
+  function backToScan(again) {
+    if ($("dlg").open) { handoff = true; $("dlg").close(); }
+    $("scanDlg").showModal();
+    if (!cam) return startCamera();
+    if (again) setPhase("front"); else { cam.qr = ""; setPhase("qr"); }
+  }
+
+  function tick() {
+    const v = $("camVideo");
+    if (!cam || !v.videoWidth || cam.busy || !$("scanDlg").open) return;
+    if (cam.phase === "qr") {
+      cam.busy = true;
+      const w = Math.min(v.videoWidth, 1920), h = Math.round(v.videoHeight * w / v.videoWidth);
+      toJpeg(grab(0, 0, v.videoWidth, v.videoHeight, w, h), 0.85).then(blob => api("/api/qr", blob)).then(({ qr: code }) => {
+        if (cam?.phase !== "qr") return;
+        cam.seenCount = code && code === cam.seen ? cam.seenCount + 1 : code ? 1 : 0;
+        cam.seen = code;
+        if (!code) return camMsg();
+        if (!/^[A-Za-z0-9_+/=-]{1,15}$/.test(code)) return camMsg(`"${code.slice(0, 30)}" is not a valid card ID`, "bad");
+        if (cards.some(c => c.qr === code)) return camMsg(`${code} is already in the catalog`, "bad");
+        if (cam.seenCount < 2) return;
+        beep(); camMsg(); cam.qr = code; setPhase("front");
+      }).catch(e => camMsg("QR reading failed: " + e.message, "bad")).finally(() => { if (cam) cam.busy = false; });
+    } else if (cam.phase === "front") {
+      // the card is turned over when the guide area moved and then lies still again
+      const [gx, gy, gw, gh] = guideRect();
+      const px = grab(gx, gy, gw, gh, 40, 56).getContext("2d").getImageData(0, 0, 40, 56).data;
+      const grey = new Uint8Array(40 * 56).map((_, i) => (px[i * 4] + px[i * 4 + 1] + px[i * 4 + 2]) / 3);
+      const diff = cam.prev ? grey.reduce((s, g, i) => s + Math.abs(g - cam.prev[i]), 0) / grey.length : 0;
+      cam.prev = grey;
+      const now = performance.now();
+      if (diff > MOTION_LEVEL) { cam.moved = true; cam.stillSince = 0; camMsg(); }
+      else if (!cam.stillSince) cam.stillSince = now;
+      if (cam.moved && cam.stillSince && now - cam.stillSince > STABLE_MS) readFront();
+    }
+  }
+  async function readFront() {
+    const c = cam;  // the dialog may be closed while the server is busy
+    if (!c || c.phase !== "front") return;
+    setPhase("ocr"); c.busy = true;
+    try {
+      const [gx, gy, gw, gh] = guideRect();
+      const blob = await toJpeg(grab(gx, gy, gw, gh, Math.round(gw), Math.round(gh)), 0.92);
+      const result = await api("/api/ocr" + boxQuery(), blob);
+      if (cam !== c) return;
+      if (result.qr) {
+        setPhase("front");
+        return camMsg("The QR side is still facing the camera.", "bad", 4000);
+      }
+      c.blob = blob; c.phase = "review";
+      handoff = true; $("scanDlg").close();
+      review(c.qr, result, blob);
+    } catch (e) {
+      if (cam === c) { setPhase("front"); camMsg("Reading failed: " + e.message, "bad", 4000); }
+    } finally { c.busy = false; }
+  }
+  // the edit form, filled with what was scanned
+  // Where the title and the effect are on the card photo (x0, y0, x1, y1 as fractions). Boxes the user has
+  // drawn are remembered and used for every following card, since the cards share one layout.
+  const DEFAULT_BOXES = { title: [0.12, 0.015, 0.88, 0.11], effect: [0.06, 0.60, 0.94, 0.96] };
+  let boxes = { ...DEFAULT_BOXES }, boxesCustom = false;
+  try { const saved = JSON.parse(localStorage.boxes); if (saved?.title && saved?.effect) { boxes = saved; boxesCustom = true; } } catch {}
+  const boxQuery = () => boxesCustom ? `?title=${boxes.title}&effect=${boxes.effect}` : "";
+  function showBoxes() {
+    for (const [k, id] of [["title", "boxTitle"], ["effect", "boxEffect"]]) {
+      const [x0, y0, x1, y1] = boxes[k], st = $(id).style;
+      st.left = x0 * 100 + "%"; st.top = y0 * 100 + "%"; st.width = (x1 - x0) * 100 + "%"; st.height = (y1 - y0) * 100 + "%";
+    }
+  }
+  let drag = null;
+  $("photoBox").onpointerdown = e => {
+    const r = $("photoBox").getBoundingClientRect();
+    drag = { r, x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, target: document.querySelector("input[name=boxTarget]:checked").value };
+    drag.before = [...boxes[drag.target]];
+    $("photoBox").setPointerCapture(e.pointerId);
+  };
+  $("photoBox").onpointermove = e => {
+    if (!drag) return;
+    const cl = v => Math.min(1, Math.max(0, v)), x = cl((e.clientX - drag.r.left) / drag.r.width), y = cl((e.clientY - drag.r.top) / drag.r.height);
+    boxes[drag.target] = [Math.min(drag.x, x), Math.min(drag.y, y), Math.max(drag.x, x), Math.max(drag.y, y)];
+    showBoxes();
+  };
+  $("photoBox").onpointerup = () => {
+    if (!drag) return;
+    const b = boxes[drag.target];
+    if (b[2] - b[0] < 0.03 || b[3] - b[1] < 0.01) boxes[drag.target] = drag.before;  // a click, not a box
+    else { boxes[drag.target] = b.map(v => Math.round(v * 1000) / 1000); boxesCustom = true; localStorage.boxes = JSON.stringify(boxes); }
+    drag = null; showBoxes();
+  };
+  function reviewHint(result) {
+    const missing = [!result.title && "title", !result.effect && "effect"].filter(Boolean);
+    if (!missing.length) return "Compare the texts with the photo and correct any mistakes, then add level and symbols.";
+    if (missing.length === 2) return "No text found. If the card has neither title nor effect, just add it. Otherwise move the boxes onto the text and press Read again, or type it.";
+    return `No ${missing[0]} found. That is fine if the card has none; otherwise move the ${missing[0]} box onto it and press Read again, or type it.`;
+  }
+  function review(qr, result, blob) {
+    edit(null, { scan: true });
+    $("f_qr").value = qr;
+    $("photo").src = URL.createObjectURL(blob); showBoxes();
+    fillResult(result);
+  }
+  function fillResult(result) {
+    $("f_title_de").value = result.title; $("f_eff_de").value = result.effect;
+    $("reviewHint").hidden = false; $("reviewHint").textContent = reviewHint(result);
+  }
+  $("resetBoxes").onclick = () => { boxes = structuredClone(DEFAULT_BOXES); boxesCustom = false; delete localStorage.boxes; showBoxes(); };
+  $("reread").onclick = async () => {
+    if (!cam?.blob) return;
+    $("reread").disabled = true;
+    try { fillResult(await api("/api/ocr?title=" + boxes.title + "&effect=" + boxes.effect, cam.blob)); }
+    catch (e) { $("formErr").textContent = "Reading failed: " + e.message; }
+    $("reread").disabled = false;
+  };
+  async function finishScan(card) {
+    if (cam?.blob) fetch("/api/scans/" + encodeURIComponent(scanFile(card.qr)), { method: "PUT", body: cam.blob }).catch(() => {});
+    const saved = await save(false);
+    backToScan(false);
+    camMsg(saved ? `✓ ${card.qr} added and saved. Show the next card.` : `${card.qr} added but NOT saved.`, saved ? "ok" : "bad", 4000);
+  }
+  $("scanBtn").onclick = () => { scanMode = false; $("scanDlg").showModal(); startCamera(); };
+  $("camShot").onclick = readFront;
+  $("camReset").onclick = () => { if (cam) { cam.qr = ""; setPhase("qr"); camMsg(); } };
+  $("retake").onclick = () => backToScan(true);
+  $("discard").onclick = () => backToScan(false);
+  $("camSel").onchange = () => { localStorage.setItem("camera", $("camSel").value); $("scanDlg").open && startCamera(); };
+  $("scanDlg").addEventListener("close", () => { if (!handoff) endScan(); handoff = false; });
+  $("scanDlg").addEventListener("keydown", e => {
+    if (e.key === " " && !/SELECT|BUTTON/.test(e.target.tagName)) { e.preventDefault(); if (cam?.phase === "front") readFront(); }
+  });
+
+  // served by tools/server.py: the catalog is read and written through it, and OCR becomes available
+  if (location.protocol === "http:") {
+    fetch("/api/catalog").then(r => r.ok ? r.text() : Promise.reject()).then(text => {
+      serverMode = true;
+      load(text, "cards.json", null);
+      $("scanBtn").hidden = false; $("open").hidden = $("saveas").hidden = $("scans").hidden = true;
+    }).catch(() => {});
+  }
+  render(); renderStatus();
+})();
+</script>
+</body>
+</html>
