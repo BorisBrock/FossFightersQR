@@ -6,7 +6,7 @@ extends Node
 const PARTY_PATH := "user://test_bosses_party.json"
 ## The settings dialog saves when it closes, which must not touch the real settings.
 const SETTINGS_PATH := "user://test_bosses_settings.cfg"
-const EXPECTED_CHECKS := 45
+const EXPECTED_CHECKS := 46
 
 var _failures := 0
 var _checks_run := 0
@@ -29,22 +29,27 @@ func _ready() -> void:
 
 
 func _check_catalog() -> void:
-	_check(not Bosses.BOSSES.is_empty(), "there are bosses")
+	_check(not Bosses.IDS.is_empty(), "there are bosses")
 	var complete := true
-	for id: String in Bosses.BOSSES:
-		var boss: Dictionary = Bosses.BOSSES[id]
+	var pictures := true
+	for id: String in Bosses.IDS:
+		var boss := Bosses.create(id)
+		complete = complete and boss.id == id
 		for field: String in ["title", "tagline", "story"]:
-			complete = complete and _has_both_languages(boss[field])
+			complete = complete and _has_both_languages(boss.get(field))
 		complete = complete and not boss.hints.is_empty()
 		for hint: Dictionary in boss.hints:
 			complete = complete and _has_both_languages(hint)
-		complete = complete and load(boss.art) is Texture2D
-	_check(complete, "every boss has a picture, and all its text in both languages")
+		for field: String in ["art", "figure", "background"]:
+			pictures = pictures and ResourceLoader.exists(boss.get(field)) and load(boss.get(field)) is Texture2D
+	_check(complete, "every boss has all its text in both languages")
+	_check(pictures, "every boss has its pictures")
 	_check(Bosses.DIFFICULTIES.has(Bosses.DEFAULT_DIFFICULTY), "the default difficulty exists")
 	for id: String in Bosses.DIFFICULTIES:
 		var difficulty: Dictionary = Bosses.DIFFICULTIES[id]
 		complete = complete and _has_both_languages(difficulty.title) and _has_both_languages(difficulty.description)
-	_check(complete, "every difficulty has its text in both languages")
+		complete = complete and difficulty.health_factor > 0.0
+	_check(complete, "every difficulty has its text in both languages, and scales health")
 
 
 func _check_selection() -> void:
@@ -54,9 +59,9 @@ func _check_selection() -> void:
 	var names := []
 	for entry in list.get_children():
 		names.append(str(entry.name))
-	_check(names == Bosses.BOSSES.keys(), "the list shows every boss, in order")
+	_check(names == Array(Bosses.IDS), "the list shows every boss, in order")
 	var first: Control = list.get_child(0)
-	_check(first.get_node("Caption/Name").text == Bosses.BOSSES[names[0]].title.en, "an entry shows the boss's name")
+	_check(first.get_node("Caption/Name").text == Bosses.create(names[0]).title.en, "an entry shows the boss's name")
 	_check(screen.get_node("Stage/Margin/Layout/Footer/Back").text == "Back", "the screen is in English")
 	_check(not get_tree().quit_on_go_back, "the back button of a phone does not quit the app here")
 
@@ -92,13 +97,14 @@ func _check_selection() -> void:
 func _check_overview() -> void:
 	Encounter.boss = "ashwing"
 	Encounter.difficulty = Bosses.DEFAULT_DIFFICULTY
+	var ashwing := Bosses.create("ashwing")
 	var screen := await _open("res://boss_overview.tscn")
 	var layout := screen.get_node("Stage/Margin/Layout")
 	_check(layout.get_node("Header/Titles/Name").text == "Ashwing", "the overview shows the chosen boss")
-	_check(layout.get_node("Scroll/Content/Story").text == Bosses.BOSSES.ashwing.story.en, "and its story")
+	_check(layout.get_node("Scroll/Content/Story").text == ashwing.story.en, "and its story")
 	var hints: Container = layout.get_node("Scroll/Content/Hints")
-	_check(hints.get_child_count() == Bosses.BOSSES.ashwing.hints.size(), "and all its hints")
-	_check(hints.get_child(0).get_node("Text").text == Bosses.BOSSES.ashwing.hints[0].en, "in the right order")
+	_check(hints.get_child_count() == ashwing.hints.size(), "and all its hints")
+	_check(hints.get_child(0).get_node("Text").text == ashwing.hints[0].en, "in the right order")
 	_check((layout.get_node("Scroll/Content/Picture") as TextureRect).texture != null, "and its picture")
 
 	var buttons: Container = layout.get_node("Difficulty")
@@ -119,7 +125,7 @@ func _check_overview() -> void:
 
 	layout.get_node("Footer/Fight").pressed.emit()
 	await _until_left(screen)
-	_check(_next != null and _next.scene_file_path == "res://main.tscn", "Fight! starts the fight")
+	_check(_next != null and _next.scene_file_path == "res://boss_fight.tscn", "Fight! starts the fight")
 	_check(Encounter.boss == "ashwing" and Encounter.difficulty == "hard", "with the boss and difficulty chosen")
 	if _next != null:
 		_next.free()

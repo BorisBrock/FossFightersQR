@@ -3,8 +3,7 @@ extends MenuScreen
 ## to beat it. The difficulty is chosen here, too.
 
 const SELECTION_SCENE := "res://boss_selection.tscn"
-## The boss fight is not built yet, so this is the scanner test screen for now.
-const FIGHT_SCENE := "res://main.tscn"
+const FIGHT_SCENE := "res://boss_fight.tscn"
 const FIGHT_FADE_SEC := 0.7
 const TEXT := {
 	"hints": { "de": "Taktik", "en": "Strategy" },
@@ -15,6 +14,7 @@ const TEXT := {
 
 ## The button of each difficulty, by id.
 var _difficulty_buttons := {}
+var _boss: Boss
 
 @onready var _name: Label = $Stage/Margin/Layout/Header/Titles/Name
 @onready var _tagline: Label = $Stage/Margin/Layout/Header/Titles/Tagline
@@ -33,11 +33,12 @@ var _difficulty_buttons := {}
 func _ready() -> void:
 	super()
 	# Only when run on its own, as from the editor.
-	if not Bosses.BOSSES.has(Encounter.boss):
-		Encounter.boss = Bosses.BOSSES.keys()[0]
+	if not Bosses.has(Encounter.boss):
+		Encounter.boss = Bosses.IDS[0]
 	if not Bosses.DIFFICULTIES.has(Encounter.difficulty):
 		Encounter.difficulty = Bosses.DEFAULT_DIFFICULTY
-	_picture.texture = load(_boss().art)
+	_boss = Bosses.create(Encounter.boss)
+	_picture.texture = load(_boss.art)
 	var group := ButtonGroup.new()
 	for id: String in Bosses.DIFFICULTIES:
 		var button := Button.new()
@@ -49,7 +50,7 @@ func _ready() -> void:
 		button.pressed.connect(choose_difficulty.bind(id))
 		_difficulty_row.add_child(button)
 		_difficulty_buttons[id] = button
-	for i in _boss().hints.size():
+	for i in _boss.hints.size():
 		_hints.add_child(_make_hint())
 	_back.pressed.connect(go_back)
 	_fight.pressed.connect(start_fight)
@@ -78,23 +79,18 @@ func start_fight() -> void:
 	leave_to(load(FIGHT_SCENE).instantiate(), FIGHT_FADE_SEC)
 
 
-func _boss() -> Dictionary:
-	return Bosses.BOSSES[Encounter.boss]
-
-
 func _t(key: String) -> String:
 	return CardDatabase.localized(TEXT[key], TranslationServer.get_locale())
 
 
 func _refresh_text() -> void:
 	var locale := TranslationServer.get_locale()
-	var boss := _boss()
-	_name.text = CardDatabase.localized(boss.title, locale)
-	_tagline.text = CardDatabase.localized(boss.tagline, locale)
-	_story.text = CardDatabase.localized(boss.story, locale)
+	_name.text = CardDatabase.localized(_boss.title, locale)
+	_tagline.text = CardDatabase.localized(_boss.tagline, locale)
+	_story.text = CardDatabase.localized(_boss.story, locale)
 	_hints_heading.text = _t("hints")
-	for i in boss.hints.size():
-		_hints.get_child(i).get_node("Text").text = CardDatabase.localized(boss.hints[i], locale)
+	for i in _boss.hints.size():
+		_hints.get_child(i).get_node("Text").text = CardDatabase.localized(_boss.hints[i], locale)
 	_difficulty_label.text = _t("difficulty")
 	for id: String in _difficulty_buttons:
 		_difficulty_buttons[id].text = CardDatabase.localized(Bosses.DIFFICULTIES[id].title, locale)

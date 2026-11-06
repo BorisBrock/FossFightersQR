@@ -111,7 +111,8 @@ Foss Fighters QR is a 2D Godot 4.7 game in portrait mode. Documentation:
 - [QR scanning](docs/qr_scanning.md): how scanning works, building and testing
 - [Card database](docs/cards.md): how scanned codes become cards
 - [Onboarding](docs/onboarding.md): choosing the party
-- [Choosing the boss](docs/bosses.md): the boss list and overview
+- [Choosing the boss](docs/bosses.md): the boss list and overview, and how bosses are defined
+- [The boss fight](docs/boss_fight.md): the game screen
 - [Game design](docs/game_design.md): design decisions and development hints
 - [Settings](docs/settings.md)
 

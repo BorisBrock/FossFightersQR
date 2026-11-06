@@ -1,0 +1,295 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss_fight.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
+[ext_resource type="Shader" path="res://assets/fight/background.gdshader" id="3_background"]
+[ext_resource type="Shader" path="res://assets/fight/figure.gdshader" id="4_figure"]
+[ext_resource type="PackedScene" path="res://seats.tscn" id="5_seats"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_give_up.svg" id="6_give_up"]
+[ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="7_settings_icon"]
+[ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_round.svg" id="9_round"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_health.svg" id="10_health"]
+
+[sub_resource type="ShaderMaterial" id="background_material"]
+shader = ExtResource("3_background")
+
+[sub_resource type="ShaderMaterial" id="figure_material"]
+shader = ExtResource("4_figure")
+
+[sub_resource type="Gradient" id="dot_gradient"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.55, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_gradient")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="round_button"]
+bg_color = Color(0.08, 0.04, 0.02, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 0.9)
+corner_radius_top_left = 38
+corner_radius_top_right = 38
+corner_radius_bottom_right = 38
+corner_radius_bottom_left = 38
+
+[sub_resource type="StyleBoxFlat" id="plate"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 18.0
+content_margin_bottom = 6.0
+bg_color = Color(0.08, 0.04, 0.02, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="plate_right"]
+content_margin_left = 18.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.08, 0.04, 0.02, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="banner"]
+bg_color = Color(0.05, 0.03, 0.02, 0.6)
+border_width_top = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 0.6)
+
+[node name="BossFight" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+material = SubResource("background_material")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Ambience" type="CPUParticles2D" parent="."]
+amount = 24
+lifetime = 8.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(360, 8)
+angular_velocity_min = -20.0
+angular_velocity_max = 20.0
+
+[node name="Figure" type="TextureRect" parent="."]
+material = SubResource("figure_material")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.03
+anchor_top = 0.07
+anchor_right = 0.97
+anchor_bottom = 0.84
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Seats" parent="." instance=ExtResource("5_seats")]
+layout_mode = 1
+
+[node name="Banner" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.555
+anchor_right = 1.0
+anchor_bottom = 0.645
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("banner")
+
+[node name="Text" type="Label" parent="Banner"]
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 38
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Hud" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="GiveUp" type="Panel" parent="Hud"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 92.0
+offset_bottom = 92.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("round_button")
+
+[node name="Button" type="TextureButton" parent="Hud/GiveUp"]
+modulate = Color(1, 1, 1, 0.85)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+texture_normal = ExtResource("6_give_up")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Settings" type="Panel" parent="Hud"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -92.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 92.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("round_button")
+
+[node name="Button" type="TextureButton" parent="Hud/Settings"]
+modulate = Color(1, 1, 1, 0.85)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+texture_normal = ExtResource("7_settings_icon")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("8_settings")
+
+[node name="Round" type="PanelContainer" parent="Hud"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -84.0
+offset_right = 136.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("plate")
+
+[node name="Row" type="HBoxContainer" parent="Hud/Round"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Hud/Round/Row"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("9_round")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="Hud/Round/Row"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 36
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Health" type="PanelContainer" parent="Hud"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -156.0
+offset_top = -84.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("plate_right")
+
+[node name="Row" type="HBoxContainer" parent="Hud/Health"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Value" type="Label" parent="Hud/Health/Row"]
+custom_minimum_size = Vector2(66, 0)
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 36
+text = "40"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Hud/Health/Row"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("10_health")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Fade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

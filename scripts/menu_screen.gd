@@ -5,6 +5,9 @@ extends Control
 ## to the screen before, as the Back button on screen does.
 
 const FADE_SEC := 0.3
+## Dialogs join this group while open, so that the back button of a phone and Escape are
+## left to them.
+const DIALOG_GROUP := &"dialog"
 
 ## Replaced by tests, which run a screen inside their own scene.
 var change_scene := func(next: Node) -> void: get_tree().change_scene_to_node(next)
@@ -61,7 +64,7 @@ func leave_to(next: Node, fade_sec := FADE_SEC) -> void:
 	change_scene.call(next)
 
 
-## The back button of a phone, or Escape, should only close the settings dialog then.
+## The back button of a phone, or Escape, should only close the dialog then.
 ## The screen hears the back button first, as notifications go from parents to children.
 func _dialog_open() -> bool:
-	return get_tree().get_node_count_in_group(SettingsDialog.GROUP) > 0
+	return get_tree().get_node_count_in_group(DIALOG_GROUP) > 0

@@ -2,7 +2,7 @@
 
 Decisions, rules and hints for further development. Add to this file whenever a decision is made, with the reason if
 it is not obvious. Details of single features live in their own files: [onboarding](onboarding.md),
-[choosing the boss](bosses.md), [cards](cards.md), [QR scanning](qr_scanning.md).
+[choosing the boss](bosses.md), [the boss fight](boss_fight.md), [cards](cards.md), [QR scanning](qr_scanning.md).
 
 ## Concept
 
@@ -12,8 +12,8 @@ A co-operative card game for 1 to 4 players who sit together at a real table.
 - Players draw and play real cards by showing their QR codes to the camera.
 - The app applies the effects of the cards.
 
-*Status: the onboarding and choosing the boss exist, with three dummy bosses. The boss fight is not built yet, and*
-Fight! *leads to the old scanner test screen (`main.tscn`).*
+*Status: the onboarding, choosing the boss and the screen of the boss fight exist, with three dummy bosses. The rules
+of the fight are not built yet. The old scanner test screen (`main.tscn`) is only reached through its test.*
 
 ## Table and screen
 
@@ -59,6 +59,9 @@ A hero has a name, a race, a class and a seat.
 | The game has no camera picture in release builds | Saves power, and the device lies face up, so nobody needs to aim it. |
 | Back goes one screen back, also with the back button of a phone | Players expect the phone's back button to go back, not to quit in the middle of setting up. It still quits at the table, the first screen. |
 | The difficulty is chosen on the boss's overview | It is chosen once per fight, and right next to the hints that help to judge it. |
+| Each boss is a script extending `Boss`, not a data file | Most of a boss is data, but its special rules are code. One file per boss keeps both together, and a boss without special rules is still only data. |
+| Back during the fight asks to give up | A fight lasts a while, and a phone's back button is easy to hit by accident. |
+| Giving up leads to the boss list | The party is still set up, and the next thing is usually another try. |
 | The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
 
 ## Hints for development

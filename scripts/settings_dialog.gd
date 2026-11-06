@@ -2,8 +2,6 @@ class_name SettingsDialog
 extends CanvasLayer
 ## Changes count at once, so that players hear what they set. They are saved when leaving.
 
-## Screens look for an open dialog in this group, to leave the back button to it.
-const GROUP := &"settings_dialog"
 const SLIDER_OFF_ALPHA := 0.4
 const TEXT := {
 	"title": { "de": "Einstellungen", "en": "Settings" },
@@ -33,7 +31,7 @@ var _quit_on_go_back := true
 
 
 func _ready() -> void:
-	add_to_group(GROUP)
+	add_to_group(MenuScreen.DIALOG_GROUP)
 	_refresh_text()
 	_music_toggle.button_pressed = Settings.music_on
 	_music_volume.value = Settings.music_volume

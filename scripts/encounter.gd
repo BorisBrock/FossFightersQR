@@ -3,7 +3,7 @@ extends Node
 ## choice from the boss screens into the fight, and keeps it while the app runs, so that
 ## coming back to the boss screens shows the last choice again.
 
-## An id from Bosses.BOSSES, or empty while none is chosen.
+## An id from Bosses.IDS, or empty while none is chosen.
 var boss := ""
 ## An id from Bosses.DIFFICULTIES.
 var difficulty := Bosses.DEFAULT_DIFFICULTY

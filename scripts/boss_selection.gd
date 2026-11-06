@@ -33,7 +33,7 @@ func _ready() -> void:
 	super()
 	_back.pressed.connect(go_back)
 	var index := 0
-	for id: String in Bosses.BOSSES:
+	for id: String in Bosses.IDS:
 		var entry := _make_entry(id)
 		_list.add_child(entry)
 		_entries[id] = entry
@@ -80,8 +80,9 @@ func _refresh_text() -> void:
 	var locale := TranslationServer.get_locale()
 	for id: String in _entries:
 		var entry: Control = _entries[id]
-		entry.get_node("Caption/Name").text = CardDatabase.localized(Bosses.BOSSES[id].title, locale)
-		entry.get_node("Caption/Tagline").text = CardDatabase.localized(Bosses.BOSSES[id].tagline, locale)
+		var boss := Bosses.create(id)
+		entry.get_node("Caption/Name").text = CardDatabase.localized(boss.title, locale)
+		entry.get_node("Caption/Tagline").text = CardDatabase.localized(boss.tagline, locale)
 
 
 ## A picture across the whole width, with the name on a shadow at the bottom.
@@ -99,7 +100,7 @@ func _make_entry(id: String) -> Control:
 
 	var picture := TextureRect.new()
 	picture.name = "Picture"
-	picture.texture = load(Bosses.BOSSES[id].art)
+	picture.texture = load(Bosses.create(id).art)
 	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE

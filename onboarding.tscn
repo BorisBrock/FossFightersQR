@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
-[ext_resource type="PackedScene" path="res://seat_token.tscn" id="3_seat"]
+[ext_resource type="PackedScene" path="res://seats.tscn" id="3_seat"]
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="4_scanner"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/table.png" id="5_table"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/corner.svg" id="6_corner"]
@@ -102,112 +102,8 @@ scale_amount_min = 0.15
 scale_amount_max = 0.5
 color_ramp = SubResource("ember_ramp")
 
-[node name="Seats" type="Control" parent="."]
+[node name="Seats" parent="." instance=ExtResource("3_seat")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="Seat0" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1
-anchor_top = 0.22
-anchor_right = 1
-anchor_bottom = 0.22
-offset_left = -138
-offset_top = -54
-offset_right = 18
-offset_bottom = 54
-seat = 0
-facing_degrees = -90.0
-
-[node name="Seat1" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1
-anchor_top = 0.46
-anchor_right = 1
-anchor_bottom = 0.46
-offset_left = -138
-offset_top = -54
-offset_right = 18
-offset_bottom = 54
-seat = 1
-facing_degrees = -90.0
-
-[node name="Seat2" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1
-anchor_top = 0.7
-anchor_right = 1
-anchor_bottom = 0.7
-offset_left = -138
-offset_top = -54
-offset_right = 18
-offset_bottom = 54
-seat = 2
-facing_degrees = -90.0
-
-[node name="Seat3" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 1
-anchor_right = 0.5
-anchor_bottom = 1
-offset_left = -78
-offset_top = -114
-offset_right = 78
-offset_bottom = -6
-seat = 3
-facing_degrees = 0.0
-
-[node name="Seat4" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0
-anchor_top = 0.7
-anchor_right = 0
-anchor_bottom = 0.7
-offset_left = -18
-offset_top = -54
-offset_right = 138
-offset_bottom = 54
-seat = 4
-facing_degrees = 90.0
-
-[node name="Seat5" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0
-anchor_top = 0.46
-anchor_right = 0
-anchor_bottom = 0.46
-offset_left = -18
-offset_top = -54
-offset_right = 138
-offset_bottom = 54
-seat = 5
-facing_degrees = 90.0
-
-[node name="Seat6" parent="Seats" instance=ExtResource("3_seat")]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0
-anchor_top = 0.22
-anchor_right = 0
-anchor_bottom = 0.22
-offset_left = -18
-offset_top = -54
-offset_right = 138
-offset_bottom = 54
-seat = 6
-facing_degrees = 90.0
 
 [node name="Stage" type="PanelContainer" parent="."]
 layout_mode = 1
