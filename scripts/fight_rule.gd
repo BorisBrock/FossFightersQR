@@ -45,7 +45,7 @@ func action_phase_ended(_fight: Fight) -> void:
 	pass
 
 
-## After the boss's attacks, before the status tokens take effect.
+## After the boss's attacks, before the status phase.
 func attack_phase_ended(_fight: Fight) -> void:
 	pass
 

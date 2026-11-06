@@ -7,6 +7,7 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 	var turns: int = value("turns", 1)
 	if value("now", false):
 		play.hero.turns_left += turns
+		play.hero.extra_turns += turns
 		fight.tell("extra_turns_now", { "player": play.hero.name, "count": turns })
 	else:
 		play.hero.bonus_turns += turns

@@ -14,23 +14,12 @@
 			"Der Angriff gegen jeden von euch steht an eurem Platz :damage:."
 		]
 	},
-	"phase_shield": {
-		"title": "Phase 2 · Schilde",
-		"body": [
-			"[boss]{boss}[/boss] hebt seine Schilde:",
-			":melee: {melee}   :ranged: {ranged}   :magic: {magic}",
-			"Schaden muss erst einen Schild brechen, bevor er trifft."
-		]
-	},
-	"phase_shield_none": {
-		"title": "Phase 2 · Schilde",
-		"body": "[boss]{boss}[/boss] hebt diese Runde keine Schilde. Jeder Treffer zählt!"
-	},
 	"phase_action": {
 		"title": "Phase 3 · Aktionen",
 		"body": [
 			"Deckt jetzt eure Flüche auf, falls ihr welche habt.",
 			"Jeder Held hat [b]3 Züge[/b] mit je einer Aktion, im Uhrzeigersinn, [player]{player}[/player] beginnt.",
+			"Helden mit Panik :panic: spielen ihre Handkarten zufällig und werfen danach jeweils 1 Panik-Marker ab.",
 			"Zeigt eure Karte der Kamera, wenn ihr dran seid."
 		]
 	},
@@ -49,20 +38,12 @@
 		"title": "Phase 4 · Angriff",
 		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden."
 	},
-	"status_poison": {
-		"title": "Phase 5 · Status",
-		"body": "[player]{player}[/player] verliert [damage]{count} Lebenspunkte[/damage] :health: durch Gift :poison:."
-	},
-	"status_fire": {
+	"phase_status": {
 		"title": "Phase 5 · Status",
 		"body": [
-			"[player]{player}[/player] brennt :fire: und zieht [b]{count}[/b] :card:.",
-			"Für jede Karte: für den Rest des Kampfes entfernen, [i]oder[/i] abwerfen und [damage]2 Lebenspunkte[/damage] :health: verlieren."
+			"Gift :poison:: verliert [damage]1 Lebenspunkt[/damage] :health: pro Gift-Marker.",
+			"Feuer :fire:: zieht [b]1[/b] :card: pro Feuer-Marker. Für jede Karte: für den Rest des Kampfes entfernen, [i]oder[/i] abwerfen und [damage]2 Lebenspunkte[/damage] :health: verlieren."
 		]
-	},
-	"phase_status_none": {
-		"title": "Phase 5 · Status",
-		"body": "Kein Gift und kein Feuer. Es passiert nichts."
 	},
 	"phase_discard": {
 		"title": "Phase 6 · Abwerfen",
@@ -73,10 +54,10 @@
 	},
 	"phase_draw": {
 		"title": "Phase 7 · Nachziehen",
-		"body": "Zieht bis zu eurem Handkartenlimit nach :card:."
-	},
-	"reminder_paralysis": {
-		"body": "[player]{player}[/player] ist gelähmt :paralysis:: das Handkartenlimit ist um [damage]{count}[/damage] kleiner."
+		"body": [
+			"Zieht bis zu eurem Handkartenlimit nach :card:.",
+			"Lähmung :paralysis:: euer Handkartenlimit ist pro Lähmungs-Marker um [damage]1[/damage] kleiner."
+		]
 	},
 	"support_without_attack": {
 		"title": "Ohne Wirkung",
@@ -97,6 +78,9 @@
 	"empowered": {
 		"body": "Bis zum Ende der Runde bekommt jeder {kind} von [player]{player}[/player] [heal]+{bonus}[/heal]."
 	},
+	"remove_tokens": {
+		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Marker."
+	},
 	"mirefang_bite": {
 		"title": "Giftiger Biss",
 		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:."
@@ -114,9 +98,6 @@
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], du bist dran: zeig eine Karte :card:."
-	},
-	"prompt_action_panic": {
-		"body": "[player]{player}[/player], du bist dran: Panik! Nimm eine [b]zufällige[/b] Handkarte :card:."
 	},
 	"prompt_protect": {
 		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :shield:. [b]Tippt den Helden an, der geschützt wird.[/b]"
@@ -139,9 +120,6 @@
 	"prompt_empower_who": {
 		"body": "[b]Tippt den Helden an[/b], den [player]{player}[/player] stärkt."
 	},
-	"prompt_remove_token": {
-		"body": "[player]{player}[/player], welchen Marker entfernst du?"
-	},
 	"notice_unknown_card": {
 		"body": "Diese Karte ist unbekannt."
 	},
@@ -154,32 +132,14 @@
 	"notice_used_up": {
 		"body": "[player]{player}[/player] hat das in diesem Kampf schon aufgebraucht."
 	},
-	"notice_no_tokens": {
-		"body": "[player]{player}[/player] hat keine Marker zum Entfernen."
-	},
 	"notice_lightning": {
 		"body": ":lightning: Blitz! [player]{player}[/player] hat noch eine Aktion."
-	},
-	"notice_panic_token": {
-		"body": "[player]{player}[/player] beruhigt sich etwas: ein Panik-Marker :panic: weniger."
 	},
 	"option_pass": {
 		"body": "Passen"
 	},
 	"option_skip": {
 		"body": "Auslassen"
-	},
-	"option_token_poison": {
-		"body": "Gift"
-	},
-	"option_token_panic": {
-		"body": "Panik"
-	},
-	"option_token_paralysis": {
-		"body": "Lähmung"
-	},
-	"option_token_fire": {
-		"body": "Feuer"
 	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",

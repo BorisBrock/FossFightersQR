@@ -1,32 +1,58 @@
 """OCR of the card front with tesseract, used by the editor server.
 
-The input is a photo of just the card (the scan dialog crops it to its guide frame), so the title and the
-effect are read from fixed areas: the title bar at the top and the text box in the lower part. Webcam photos
-are soft and the light text sits on a dark panel, so each area is read with a few preprocessing variants and
-the result with the best confidence wins."""
+The card is located in the photo and straightened (card_finder), so the title and the effect are read from
+fixed areas of the card: the title band at the top and the text panel in the lower part. The text on the
+cards is light on a darker background, which tesseract reads badly as it is, so every area is turned into
+clean black text on white first: the brightest colour channel separates the cream text from the coloured
+title bands, a top-hat filter removes the shading of the text panel, and blobs touching the edge of the area
+(the band's torn paper edge, ornaments) are dropped. If no card is found, the photo is taken to be the card."""
 
-import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 
 import cv2
+import numpy as np
 
+from card_finder import find_card, straighten
 from card_text import Word, group_lines, join_paragraphs, clean
 
-# x0, y0, x1, y1 as fractions of the card photo. The photo is only roughly aligned with the card, and a
-# crop that clips the border or the text reads far worse, so the title is tried at a few vertical offsets.
-TITLE_AREAS = [(0.10, y0, 0.90, y1) for y0, y1 in ((0.0, 0.12), (0.015, 0.11), (0.03, 0.12), (0.0, 0.09))]
-EFFECT_AREAS = [(0.06, 0.60, 0.94, 0.96)]
-MIN_EFFECT_CONFIDENCE = 45  # below this the effect is more likely noise than text
+CARD_WIDTH = 1200  # pixels of the straightened card; the scales and the kernel below are tuned for this
+# x0, y0, x1, y1 as fractions of the card
+TITLE_AREA = (0.06, 0.0, 0.94, 0.09)
+EFFECT_AREA = (0.11, 0.635, 0.89, 0.895)
+TITLE_SCALE = 0.5  # the title letters are big, tesseract reads them better scaled down
+EFFECT_SCALE = 1.4  # and the effect letters a bit bigger
+EFFECT_BACKGROUND_KERNEL = 25  # wider than a letter stroke, narrower than the shading of the panel
+MIN_WORD_CONFIDENCE = 20  # the preprocessing leaves little noise, so even unsure words are mostly right
+# An effect is only kept if at least one word of 4 letters or more was read with this confidence: words of the
+# effect text come out at 85-93, noise read from card art or QR codes never got there.
+CLEAR_WORD_CONFIDENCE = 80
 
 
-def _variants(grey, scale):
-    """Preprocessed copies of a grey crop: contrast-limited equalisation with and without sharpening."""
-    g = cv2.resize(grey, None, fx=scale, fy=scale, interpolation=cv2.INTER_LANCZOS4)
-    eq = cv2.createCLAHE(2.0, (8, 8)).apply(g)
-    blur = cv2.GaussianBlur(eq, (0, 0), 2)
-    sharp = cv2.addWeighted(eq, 1.8, blur, -0.8, 0)
-    return [eq, sharp]
+def _drop_border_blobs(binary):
+    """Removes the white blobs that touch the edge of the image: the text lies inside the area."""
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    h, w = binary.shape
+    x, y, bw, bh, area = stats.T
+    keep = (x > 0) & (y > 0) & (x + bw < w) & (y + bh < h) & (area > 6)
+    keep[0] = False  # the background
+    return np.where(keep[labels], 255, 0).astype(np.uint8)
+
+
+def text_image(crop, scale, background_kernel=0):
+    """Black text on white from a crop with light text, scaled by the given factor."""
+    bright = crop.min(axis=2) if crop.ndim == 3 else crop  # cream text is bright in every channel
+    bright = cv2.GaussianBlur(bright, (3, 3), 0)  # JPEG noise
+    if background_kernel:
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (background_kernel, background_kernel))
+        bright = cv2.morphologyEx(bright, cv2.MORPH_TOPHAT, kernel)
+    bright = cv2.resize(bright, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
+    otsu, _ = cv2.threshold(bright, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # with little text in the area Otsu's threshold can drop into the noise of the background
+    floor = 0.4 * np.percentile(bright, 99.5)
+    _, binary = cv2.threshold(bright, max(otsu, floor), 255, cv2.THRESH_BINARY)
+    # tesseract wants dark text with a margin of background around it
+    return cv2.copyMakeBorder(255 - _drop_border_blobs(binary), 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
 
 
 def _words(image, lang, psm):
@@ -37,40 +63,50 @@ def _words(image, lang, psm):
                  d["block_num"][i], d["par_num"][i], d["line_num"][i]) for i in range(len(d["text"]))]
 
 
-def _read_area(card_grey, areas, lang, psm, scales, min_letters):
-    """Best reading of one text area as (lines, mean confidence), trying every area crop and variant."""
-    h, w = card_grey.shape
-    # the areas are the same size for every card, so scale by the card's pixel size rather than the crop's
-    scale_base = 1000 / w
-    jobs = []
-    for x0, y0, x1, y1 in areas:
-        crop = card_grey[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
-        jobs += [image for s in scales for image in _variants(crop, s * scale_base)]
+def _crop(image, box):
+    h, w = image.shape[:2]
+    x0, y0, x1, y1 = box
+    return image[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
 
-    def read(image):
-        return [wd for wd in _words(image, lang, psm) if wd.conf >= 30 and sum(c.isalpha() for c in wd.text) >= min_letters]
 
-    best = ([], 0.0, 0.0)
-    with ThreadPoolExecutor(os.cpu_count() or 2) as pool:  # tesseract runs as separate processes
-        for words in pool.map(read, jobs):
-            score = sum(wd.conf for wd in words)  # favours the reading that recognised more text
-            if words and score > best[2]:
-                best = (group_lines(words, 0), score / len(words), score)
-    return best[0], best[1]
+def _read(crop, lang, psm, scale, background_kernel=0):
+    """Reading of a crop as (lines, whether it contains at least one clearly recognised word)."""
+    words = _words(text_image(crop, scale, background_kernel), lang, psm)
+    # stray marks come out as words without letters or digits
+    words = [w for w in words if w.conf >= MIN_WORD_CONFIDENCE and any(c.isalnum() for c in w.text)]
+    clear = any(w.conf >= CLEAR_WORD_CONFIDENCE and sum(c.isalpha() for c in w.text) >= 4 for w in words)
+    return group_lines(words, 0), clear
 
 
 def read_front(image, lang, title_box=None, effect_box=None):
     """(title, effect, effect_ok) from a photo of the card front. The boxes are (x0, y0, x1, y1) fractions of
-    the photo drawn by the user; without one the default areas are tried. effect_ok is False when the effect
-    came out too unclear to be worth keeping (only judged for the default area: a box drawn by the user is
+    the photo drawn by the user; without one the area of the found card is read. effect_ok is False when the
+    effect came out too unclear to be worth keeping (only judged without a box: a box drawn by the user is
     trusted, and a card may simply have no effect)."""
-    grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    title_lines, _ = _read_area(grey, [title_box] if title_box else TITLE_AREAS, lang, 7, (1.0, 1.5), 3)
-    # decoration next to the title (the corner ornaments) comes out as stray characters
+    corners = find_card(image)
+    if corners is not None:
+        card = straighten(image, corners, CARD_WIDTH)
+        card_width = (np.linalg.norm(corners[1] - corners[0]) + np.linalg.norm(corners[2] - corners[3])) / 2
+    else:
+        card = cv2.resize(image, (CARD_WIDTH, round(image.shape[0] * CARD_WIDTH / image.shape[1])))
+        card_width = image.shape[1]
+
+    def area(box, default):
+        if not box:
+            return _crop(card, default)
+        # a box drawn by the user is cut from the photo, and scaled as if it was cut from the straightened card
+        s = CARD_WIDTH / card_width
+        return cv2.resize(_crop(image, box), None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_CUBIC)
+
+    with ThreadPoolExecutor(2) as pool:  # tesseract runs as separate processes
+        title_job = pool.submit(_read, area(title_box, TITLE_AREA), lang, 7, TITLE_SCALE)
+        effect_job = pool.submit(_read, area(effect_box, EFFECT_AREA), lang, 6, EFFECT_SCALE, EFFECT_BACKGROUND_KERNEL)
+        title_lines, _ = title_job.result()
+        effect_lines, clear = effect_job.result()
+    # decoration next to the title comes out as stray characters
     title = clean(re.sub(r"^[\W_]+|[\W_]+$", "", " ".join(l.text for l in title_lines)))
-    effect_lines, confidence = _read_area(grey, [effect_box] if effect_box else EFFECT_AREAS, lang, 6, (1.0, 1.5), 2)
     effect = join_paragraphs(effect_lines)
     if effect_box:
         return title, effect, bool(effect)
-    ok = confidence >= MIN_EFFECT_CONFIDENCE and len(effect.split()) >= 3
+    ok = bool(effect) and clear
     return title, effect if ok else "", ok

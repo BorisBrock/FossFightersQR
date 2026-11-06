@@ -14,23 +14,12 @@
 			"The attack against each of you is shown at your seat :damage:."
 		]
 	},
-	"phase_shield": {
-		"title": "Phase 2 · Shields",
-		"body": [
-			"[boss]{boss}[/boss] raises its shields:",
-			":melee: {melee}   :ranged: {ranged}   :magic: {magic}",
-			"Damage has to break a shield before it hurts."
-		]
-	},
-	"phase_shield_none": {
-		"title": "Phase 2 · Shields",
-		"body": "[boss]{boss}[/boss] raises no shields this round. Every hit counts!"
-	},
 	"phase_action": {
 		"title": "Phase 3 · Actions",
 		"body": [
 			"Reveal your curses now, if you have any.",
 			"Each hero has [b]3 turns[/b] with one action each, clockwise, starting with [player]{player}[/player].",
+			"Heroes with panic :panic: play their hand cards at random, and discard 1 panic token after each.",
 			"Show your card to the camera when it is your turn."
 		]
 	},
@@ -49,20 +38,12 @@
 		"title": "Phase 4 · Attack",
 		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round."
 	},
-	"status_poison": {
-		"title": "Phase 5 · Status",
-		"body": "[player]{player}[/player] loses [damage]{count} health[/damage] :health: to poison :poison:."
-	},
-	"status_fire": {
+	"phase_status": {
 		"title": "Phase 5 · Status",
 		"body": [
-			"[player]{player}[/player] burns :fire: and draws [b]{count}[/b] :card:.",
-			"For each card: remove it for the rest of the fight, [i]or[/i] discard it and lose [damage]2 health[/damage] :health:."
+			"Poison :poison:: lose [damage]1 health[/damage] :health: per poison token.",
+			"Fire :fire:: draw [b]1[/b] :card: per fire token. For each card: remove it for the rest of the fight, [i]or[/i] discard it and lose [damage]2 health[/damage] :health:."
 		]
-	},
-	"phase_status_none": {
-		"title": "Phase 5 · Status",
-		"body": "No poison and no fire. Nothing happens."
 	},
 	"phase_discard": {
 		"title": "Phase 6 · Discard",
@@ -73,10 +54,10 @@
 	},
 	"phase_draw": {
 		"title": "Phase 7 · Draw",
-		"body": "Draw up to your hand limit :card:."
-	},
-	"reminder_paralysis": {
-		"body": "[player]{player}[/player] is paralysed :paralysis:: their hand limit is [damage]{count} lower[/damage]."
+		"body": [
+			"Draw up to your hand limit :card:.",
+			"Paralysis :paralysis:: your hand limit is [damage]1 lower[/damage] per paralysis token."
+		]
 	},
 	"support_without_attack": {
 		"title": "No effect",
@@ -97,6 +78,9 @@
 	"empowered": {
 		"body": "Until the end of the round, every {kind} of [player]{player}[/player] gets [heal]+{bonus}[/heal]."
 	},
+	"remove_tokens": {
+		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own tokens."
+	},
 	"mirefang_bite": {
 		"title": "Venomous Bite",
 		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:."
@@ -114,9 +98,6 @@
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], your turn: show a card :card:."
-	},
-	"prompt_action_panic": {
-		"body": "[player]{player}[/player], your turn: panic! Pick a [b]random[/b] card from your hand :card:."
 	},
 	"prompt_protect": {
 		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :shield:. [b]Tap the hero to protect.[/b]"
@@ -139,9 +120,6 @@
 	"prompt_empower_who": {
 		"body": "[b]Tap the hero[/b] that [player]{player}[/player] strengthens."
 	},
-	"prompt_remove_token": {
-		"body": "[player]{player}[/player], which token do you remove?"
-	},
 	"notice_unknown_card": {
 		"body": "This card is unknown."
 	},
@@ -154,32 +132,14 @@
 	"notice_used_up": {
 		"body": "[player]{player}[/player] has used this up in this fight."
 	},
-	"notice_no_tokens": {
-		"body": "[player]{player}[/player] has no tokens to remove."
-	},
 	"notice_lightning": {
 		"body": ":lightning: Lightning! [player]{player}[/player] takes another action."
-	},
-	"notice_panic_token": {
-		"body": "[player]{player}[/player] calms down a little: one panic token :panic: less."
 	},
 	"option_pass": {
 		"body": "Pass"
 	},
 	"option_skip": {
 		"body": "Skip"
-	},
-	"option_token_poison": {
-		"body": "Poison"
-	},
-	"option_token_panic": {
-		"body": "Panic"
-	},
-	"option_token_paralysis": {
-		"body": "Paralysis"
-	},
-	"option_token_fire": {
-		"body": "Fire"
 	},
 	"example_magic_potion": {
 		"title": "Magic Potion",

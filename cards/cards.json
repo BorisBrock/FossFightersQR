@@ -181,6 +181,36 @@
       "level": 8,
       "title": { "de": "Elitekrieger" },
       "effect": { "de": "Greifst du mit deinem ersten Angriff in einer Runde einen Boss-Schild an, ignoriere dessen Schild-Effekt." }
+    },
+    {
+      "qr": "AgAAAA==",
+      "deck": "troll",
+      "title": { "de": "Wurfbeil" },
+      "effect": { "de": "Fernkampf-Angriff 2." }
+    },
+    {
+      "qr": "EQAAAA==",
+      "deck": "classes",
+      "title": { "de": "Horn des Häuptlings" },
+      "effect": { "de": "Ein Held deiner Wahl zieht 3 Karten.\nDieser Held darf sofort\neine Aktion ausführen." }
+    },
+    {
+      "qr": "DwAAAA==",
+      "deck": "classes",
+      "title": { "de": "Geisterspeer" },
+      "effect": { "de": "Magie-Angriff 3." }
+    },
+    {
+      "qr": "CgAAAA==",
+      "deck": "classes",
+      "title": { "de": "Krötensmoothie" },
+      "effect": { "de": "Ein Held deiner Wahl erhält 3 Lebenspunkte. Dieser Held zieht 2 Karten." }
+    },
+    {
+      "qr": "EAAAAA==",
+      "deck": "troll",
+      "title": { "de": "Schulterramme" },
+      "effect": { "de": "Nahkampf-Verstärkung 3. Hast du danach 15 Lebenspunkte oder mehr: Du erhältst 3 Lebenspunkte." }
     }
   ]
 }

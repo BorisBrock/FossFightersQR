@@ -62,7 +62,7 @@ round. The values come from the card, so one script serves many cards.
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | |
-| `remove_tokens` | The hero removes some of their tokens, choosing which. | `count` (2) |
+| `remove_tokens` | Tells the hero to remove some of their tokens from the table. | `count` (2) |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) |
 

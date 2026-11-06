@@ -1,0 +1,38 @@
+{
+  "01_omas_helm.jpg": {
+    "title": "Omas Helm",
+    "effect": "Schutz 4. Hast du danach 15 Lebenspunkte oder mehr: Entferne 2 beliebige deiner Statusmarken."
+  },
+  "02_kroetensmoothie.jpg": {
+    "title": "Krötensmoothie",
+    "effect": "Ein Held deiner Wahl erhält 3 Lebenspunkte. Dieser Held zieht 2 Karten."
+  },
+  "03_hornissenstachel.jpg": {
+    "title": "Hornissenstachel",
+    "effect": "Fernkampf-Angriff 2. Führe 1 weitere Aktion aus."
+  },
+  "04_rauchbombe.jpg": {
+    "title": "Rauchbombe",
+    "effect": "Schutz 2. Entfernt den Zusatzeffekt der reduzierten Boss-Attacke. Führe 1 weitere Aktion aus."
+  },
+  "05_fluch_des_raben.jpg": {
+    "title": "Fluch des Raben",
+    "effect": "Der Boss verliert sofort 2 Leben. Lege diese Karte dauerhaft neben deine Heldenkarte. Lege sie ab, um eine -Fähigkeit des Bosses gegen dich zu verhindern."
+  },
+  "06_geisterspeer.jpg": {
+    "title": "Geisterspeer",
+    "effect": "Magie-Angriff 3."
+  },
+  "07_schulterramme.jpg": {
+    "title": "Schulterramme",
+    "effect": "Nahkampf-Verstärkung 3. Hast du danach 15 Lebenspunkte oder mehr: Du erhältst 3 Lebenspunkte."
+  },
+  "08_schwert_der_rubingarde.jpg": {
+    "title": "Schwert der Rubingarde",
+    "effect": "Nahkampf-Angriff 4."
+  },
+  "09_rune_der_rache.jpg": {
+    "title": "Rune der Rache",
+    "effect": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der Stärke der Boss-Attacke, die dich bedroht. Fügt dieser Angriff 9 oder mehr Schaden zu, verlierst du 4 Lebenspunkte."
+  }
+}

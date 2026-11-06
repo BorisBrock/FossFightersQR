@@ -24,7 +24,7 @@ class HeroStats:
 	var healing := 0
 	## How much protection lowered the boss's attacks.
 	var protection := 0
-	## From the boss's attacks and from poison.
+	## From the boss's attacks. Poison and fire are on the table, not in the app.
 	var damage_taken := 0
 	## Status tokens the boss's attacks gave them.
 	var tokens_taken := 0
@@ -100,7 +100,7 @@ func team_cards() -> int:
 	return _sum(func(stats: HeroStats) -> int: return stats.cards)
 
 
-## What the boss did to the heroes: the damage of its attacks and of poison.
+## What the boss did to the heroes: the damage of its attacks.
 func boss_damage() -> int:
 	return _sum(func(stats: HeroStats) -> int: return stats.damage_taken)
 

@@ -4,4 +4,4 @@ extends CardAbility
 
 
 func after_effects(fight: Fight, play: CardPlay) -> void:
-	await fight.take_action(play.hero, { "prompt": "prompt_lucky_charm", "ignore_lightning": true })
+	await fight.take_action(play.hero, { "prompt": "prompt_lucky_charm", "ignore_lightning": true, "limited": true })

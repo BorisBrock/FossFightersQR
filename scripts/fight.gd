@@ -18,7 +18,10 @@ signal round_changed(round_number: int)
 signal phase_changed(phase: Phase)
 signal health_changed(health: int, max_health: int)
 signal shields_changed(shields: Dictionary)
-## Its attack, its tokens or its turns changed.
+## The boss has raised its shields for the round. The view shows them rising instead of a
+## message, so the fight goes on without waiting for the players.
+signal shields_raised(shields: Dictionary)
+## Its attack, its turns or its actions changed.
 signal hero_changed(hero: FightHero)
 ## null once nobody's turn is on.
 signal turn_changed(hero: FightHero)
@@ -235,16 +238,21 @@ func choose_from(options: Array[String], prompt: String, values := {}, can_skip 
 ## Lets hero play cards: count actions, plus those Lightning gives. A card played this
 ## way costs no turn, so abilities use it for cards played "right now".
 ## settings: "prompt" (a message id, with {player}), "can_skip" (the hero may decline,
-## which ends it) and "ignore_lightning".
+## which ends it), "ignore_lightning", and "limited" (what can be played is limited, such
+## as to the top card of the draw pile, which the screen shows).
 ## Returns the cards played.
 func play_actions(hero: FightHero, count: int, settings := {}) -> Array[CardPlay]:
 	var plays: Array[CardPlay] = []
+	if count <= 0 or over:
+		return plays
+	_reserve(hero, _action_kind(settings), count)
 	var left := count
 	while left > 0 and not over:
 		left -= 1
-		var play := await take_action(hero, settings)
+		var play := await _take_reserved(hero, settings)
 		if play == null:
 			if settings.get("can_skip", false):
+				_unreserve(hero, left)
 				break
 			continue
 		plays.append(play)
@@ -253,25 +261,64 @@ func play_actions(hero: FightHero, count: int, settings := {}) -> Array[CardPlay
 
 
 ## Asks hero for one card and plays it, see play_actions(). Returns null if they passed.
+## Lightning on the card is left to the caller, through CardPlay.extra_actions.
 func take_action(hero: FightHero, settings := {}) -> CardPlay:
+	if over:
+		return null
+	_reserve(hero, _action_kind(settings), 1)
+	var play := await _take_reserved(hero, settings)
+	if play != null:
+		_unreserve(hero, play.extra_actions)
+	return play
+
+
+## The card gives its hero count more actions right away, such as from Lightning.
+func give_actions(play: CardPlay, count: int) -> void:
+	if count <= 0:
+		return
+	play.extra_actions += count
+	_reserve(play.hero, FightHero.Action.BONUS, count)
+
+
+## Asks for the card of an action already among hero.pending, which it spends.
+func _take_reserved(hero: FightHero, settings: Dictionary) -> CardPlay:
 	if over:
 		return null
 	var asked := Request.new()
 	asked.kind = Request.Kind.ACTION
 	asked.hero = hero
 	asked.heroes = [hero]
-	var panic := hero.token_count("panic") > 0
-	asked.prompt = settings.get("prompt", "prompt_action_panic" if panic else "prompt_action")
+	asked.prompt = settings.get("prompt", "prompt_action")
 	asked.values = { "player": hero.name }
 	asked.can_skip = settings.get("can_skip", false)
 	asked.settings = settings
 	var play: CardPlay = await _ask(asked)
+	_unreserve(hero, 1)
 	if play == null:
 		if not over:
 			stats.passed(hero)
 		return null
 	await play_card(play)
 	return play
+
+
+func _action_kind(settings: Dictionary) -> FightHero.Action:
+	if settings.get("limited", false):
+		return FightHero.Action.LIMITED
+	return settings.get("action", FightHero.Action.BONUS)
+
+
+func _reserve(hero: FightHero, kind: FightHero.Action, count: int) -> void:
+	for i in count:
+		hero.pending.append(kind)
+	hero_changed.emit(hero)
+
+
+func _unreserve(hero: FightHero, count: int) -> void:
+	if count <= 0 or hero.pending.is_empty():
+		return
+	hero.pending.resize(maxi(0, hero.pending.size() - count))
+	hero_changed.emit(hero)
 
 
 ## Plays a card: the rules see it, then its ability and symbols take effect.
@@ -292,11 +339,6 @@ func play_card(play: CardPlay) -> void:
 		await _apply(play, effect)
 	if play.ability != null and not over:
 		await play.ability.after_effects(self, play)
-	# A panicking hero plays at random, and calms down a little each time.
-	if not play.card.is_item() and hero.token_count("panic") > 0:
-		hero.add_tokens("panic", -1)
-		hero_changed.emit(hero)
-		notice.emit("notice_panic_token", { "player": hero.name })
 	if over:
 		return
 	await _each_rule("card_played", [play])
@@ -358,7 +400,8 @@ func protect(hero: FightHero, amount: int) -> void:
 	hero_changed.emit(hero)
 
 
-## The boss strikes hero with what is left of its attack, and its effects.
+## The boss strikes hero with what is left of its attack, and its effects. The players
+## put the tokens on the table.
 func strike(hero: FightHero) -> void:
 	if hero.threat <= 0:
 		return
@@ -372,8 +415,6 @@ func strike(hero: FightHero) -> void:
 	else:
 		values.tokens = token_text(hero.threat_effects)
 		tell("boss_hits_with_tokens", values)
-		for token: String in hero.threat_effects:
-			hero.add_tokens(token, hero.threat_effects[token])
 	hero_changed.emit(hero)
 
 
@@ -470,7 +511,9 @@ func _play_round() -> void:
 		hero.threat_effects.clear()
 		hero.played.clear()
 		hero.turns_left = TURNS_PER_ROUND + hero.bonus_turns
+		hero.extra_turns = hero.bonus_turns
 		hero.bonus_turns = 0
+		hero.pending.clear()
 		hero_changed.emit(hero)
 	round_changed.emit(round_number)
 	tell("round_started", { "round": round_number })
@@ -494,13 +537,10 @@ func _play_round() -> void:
 	await _phase(Phase.SHIELD)
 	await boss.raise_shields(self)
 	await _each_rule("shields_raised")
-	if shields.values().any(func(value: int) -> bool: return value > 0):
-		tell("phase_shield", { "boss": boss.title, "melee": shields.melee, "ranged": shields.ranged, "magic": shields.magic })
-	else:
-		tell("phase_shield_none", { "boss": boss.title })
 	await until_read()
 	if over:
 		return
+	shields_raised.emit(shields)
 
 	await _phase(Phase.ACTION)
 	tell("phase_action", { "player": starter.name if starter != null else "" })
@@ -530,18 +570,9 @@ func _play_round() -> void:
 	if over:
 		return
 
+	# The status tokens are on the table, so the players apply them.
 	await _phase(Phase.STATUS)
-	var suffered := false
-	for hero in heroes:
-		if hero.token_count("poison") > 0:
-			suffered = true
-			tell("status_poison", { "player": hero.name, "count": hero.token_count("poison") })
-			stats.hero_hit(hero, hero.token_count("poison"), 0)
-		if hero.token_count("fire") > 0:
-			suffered = true
-			tell("status_fire", { "player": hero.name, "count": hero.token_count("fire") })
-	if not suffered:
-		tell("phase_status_none")
+	tell("phase_status")
 	await until_read()
 	if over:
 		return
@@ -554,9 +585,6 @@ func _play_round() -> void:
 
 	await _phase(Phase.DRAW)
 	tell("phase_draw")
-	for hero in heroes:
-		if hero.token_count("paralysis") > 0:
-			tell("reminder_paralysis", { "player": hero.name, "count": hero.token_count("paralysis") })
 	await until_read()
 	if over:
 		return
@@ -591,8 +619,9 @@ func _action_phase() -> void:
 		for hero in order:
 			if hero.turns_left <= 0 or over:
 				continue
+			var kind := FightHero.Action.BONUS if hero.next_turn_is_extra() else FightHero.Action.TURN
 			hero.turns_left -= 1
-			await _take_turn(hero)
+			await _take_turn(hero, kind)
 			any_left = any_left or hero.turns_left > 0
 		# Turns gained during the round, such as from a card, still count.
 		any_left = any_left or order.any(func(hero: FightHero) -> bool: return hero.turns_left > 0)
@@ -600,12 +629,12 @@ func _action_phase() -> void:
 	turn_changed.emit(null)
 
 
-func _take_turn(hero: FightHero) -> void:
+func _take_turn(hero: FightHero, kind: FightHero.Action) -> void:
 	active_hero = hero
 	hero_changed.emit(hero)
 	turn_changed.emit(hero)
 	await _each_rule("turn_started", [hero])
-	await play_actions(hero, 1)
+	await play_actions(hero, 1, { "action": kind })
 	if not over:
 		await _each_rule("turn_ended", [hero])
 
@@ -639,7 +668,7 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 			tell("heal", { "player": hero.name, "amount": effect.strength })
 		"lightning":
 			if not play.ignore_lightning:
-				play.extra_actions += effect.strength
+				give_actions(play, effect.strength)
 				notice.emit("notice_lightning", { "player": hero.name })
 		"draw":
 			tell("draw_cards", { "player": hero.name, "count": effect.strength })
@@ -707,6 +736,10 @@ func _finish(victory: bool) -> void:
 ## Lets everything that waits for the players run to its end, now that the fight is over.
 func _release() -> void:
 	active_hero = null
+	for hero in heroes:
+		if not hero.pending.is_empty():
+			hero.pending.clear()
+			hero_changed.emit(hero)
 	if request != null:
 		request = null
 		request_changed.emit(null)

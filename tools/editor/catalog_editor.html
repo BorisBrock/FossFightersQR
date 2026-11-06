@@ -403,6 +403,12 @@ if (typeof document !== "undefined") (() => {
       try { const f = await (await scanDir.getFileHandle(scanFile(c.qr).replace(/jpg$/, ext))).getFile(); img.src = URL.createObjectURL(f); img.style.display = "block"; return; } catch {}
     }
   }
+  function scanDefaults() {
+    try {
+      const { deck, level } = JSON.parse(localStorage.scanDefaults);
+      return { ...(DECKS.includes(deck) ? { deck } : {}), ...(level ? { level } : {}) };
+    } catch { return {}; }
+  }
   function edit(card, opts) {
     editing = card;
     scanMode = !!opts?.scan;
@@ -412,7 +418,8 @@ if (typeof document !== "undefined") (() => {
     $("discard").hidden = $("retake").hidden = !scanMode;
     $("reviewHint").hidden = true;
     $("photoWrap").hidden = !scanMode;
-    const c = card ?? { qr: "", deck: DECKS[0], title: {}, symbols: [] };
+    // cards are scanned deck by deck, so a scanned card starts with the deck and level of the previous one
+    const c = card ?? { qr: "", deck: DECKS[0], title: {}, symbols: [], ...(scanMode ? scanDefaults() : {}) };
     $("dlgTitle").textContent = card ? `Edit ${c.qr}` : scanMode ? "Check the scanned card" : "Add card";
     $("f_qr").value = c.qr; $("f_deck").value = c.deck; $("f_level").value = c.level ?? "";
     $("f_hero").value = c.race ? `race:${c.race}` : c.hero_class ? `hero_class:${c.hero_class}` : "";
@@ -473,10 +480,12 @@ if (typeof document !== "undefined") (() => {
   };
 
   // ----- scanning: scan dialog (camera) -> QR code -> front of the card -> check dialog (the edit form) -----
-  // The server reads the QR code (OpenCV) and the text (tesseract). The photo sent for OCR is cropped to the
-  // dashed guide frame, so the card fills as many pixels as possible and the server knows where to look.
+  // The server reads the QR code (OpenCV) and the text (tesseract). The photo sent for OCR is the dashed guide
+  // frame with a margin on both sides: the server finds the card in it by its edges, so the whole card has to be
+  // in the photo even if it is held a little off the frame.
   const STABLE_MS = 800, MOTION_LEVEL = 6, TICK_MS = 150;
   const GUIDE_H = 0.96, GUIDE_ASPECT = 5 / 7;  // keep in sync with #guide in the CSS
+  const PHOTO_MARGIN = 0.1;  // left and right of the guide frame in the photo, as a fraction of its width
   let cam = null;  // { stream, timer, phase: "qr" | "front" | "ocr" | "review", qr, ... }
   const SCAN_STEPS = {
     qr: "Show the <b>back</b> of the card (the QR code) to the camera.",
@@ -506,6 +515,12 @@ if (typeof document !== "undefined") (() => {
   const guideRect = () => {
     const vw = $("camVideo").videoWidth, vh = $("camVideo").videoHeight, h = vh * GUIDE_H, w = h * GUIDE_ASPECT;
     return [(vw - w) / 2, (vh - h) / 2, w, h];
+  };
+  // the photo sent to the server: the guide frame widened by the margin, at the full height of the video
+  const photoRect = () => {
+    const vw = $("camVideo").videoWidth, vh = $("camVideo").videoHeight, [, , gw] = guideRect();
+    const w = Math.min(vw, gw * (1 + 2 * PHOTO_MARGIN));
+    return [(vw - w) / 2, 0, w, vh];
   };
   const toJpeg = (canvas, quality) => new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
   async function api(path, blob) {
@@ -593,8 +608,8 @@ if (typeof document !== "undefined") (() => {
     if (!c || c.phase !== "front") return;
     setPhase("ocr"); c.busy = true;
     try {
-      const [gx, gy, gw, gh] = guideRect();
-      const blob = await toJpeg(grab(gx, gy, gw, gh, Math.round(gw), Math.round(gh)), 0.92);
+      const [px, py, pw, ph] = photoRect();
+      const blob = await toJpeg(grab(px, py, pw, ph, Math.round(pw), Math.round(ph)), 0.92);
       const result = await api("/api/ocr" + boxQuery(), blob);
       if (cam !== c) return;
       if (result.qr) {
@@ -609,11 +624,15 @@ if (typeof document !== "undefined") (() => {
     } finally { c.busy = false; }
   }
   // the edit form, filled with what was scanned
-  // Where the title and the effect are on the card photo (x0, y0, x1, y1 as fractions). Boxes the user has
-  // drawn are remembered and used for every following card, since the cards share one layout.
-  const DEFAULT_BOXES = { title: [0.12, 0.015, 0.88, 0.11], effect: [0.06, 0.60, 0.94, 0.96] };
+  // Where the title and the effect are on the card photo (x0, y0, x1, y1 as fractions). Without boxes drawn by
+  // the user the server finds the card itself and reads its title band and text panel; the default boxes only
+  // show roughly where that is for a card that fills the guide frame. Boxes the user has drawn are remembered and
+  // used for every following card, since the cards share one layout.
+  const DEFAULT_BOXES = { title: [0.13, 0.02, 0.87, 0.11], effect: [0.18, 0.63, 0.82, 0.88] };
   let boxes = { ...DEFAULT_BOXES }, boxesCustom = false;
-  try { const saved = JSON.parse(localStorage.boxes); if (saved?.title && saved?.effect) { boxes = saved; boxesCustom = true; } } catch {}
+  // "boxes2": boxes saved under "boxes" were drawn on the narrower photo of the guide frame alone
+  delete localStorage.boxes;
+  try { const saved = JSON.parse(localStorage.boxes2); if (saved?.title && saved?.effect) { boxes = saved; boxesCustom = true; } } catch {}
   const boxQuery = () => boxesCustom ? `?title=${boxes.title}&effect=${boxes.effect}` : "";
   function showBoxes() {
     for (const [k, id] of [["title", "boxTitle"], ["effect", "boxEffect"]]) {
@@ -638,7 +657,7 @@ if (typeof document !== "undefined") (() => {
     if (!drag) return;
     const b = boxes[drag.target];
     if (b[2] - b[0] < 0.03 || b[3] - b[1] < 0.01) boxes[drag.target] = drag.before;  // a click, not a box
-    else { boxes[drag.target] = b.map(v => Math.round(v * 1000) / 1000); boxesCustom = true; localStorage.boxes = JSON.stringify(boxes); }
+    else { boxes[drag.target] = b.map(v => Math.round(v * 1000) / 1000); boxesCustom = true; localStorage.boxes2 = JSON.stringify(boxes); }
     drag = null; showBoxes();
   };
   function reviewHint(result) {
@@ -657,15 +676,16 @@ if (typeof document !== "undefined") (() => {
     $("f_title_de").value = result.title; $("f_eff_de").value = result.effect;
     $("reviewHint").hidden = false; $("reviewHint").textContent = reviewHint(result);
   }
-  $("resetBoxes").onclick = () => { boxes = structuredClone(DEFAULT_BOXES); boxesCustom = false; delete localStorage.boxes; showBoxes(); };
+  $("resetBoxes").onclick = () => { boxes = structuredClone(DEFAULT_BOXES); boxesCustom = false; delete localStorage.boxes2; showBoxes(); };
   $("reread").onclick = async () => {
     if (!cam?.blob) return;
     $("reread").disabled = true;
-    try { fillResult(await api("/api/ocr?title=" + boxes.title + "&effect=" + boxes.effect, cam.blob)); }
+    try { fillResult(await api("/api/ocr" + boxQuery(), cam.blob)); }
     catch (e) { $("formErr").textContent = "Reading failed: " + e.message; }
     $("reread").disabled = false;
   };
   async function finishScan(card) {
+    localStorage.scanDefaults = JSON.stringify({ deck: card.deck, level: card.level });
     if (cam?.blob) fetch("/api/scans/" + encodeURIComponent(scanFile(card.qr)), { method: "PUT", body: cam.blob }).catch(() => {});
     const saved = await save(false);
     backToScan(false);

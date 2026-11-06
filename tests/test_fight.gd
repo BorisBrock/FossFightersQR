@@ -3,13 +3,14 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 82
+const EXPECTED_CHECKS := 89
 
 var _failures := 0
 var _checks_run := 0
 ## What the fight told the players, in order, by message id.
 var _told: Array[String] = []
 var _values: Array[Dictionary] = []
+var _raised: Array[Dictionary] = []
 var _notices: Array[String] = []
 
 
@@ -43,6 +44,7 @@ func _initialize() -> void:
 	_check_round()
 	_check_cards()
 	_check_abilities()
+	_check_actions()
 	_check_bosses()
 	_check_end()
 	_check(_checks_run == EXPECTED_CHECKS - 1, "all checks ran: %d" % _checks_run)
@@ -67,8 +69,8 @@ func _check_round() -> void:
 	_ready(fight)
 	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "knowing them, the players choose who starts")
 	fight.choose(fight.hero_at(3))
-	_check(fight.starter == fight.hero_at(3) and _told[-1] == "phase_shield" and fight.shields == { "melee": 2, "ranged": 0, "magic": 1 }, "and raises its shields")
-	_ready(fight)
+	_check(fight.starter == fight.hero_at(3) and fight.shields == { "melee": 2, "ranged": 0, "magic": 1 }, "and raises its shields")
+	_check(not _told.has("phase_shield") and _raised == [fight.shields], "shown as they rise, without a message")
 	_check(_told[-1] == "phase_action" and _values[-1].player == "Borin", "the action phase starts with the chosen hero")
 	_ready(fight)
 	_check(_asks_card_of(fight, 3), "whose card is asked for first")
@@ -111,7 +113,7 @@ func _check_round() -> void:
 	_check(fight.active_hero == null and _told[-1] == "boss_hits", "after three turns each, the boss attacks")
 	_check(_told.slice(-2) == ["boss_hits", "boss_hits"] and _values[-1].damage == 2, "every hero it still threatens")
 	_ready(fight)
-	_check(_told[-1] == "phase_status_none", "nobody is poisoned this time")
+	_check(_told[-1] == "phase_status", "then the players apply their status tokens")
 	_ready(fight)
 	_check(_told[-1] == "phase_discard", "then the players discard")
 	_ready(fight)
@@ -129,9 +131,9 @@ func _check_round() -> void:
 	_ready(fight)
 	for i in 8:
 		fight.pass_action()
-	_check(_told[-1] == "boss_hits_with_tokens" and fight.hero_at(5).token_count("poison") == 1, "a poisonous attack gives poison")
+	_check(_told[-1] == "boss_hits_with_tokens" and _values[-1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
 	_ready(fight)
-	_check(_told[-1] == "status_poison" and _values[-1].count == 1, "which hurts in the status phase")
+	_check(_told[-1] == "phase_status", "which the players apply in the status phase")
 
 	# What the game over screen shows of these two rounds.
 	var stats := fight.stats
@@ -139,10 +141,10 @@ func _check_round() -> void:
 	_check(borin.damage == 5 and borin.shield_damage == 2 and borin.cards == 2, "the stats count each hero's damage, to the boss and to its shields")
 	_check(borin.power == { "melee": 7, "ranged": 0, "magic": 0 }, "and the power of their attacks and supports by type, only supports that count")
 	_check(stats.of(fight.hero_at(1)).protection == 5, "and how much their protection lowered attacks")
-	_check(stats.of(fight.hero_at(1)).damage_taken == 8 and stats.of(fight.hero_at(5)).damage_taken == 6, "and the damage they took, poison included")
+	_check(stats.of(fight.hero_at(1)).damage_taken == 8 and stats.of(fight.hero_at(5)).damage_taken == 5, "and the damage they took from attacks")
 	_check(stats.attacks == 6 and stats.attacks_blocked == 1 and stats.of(fight.hero_at(5)).attacks_blocked == 1, "and the boss's attacks, and those blocked")
 	_check(stats.rounds == 2 and stats.health_by_round == [30, 25] and stats.damage_by_round == [5, 0], "and the boss's health and the damage, round by round")
-	_check(stats.team_damage() == 5 and stats.boss_damage() == 18 and stats.outcome == FightStats.Outcome.NONE, "and the totals, while the fight goes on")
+	_check(stats.team_damage() == 5 and stats.boss_damage() == 17 and stats.outcome == FightStats.Outcome.NONE, "and the totals, while the fight goes on")
 	fight.abandon()
 	_check(stats.outcome == FightStats.Outcome.ABORTED and stats.health_by_round == [30, 25, 25], "a fight given up is aborted, in the middle of a round")
 
@@ -162,12 +164,9 @@ func _check_cards() -> void:
 	_check(fight.scan(backpack) == "", "an item")
 	_ready(fight)
 	fight.pass_action()
-	rosie.add_tokens("panic", 2)
 	fight.pass_action()
-	_check(fight.request.prompt == "prompt_action_panic", "a panicking hero is told to pick at random")
 	fight.scan(_card("CALM", [["lightning", 1]], "halfling"))
-	_check(rosie.token_count("panic") == 1 and _notices[-1] == "notice_panic_token", "and loses a panic token with each card")
-	_check(fight.scan(backpack) == "" and rosie.token_count("panic") == 1, "an item can be used again in the same round, and is no random card")
+	_check(fight.scan(backpack) == "", "an item can be used again in the same round")
 	fight.abandon()
 
 
@@ -225,18 +224,51 @@ func _check_abilities() -> void:
 	_ready(fight)
 	_check(fight.hero_at(1).turns_left == 3, "the extra turn is there next round")
 
-	# The medical bag removes tokens of the players' choice.
+	# The medical bag reminds the hero to remove their tokens, which are on the table.
 	var bag := _card("BAG", [], "items")
 	bag.ability = "remove_tokens"
-	_check(fight.scan(bag) == "notice_no_tokens", "an ability can refuse a card")
-	fight.hero_at(1).add_tokens("poison", 1)
-	fight.hero_at(1).add_tokens("fire", 2)
-	fight.scan(bag)
-	_check(fight.request.kind == Fight.Request.Kind.OPTION and fight.request.options == ["option_token_poison", "option_token_fire"], "the medical bag asks which token")
-	fight.choose_option(1)
-	fight.choose_option(0)
-	_check(fight.hero_at(1).tokens == { "fire": 1 }, "and removes them")
+	_check(fight.scan(bag) == "" and _told[-1] == "remove_tokens" and _values[-1].count == 2, "the medical bag tells the hero to remove 2 tokens")
 	fight.abandon()
+
+
+## The actions each hero has left, which the screen shows as spheres: T for their turns,
+## B for extra ones and L for extra ones that allow only some cards.
+func _check_actions() -> void:
+	var fight := _started(TestBoss.new())
+	var rosie := fight.hero_at(1)
+	_check(_actions(rosie) == "TTT" and _actions(fight.hero_at(3)) == "TTT", "each hero has 3 actions, counting the one being played")
+	fight.scan(_card("SPARK", [["lightning", 1]], "halfling"))
+	_check(_asks_card_of(fight, 1) and _actions(rosie) == "BTT", "lightning gives an extra one, played next")
+	var charm := _card("CHARM", [], "items")
+	charm.ability = "lucky_charm"
+	fight.scan(charm)
+	_check(_asks_card_of(fight, 1) and _actions(rosie) == "LTT", "the lucky charm's card is a limited one")
+	fight.scan(_card("TOP", [["lightning", 1]], "halfling"))
+	_check(_asks_card_of(fight, 3) and _actions(rosie) == "TT", "once played, it is gone")
+
+	var gift := _card("GIFT", [], "dwarf")
+	gift.ability = "free_play"
+	fight.scan(gift)
+	fight.choose(fight.hero_at(5))
+	_check(_asks_card_of(fight, 5) and _actions(fight.hero_at(5)) == "BTTT", "a free card is an extra action")
+	fight.skip()
+	_check(_actions(fight.hero_at(5)) == "TTT" and _actions(fight.hero_at(3)) == "TT", "declined, it is gone too")
+
+	fight.pass_action()
+	var horse := _card("HORSE", [], "halfling")
+	horse.ability = "extra_turns"
+	horse.ability_values = { "now": true }
+	fight.scan(horse)
+	_check(_actions(rosie) == "TB", "a turn more this round comes last")
+	_ready(fight)
+	fight.pass_action()
+	fight.pass_action()
+	_check(_asks_card_of(fight, 1) and _actions(rosie) == "TB" and rosie.turns_left == 1, "the turns are taken first")
+	for i in 3:
+		fight.pass_action()
+	_check(_asks_card_of(fight, 1) and _actions(rosie) == "B", "then the extra one")
+	fight.abandon()
+	_check(_actions(rosie) == "", "when the fight is over, none are left")
 
 
 func _check_bosses() -> void:
@@ -296,6 +328,8 @@ func _fight(boss: Boss, difficulty := "normal") -> Fight:
 	_told.clear()
 	_values.clear()
 	_notices.clear()
+	_raised.clear()
+	fight.shields_raised.connect(func(shields: Dictionary) -> void: _raised.append(shields.duplicate()))
 	fight.message.connect(func(id: String, values: Dictionary) -> void:
 		_told.append(id)
 		_values.append(values))
@@ -320,6 +354,13 @@ func _started(boss: Boss, difficulty := "normal", to_cards := true) -> Fight:
 
 func _ready(fight: Fight) -> void:
 	fight.players_ready()
+
+
+func _actions(hero: FightHero) -> String:
+	var letters := ""
+	for action in hero.actions():
+		letters += "TBL"[action]
+	return letters
 
 
 func _asks_card_of(fight: Fight, seat: int) -> bool:

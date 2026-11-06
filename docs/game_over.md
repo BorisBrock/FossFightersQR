@@ -11,7 +11,7 @@ From top to bottom, on the boss's own background:
 - **The outcome:** *Victory!*, *Defeat* or *Retreat*, with the boss and the difficulty below. Behind it the boss: it
   sinks away when beaten and rises when it has won. Golden rays and falling sparks for a victory, red rays and rising
   embers for a defeat, drifting dust for a retreat. A victory plays the fanfare.
-- **The team's numbers:** rounds played, damage dealt to the boss, damage the heroes took (from attacks and poison),
+- **The team's numbers:** rounds played, damage dealt to the boss, damage the heroes took from the boss's attacks,
   and the boss's attacks blocked out of all its attacks.
 - **The course of the fight:** the boss's health as a line, from the start and after each round, and the damage of
   each round as bars below it, on the same scale. The best round is named above.

@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 65
+const EXPECTED_CHECKS := 67
 
 var _failures := 0
 var _checks_run := 0
@@ -173,14 +173,18 @@ func _check_round() -> void:
 	_check(prompt.visible and tokens[1].mode == SeatToken.Mode.SELECTABLE and tokens[3].mode == SeatToken.Mode.SELECTABLE, "then the players are asked who starts")
 	tokens[3].pressed.emit()
 	await get_tree().process_frame
-	_check(box.current() == "phase_shield" and screen.fight.starter.name == "Borin", "tapping a hero chooses them")
-	_check(box.current() == "phase_shield" and screen.get_node("Shields").get_child(0).get_node("Row/Value").text == "2", "the boss raises its shields")
-	await _confirm(box)
-	_check(box.current() == "phase_action", "then the action phase begins")
+	_check(screen.fight.starter.name == "Borin", "tapping a hero chooses them")
+	var shield: Label = screen.get_node("Shields").get_child(0).get_node("Row/Value")
+	_check(box.current() == "phase_action" and not box.visible and shield.text == "0", "the boss's shields rise, and the next message waits")
+	await get_tree().create_timer(1.6).timeout
+	_check(shield.text == "2", "they count up to the shields the boss raised")
+	_check(box.current() == "phase_action" and box.visible, "then the action phase begins")
 	await _confirm(box)
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	var text: RichTextLabel = screen.get_node("Prompt/Layout/Text")
 	_check(prompt.visible and text.get_parsed_text().contains("Borin") and tokens[3].mode == SeatToken.Mode.ACTIVE, "the chosen hero is asked for a card")
+	var spheres: ActionSpheres = tokens[3].get_node("Badge/Row/Actions")
+	_check(spheres.visible and spheres.actions().size() == 3, "each hero sees the actions they have left")
 
 	var health: int = screen.fight.health
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())
