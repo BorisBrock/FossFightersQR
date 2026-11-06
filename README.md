@@ -113,6 +113,7 @@ Foss Fighters QR is a 2D Godot 4.7 game in portrait mode. Documentation:
 - [Onboarding](docs/onboarding.md): choosing the party
 - [Choosing the boss](docs/bosses.md): the boss list and overview, and how bosses are defined
 - [The boss fight](docs/boss_fight.md): the game screen
+- [Game over](docs/game_over.md): the outcome and the statistics of a fight
 - [Game design](docs/game_design.md): design decisions and development hints
 - [Settings](docs/settings.md)
 

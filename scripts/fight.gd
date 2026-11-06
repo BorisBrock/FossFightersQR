@@ -101,6 +101,8 @@ var active_hero: FightHero
 ## What the fight waits for from the players, or null.
 var request: Request
 var over := false
+## What happened in the fight so far, for the game over screen.
+var stats: FightStats
 ## For everything left to chance, seeded by tests.
 var rng := RandomNumberGenerator.new()
 
@@ -121,6 +123,7 @@ func _init(fight_boss: Boss, fight_difficulty: String, party_heroes: Array[Party
 	sorted.sort_custom(func(a: Party.Hero, b: Party.Hero) -> bool: return a.seat < b.seat)
 	for party_hero: Party.Hero in sorted:
 		heroes.append(FightHero.new(party_hero))
+	stats = FightStats.new(heroes, max_health)
 
 
 ## Runs the fight, until it is won, lost or abandoned.
@@ -264,6 +267,8 @@ func take_action(hero: FightHero, settings := {}) -> CardPlay:
 	asked.settings = settings
 	var play: CardPlay = await _ask(asked)
 	if play == null:
+		if not over:
+			stats.passed(hero)
 		return null
 	await play_card(play)
 	return play
@@ -295,6 +300,7 @@ func play_card(play: CardPlay) -> void:
 	if over:
 		return
 	await _each_rule("card_played", [play])
+	stats.card_played(play)
 	card_played.emit(play)
 	await until_read()
 
@@ -317,6 +323,7 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if play != null:
 		play.shield_damage += absorbed
 		play.damage += dealt
+	stats.damage_dealt(dealt, absorbed, play)
 	boss_hit.emit(kind, absorbed, dealt)
 	if dealt > 0:
 		var old := health
@@ -337,6 +344,7 @@ func set_health(value: int) -> void:
 func threaten(hero: FightHero, amount: int, effects := {}) -> void:
 	hero.threat = maxi(0, amount)
 	hero.threat_effects = effects.duplicate()
+	stats.attack_planned(hero, hero.threat)
 	hero_changed.emit(hero)
 
 
@@ -355,6 +363,10 @@ func strike(hero: FightHero) -> void:
 	if hero.threat <= 0:
 		return
 	var values := { "boss": boss.title, "player": hero.name, "damage": hero.threat }
+	var token_count := 0
+	for token: String in hero.threat_effects:
+		token_count += hero.threat_effects[token]
+	stats.hero_hit(hero, hero.threat, token_count)
 	if hero.threat_effects.is_empty():
 		tell("boss_hits", values)
 	else:
@@ -436,6 +448,7 @@ func abandon() -> void:
 	if over:
 		return
 	over = true
+	stats.finished(FightStats.Outcome.ABORTED, health)
 	_release()
 #endregion
 
@@ -450,6 +463,7 @@ func _run() -> void:
 
 func _play_round() -> void:
 	round_number += 1
+	stats.round_started(round_number)
 	attacked.clear()
 	for hero in heroes:
 		hero.threat = 0
@@ -505,6 +519,7 @@ func _play_round() -> void:
 	for hero in heroes:
 		if hero.threat > 0:
 			hit = true
+		stats.attack_resolved(hero, hero.threat)
 		await boss.attack_hero(self, hero)
 		if over:
 			return
@@ -521,6 +536,7 @@ func _play_round() -> void:
 		if hero.token_count("poison") > 0:
 			suffered = true
 			tell("status_poison", { "player": hero.name, "count": hero.token_count("poison") })
+			stats.hero_hit(hero, hero.token_count("poison"), 0)
 		if hero.token_count("fire") > 0:
 			suffered = true
 			tell("status_fire", { "player": hero.name, "count": hero.token_count("fire") })
@@ -549,6 +565,7 @@ func _play_round() -> void:
 	for rule in _round_rules:
 		rules.erase(rule)
 	_round_rules.clear()
+	stats.round_ended(health)
 	await until_read()
 	if over:
 		return
@@ -599,9 +616,11 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 		"attack":
 			if not effect.damage_type in attacked:
 				attacked.append(effect.damage_type)
+			stats.power_played(hero, effect.damage_type, effect.strength)
 			await deal_damage(effect.strength, effect.damage_type, play)
 		"support":
 			if effect.damage_type in attacked:
+				stats.power_played(hero, effect.damage_type, effect.strength)
 				await deal_damage(effect.strength, effect.damage_type, play)
 			else:
 				tell("support_without_attack", { "player": hero.name, "kind": NAMES.get(effect.damage_type, effect.damage_type) })
@@ -612,8 +631,11 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 				var amount := effect.strength
 				for rule in rules.duplicate():
 					amount = rule.protection(self, amount, target, play)
+				var before := target.threat
 				protect(target, amount)
+				stats.protected(hero, before - target.threat)
 		"heal":
+			stats.healed(hero, effect.strength)
 			tell("heal", { "player": hero.name, "amount": effect.strength })
 		"lightning":
 			if not play.ignore_lightning:
@@ -671,6 +693,7 @@ func _each_rule(hook: String, arguments := []) -> void:
 
 func _finish(victory: bool) -> void:
 	over = true
+	stats.finished(FightStats.Outcome.WON if victory else FightStats.Outcome.LOST, health)
 	_phase(Phase.OVER)
 	_unread += 1
 	message.emit("victory" if victory else "defeat", { "boss": boss.title })

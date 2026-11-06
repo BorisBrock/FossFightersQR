@@ -1,0 +1,154 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/game_over.gd" id="1_script"]
+[ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
+[ext_resource type="Shader" path="res://assets/fight/background.gdshader" id="3_background"]
+[ext_resource type="Shader" path="res://assets/onboarding/shaders/rays.gdshader" id="4_rays"]
+[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="5_fanfare"]
+
+[sub_resource type="ShaderMaterial" id="background_material"]
+shader = ExtResource("3_background")
+shader_parameter/mist_strength = 0.3
+shader_parameter/dim = 0.42
+
+[sub_resource type="ShaderMaterial" id="rays_material"]
+shader = ExtResource("4_rays")
+shader_parameter/ray_count = 14
+
+[sub_resource type="Gradient" id="dot_gradient"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.55, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="dot"]
+gradient = SubResource("dot_gradient")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="GameOver" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+material = SubResource("background_material")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Rays" type="ColorRect" parent="."]
+material = SubResource("rays_material")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -460.0
+offset_top = -330.0
+offset_right = 460.0
+offset_bottom = 590.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Figure" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12
+anchor_right = 0.88
+offset_top = 8.0
+offset_bottom = 300.0
+grow_horizontal = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Sparks" type="CPUParticles2D" parent="."]
+amount = 36
+lifetime = 7.0
+preprocess = 3.0
+texture = SubResource("dot")
+emission_shape = 3
+emission_rect_extents = Vector2(360, 8)
+angular_velocity_min = -20.0
+angular_velocity_max = 20.0
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 26
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 26
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="VBoxContainer" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Margin/Layout/Header"]
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 70
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Subtitle" type="Label" parent="Margin/Layout/Header"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Tiles" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Course" type="PanelContainer" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 230)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Heroes" type="PanelContainer" parent="Margin/Layout"]
+layout_mode = 2
+
+[node name="Continue" type="Button" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 26
+
+[node name="Fade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Fanfare" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_fanfare")
+bus = &"SFX"

@@ -7,4 +7,5 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 	var amount: int = value("amount", 8)
 	var target := await fight.choose_hero(fight.heroes, "prompt_heal_who", { "player": play.hero.name, "amount": amount })
 	if target != null:
+		fight.stats.healed(play.hero, amount)
 		fight.tell("heal", { "player": target.name, "amount": amount })

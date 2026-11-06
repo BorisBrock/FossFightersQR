@@ -7,7 +7,7 @@ check mark below it. Tapping the check mark confirms that the players have read 
 ## How it looks
 
 - An optional **title** in the title font, and a **body**, both centred on a dark panel. The fight is dimmed behind it.
-- The round, the boss's health, *give up* and the settings stay in view and can still be used.
+- The round, the boss's health, *end the fight* and the settings stay in view and can still be used.
 - Only the check mark closes a message. Taps for 0.4 s after a message appears do not count, so that a double tap
   does not close the next message unread.
 - Messages that arrive while one is shown wait in line and follow one after another.

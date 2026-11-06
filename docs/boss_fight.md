@@ -28,11 +28,12 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   with buttons for what cannot be done by tapping a hero or showing a card (*Pass*, *Skip*, choices). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
 - **Hits:** the boss lights up and the damage rises from it.
-- **Top left:** give up. It asks first, then ends the fight and leads to the boss list.
+- **Top left:** end the fight. It asks first: *We have lost* (a hero has fallen) ends the fight as lost, *Stop the
+  fight* ends it without a result, *Keep fighting* closes the question.
 - **Top right:** the settings.
 - **Bottom left:** the round, from 1. **Bottom right:** the boss's health, which counts up as the boss appears.
 
-Escape and the back button of a phone ask to give up, too. With the question or the settings open, they only close it.
+Escape and the back button of a phone ask to end the fight, too. With the question or the settings open, they only close it.
 
 ## How a fight goes
 
@@ -52,8 +53,9 @@ the boss's health and shields, the boss's attacks and the heroes' status tokens.
 7. **Status:** poison and fire take effect. **Discard** and **draw** are reminders.
 
 Every phase starts with a message, and the fight goes on once the players have confirmed it. When the boss's health
-reaches 0, the fight is won at once, and after the message the players return to the boss list. The heroes' health is
-not in the app, so when a hero falls, the players give up. A rule can also end a fight as lost (`Fight.lose()`).
+reaches 0, the fight is won at once. The heroes' health is not in the app, so when a hero falls, the players say *We
+have lost*. A rule can also end a fight as lost (`Fight.lose()`). After the message of victory or defeat, or right
+away when the players stop the fight, the [game over screen](game_over.md) shows how it went.
 
 **Cards:**
 
@@ -89,8 +91,13 @@ not in the app, so when a hero falls, the players give up. A rule can also end a
   `messages/`, see [Messages](messages.md).
 - What each boss does differently comes from its script in `scripts/bosses/`, through the hooks of `Boss`. See
   [Bosses and difficulties](bosses.md#bosses-and-difficulties).
-- The screen extends `MenuScreen` for the fades and the back button. Its `go_back()` asks to give up instead of leaving.
-- The question is a `ConfirmDialog` (`confirm_dialog.tscn`), which any screen can use. Dialogs join
+- The screen extends `MenuScreen` for the fades and the back button. Its `go_back()` asks to end the fight instead of leaving.
+- `Fight.stats` (`FightStats`, `scripts/fight_stats.gd`) records what happens for the game over screen: the outcome,
+  each hero's damage, protection, healing and damage taken, the power of their symbols by damage type, and the boss's
+  health and the damage round by round. `Fight` fills it in where things happen; a rule that does something worth
+  counting, such as `heal_hero`, tells it too.
+- The question is a `ConfirmDialog` (`confirm_dialog.tscn`), which any screen can use, with an optional third button
+  (`extra_text`, `extra_confirmed`). Dialogs join
   `MenuScreen.DIALOG_GROUP` while open, so that the back button is left to them.
 - Icons for the fight are in `assets/fight/`.
 

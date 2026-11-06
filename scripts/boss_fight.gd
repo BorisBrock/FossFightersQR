@@ -7,7 +7,7 @@ extends MenuScreen
 ## The rules are in Fight. This screen shows what goes on in it, and passes on what the
 ## players do: confirming messages, tapping heroes and buttons, and showing cards.
 
-const SELECTION_SCENE := "res://boss_selection.tscn"
+const GAME_OVER_SCENE := "res://game_over.tscn"
 const CARDS_PATH := "res://cards/cards.json"
 ## A code seen this recently is taken to be still in view, as the camera reads a card
 ## that stays in view over and over. It has to leave for this long to count again.
@@ -36,9 +36,13 @@ const BANNER_SEC := 3.0
 ## Messages wait while the boss is introduced.
 const INTRO_SEC := 1.6
 const TEXT := {
-	"give_up_title": { "de": "Aufgeben?", "en": "Give up?" },
-	"give_up_message": { "de": "Der Kampf ist dann verloren, und ihr kehrt zur Bossauswahl zurück.", "en": "The fight is then lost, and you return to the boss list." },
-	"give_up": { "de": "Aufgeben", "en": "Give up" },
+	"give_up_title": { "de": "Kampf beenden?", "en": "End the fight?" },
+	"give_up_message": {
+		"de": "Ist ein Held gefallen? Dann hat der Boss gewonnen. Ihr könnt den Kampf auch ohne Ergebnis abbrechen.",
+		"en": "Has a hero fallen? Then the boss has won. You can also stop the fight without a result.",
+	},
+	"we_lost": { "de": "Wir haben verloren", "en": "We have lost" },
+	"abort": { "de": "Kampf abbrechen", "en": "Stop the fight" },
 	"keep_fighting": { "de": "Weiterkämpfen", "en": "Keep fighting" },
 }
 ## The particles over the background, by Boss.Ambience. Areas are in parts of the screen.
@@ -150,7 +154,8 @@ func _notification(what: int) -> void:
 		_refresh_prompt()
 
 
-## Back does not leave a fight by accident: it asks to give up.
+## Back does not leave a fight by accident: it asks whether the fight is lost, or to be
+## stopped.
 func go_back() -> void:
 	if _leaving or _dialog_open() or is_instance_valid(_give_up_dialog):
 		return
@@ -158,18 +163,32 @@ func go_back() -> void:
 	dialog.name = "GiveUpDialog"
 	dialog.title = _t("give_up_title")
 	dialog.message = _t("give_up_message")
-	dialog.confirm_text = _t("give_up")
+	dialog.confirm_text = _t("we_lost")
+	dialog.extra_text = _t("abort")
 	dialog.cancel_text = _t("keep_fighting")
-	dialog.confirmed.connect(give_up)
+	dialog.confirmed.connect(admit_defeat)
+	dialog.extra_confirmed.connect(give_up)
 	_give_up_dialog = dialog
 	# The back button of a phone arrives while the tree passes it on, which is no time
 	# to add to it.
 	add_child.call_deferred(dialog)
 
 
+## A hero has fallen: the fight is lost. Once the players have read so, the game is over.
+func admit_defeat() -> void:
+	fight.lose()
+
+
+## Stops the fight without a result, and shows how far it got.
 func give_up() -> void:
 	fight.abandon()
-	leave_to(load(SELECTION_SCENE).instantiate(), GIVE_UP_FADE_SEC)
+	_game_over(GIVE_UP_FADE_SEC)
+
+
+func _game_over(fade_sec: float) -> void:
+	var screen: Node = load(GAME_OVER_SCENE).instantiate()
+	screen.fight = fight
+	leave_to(screen, fade_sec)
 
 
 ## Plays the card with this QR code, as if it had been shown to the camera. Returns what
@@ -275,8 +294,8 @@ func _on_health_changed(health: int, _max_health: int) -> void:
 
 func _on_messages_read() -> void:
 	if fight.over:
-		var won := fight.health == 0
-		leave_to(load(SELECTION_SCENE).instantiate(), GIVE_UP_FADE_SEC if not won else FADE_SEC * 3.0)
+		var won := fight.stats.outcome == FightStats.Outcome.WON
+		_game_over(FADE_SEC * 3.0 if won else GIVE_UP_FADE_SEC)
 	else:
 		fight.players_ready()
 

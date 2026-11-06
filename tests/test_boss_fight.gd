@@ -1,13 +1,13 @@
 extends Node
 ## The boss fight screen: what it shows, how the players take part in the fight, and
-## giving up. The rules themselves are tested in test_fight.gd.
+## ending it, and the game over screen. The rules themselves are tested in test_fight.gd.
 ## Runs as a scene, because it needs the autoloads:
 ## godot --headless res://tests/test_boss_fight.tscn
 
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 52
+const EXPECTED_CHECKS := 65
 
 var _failures := 0
 var _checks_run := 0
@@ -22,6 +22,8 @@ func _ready() -> void:
 	await _check_messages()
 	await _check_round()
 	await _check_give_up()
+	await _check_defeat()
+	await _check_game_over()
 	_check(_checks_run == EXPECTED_CHECKS - 1, "all checks ran: %d" % _checks_run)
 	DirAccess.remove_absolute(SETTINGS_PATH)
 	DirAccess.remove_absolute(PARTY_PATH)
@@ -209,7 +211,9 @@ func _check_give_up() -> void:
 	screen.get_node("Hud/GiveUp/Button").pressed.emit()
 	await get_tree().process_frame
 	var dialog: ConfirmDialog = screen.get_node_or_null("GiveUpDialog")
-	_check(dialog != null and dialog.get_node("Dim/Center/Panel/Margin/Layout/Buttons/Confirm").text == "Give up", "giving up asks first")
+	var extra: Button = dialog.get_node("Dim/Center/Panel/Margin/Layout/Extra") if dialog != null else null
+	_check(dialog != null and dialog.get_node("Dim/Center/Panel/Margin/Layout/Buttons/Confirm").text == "We have lost", "ending the fight asks whether it is lost")
+	_check(extra != null and extra.visible and extra.text == "Stop the fight", "or is to be stopped")
 	dialog.get_node("Dim/Center/Panel/Margin/Layout/Buttons/Cancel").pressed.emit()
 	await get_tree().create_timer(MenuScreen.FADE_SEC + 0.1).timeout
 	_check(_next == null and not screen.has_node("GiveUpDialog"), "keep fighting closes the question and stays")
@@ -223,16 +227,98 @@ func _check_give_up() -> void:
 
 	screen.go_back()
 	await get_tree().process_frame
-	screen.get_node("GiveUpDialog/Dim/Center/Panel/Margin/Layout/Buttons/Confirm").pressed.emit()
+	screen.get_node("GiveUpDialog/Dim/Center/Panel/Margin/Layout/Extra").pressed.emit()
 	var deadline := Time.get_ticks_msec() + 2000
 	while _next == null and Time.get_ticks_msec() < deadline:
 		await get_tree().process_frame
-	_check(_next != null and _next.scene_file_path == "res://boss_selection.tscn", "giving up leads to the boss list")
+	_check(_next != null and _next.scene_file_path == "res://game_over.tscn", "stopping the fight leads to the game over screen")
+	_check(_next != null and _next.fight == screen.fight and screen.fight.stats.outcome == FightStats.Outcome.ABORTED, "with the fight, stopped")
 	if _next != null:
 		_next.free()
 	screen.queue_free()
 	await get_tree().process_frame
 	_check(get_tree().quit_on_go_back, "the back button of a phone quits again elsewhere")
+
+
+## A fallen hero: the players say they have lost, read so, and the game is over.
+func _check_defeat() -> void:
+	var screen := await _open()
+	var box: MessageBox = screen.messages
+	screen.go_back()
+	await get_tree().process_frame
+	screen.get_node("GiveUpDialog/Dim/Center/Panel/Margin/Layout/Buttons/Confirm").pressed.emit()
+	_check(screen.fight.stats.outcome == FightStats.Outcome.LOST and box.queue.back()[0] == "defeat", "we have lost ends the fight as lost, and says so")
+	await get_tree().process_frame
+	_check(_next == null, "the players read it first")
+	var deadline := Time.get_ticks_msec() + 10000
+	while _next == null and Time.get_ticks_msec() < deadline:
+		await _confirm(box)
+	_check(_next != null and _next.scene_file_path == "res://game_over.tscn" and _next.fight.stats.outcome == FightStats.Outcome.LOST, "then the game is over")
+	if _next != null:
+		_next.free()
+	screen.queue_free()
+
+
+func _check_game_over() -> void:
+	var heroes: Array[Party.Hero] = []
+	for entry: Array in [["Sonja", "dryad", "druid", 1], ["Borin", "dwarf", "warrior", 3]]:
+		var hero := Party.Hero.new()
+		hero.name = entry[0]
+		hero.race = entry[1]
+		hero.hero_class = entry[2]
+		hero.seat = entry[3]
+		heroes.append(hero)
+	var fight := Fight.new(Bosses.create("ashwing"), "normal", heroes)
+	var sonja := fight.heroes[0]
+	var borin := fight.heroes[1]
+	fight.stats.round_started(1)
+	fight.stats.damage_dealt(9, 2, CardPlay.new(borin, Card.new()))
+	fight.stats.damage_dealt(4, 0, CardPlay.new(sonja, Card.new()))
+	fight.stats.protected(sonja, 3)
+	fight.stats.attack_planned(sonja, 3)
+	fight.stats.attack_resolved(sonja, 0)
+	fight.stats.attack_planned(borin, 4)
+	fight.stats.attack_resolved(borin, 4)
+	fight.stats.hero_hit(borin, 4, 1)
+	fight.stats.round_ended(fight.max_health - 13)
+	fight.stats.finished(FightStats.Outcome.WON, fight.max_health - 13)
+
+	await get_tree().process_frame
+	_next = null
+	var screen: MenuScreen = load("res://game_over.tscn").instantiate()
+	screen.fight = fight
+	screen.change_scene = func(next: Node) -> void: _next = next
+	add_child(screen)
+	await get_tree().process_frame
+	_check(screen.get_node("Margin/Layout/Header/Title").text == "Victory!", "the game over screen shows how the fight ended")
+	_check(screen.get_node("Margin/Layout/Header/Subtitle").text.contains("Ashwing"), "against whom")
+	_check(screen.awards.get(borin, {}).get("stat") == "damage" and screen.awards.get(sonja, {}).get("stat") == "protection", "the heroes earn titles for what they did most")
+	screen.get_node("Margin/Layout/Continue").pressed.emit()
+	await get_tree().create_timer(MenuScreen.FADE_SEC + 0.1).timeout
+	_check(_next == null, "a tap right away does not skip it")
+	await get_tree().create_timer(2.5).timeout
+	var tiles := screen.get_node("Margin/Layout/Tiles")
+	var values := []
+	for tile in tiles.get_children():
+		values.append((tile.find_child("Value", true, false) as Label).text)
+	_check(values == ["1", "13", "4", "1/2"], "the team's numbers count up: rounds, damage dealt and taken, attacks blocked")
+	screen.get_node("Margin/Layout/Continue").pressed.emit()
+	var deadline := Time.get_ticks_msec() + 2000
+	while _next == null and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	_check(_next != null and _next.scene_file_path == "res://onboarding.tscn", "the button leads back to the table")
+	if _next != null:
+		_next.free()
+	screen.queue_free()
+
+	for outcome: Array in [[FightStats.Outcome.LOST, "Defeat"], [FightStats.Outcome.ABORTED, "Retreat"]]:
+		var other := Fight.new(Bosses.create("ashwing"), "normal", heroes)
+		other.stats.finished(outcome[0], other.max_health)
+		var shown: Control = load("res://game_over.tscn").instantiate()
+		shown.fight = other
+		add_child(shown)
+		_check(shown.get_node("Margin/Layout/Header/Title").text == outcome[1], "a fight %s shows as such" % outcome[1].to_lower())
+		shown.free()
 
 
 func _open() -> MenuScreen:

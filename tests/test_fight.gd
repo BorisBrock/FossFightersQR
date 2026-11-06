@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 71
+const EXPECTED_CHECKS := 82
 
 var _failures := 0
 var _checks_run := 0
@@ -132,7 +132,19 @@ func _check_round() -> void:
 	_check(_told[-1] == "boss_hits_with_tokens" and fight.hero_at(5).token_count("poison") == 1, "a poisonous attack gives poison")
 	_ready(fight)
 	_check(_told[-1] == "status_poison" and _values[-1].count == 1, "which hurts in the status phase")
+
+	# What the game over screen shows of these two rounds.
+	var stats := fight.stats
+	var borin := stats.of(fight.hero_at(3))
+	_check(borin.damage == 5 and borin.shield_damage == 2 and borin.cards == 2, "the stats count each hero's damage, to the boss and to its shields")
+	_check(borin.power == { "melee": 7, "ranged": 0, "magic": 0 }, "and the power of their attacks and supports by type, only supports that count")
+	_check(stats.of(fight.hero_at(1)).protection == 5, "and how much their protection lowered attacks")
+	_check(stats.of(fight.hero_at(1)).damage_taken == 8 and stats.of(fight.hero_at(5)).damage_taken == 6, "and the damage they took, poison included")
+	_check(stats.attacks == 6 and stats.attacks_blocked == 1 and stats.of(fight.hero_at(5)).attacks_blocked == 1, "and the boss's attacks, and those blocked")
+	_check(stats.rounds == 2 and stats.health_by_round == [30, 25] and stats.damage_by_round == [5, 0], "and the boss's health and the damage, round by round")
+	_check(stats.team_damage() == 5 and stats.boss_damage() == 18 and stats.outcome == FightStats.Outcome.NONE, "and the totals, while the fight goes on")
 	fight.abandon()
+	_check(stats.outcome == FightStats.Outcome.ABORTED and stats.health_by_round == [30, 25, 25], "a fight given up is aborted, in the middle of a round")
 
 
 func _check_cards() -> void:
@@ -141,6 +153,7 @@ func _check_cards() -> void:
 	var potion := _card("POTION", [["heal", 8]], "items")
 	potion.uses_per_fight = 1
 	_check(fight.scan(potion) == "" and _told[-1] == "heal", "an item heals")
+	_check(fight.stats.of(rosie).healing == 8, "which counts for the stats")
 	_ready(fight)
 	fight.pass_action()
 	fight.pass_action()
@@ -255,6 +268,7 @@ func _check_end() -> void:
 	fight.scan(_card("BIG", [["attack", 99, "magic"]], "halfling"))
 	_check(won[0] and fight.over and fight.health == 0, "the boss at 0 health is defeated")
 	_check(_told[-1] == "victory" and fight.request == null and fight.phase == Fight.Phase.OVER, "which ends the fight")
+	_check(fight.stats.outcome == FightStats.Outcome.WON and fight.stats.health_by_round[-1] == 0, "as won")
 	_ready(fight)
 	_check(_told[-1] == "victory", "and nothing follows")
 
@@ -263,6 +277,8 @@ func _check_end() -> void:
 	fight.lost.connect(func() -> void: lost[0] = true)
 	fight.lose()
 	_check(lost[0] and _told[-1] == "defeat" and fight.request == null, "a fight can be lost")
+	fight.abandon()
+	_check(fight.stats.outcome == FightStats.Outcome.LOST, "and stays lost")
 
 
 ## A fight against boss with Rosie, Borin and Sonja, its messages noted.

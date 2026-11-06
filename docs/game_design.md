@@ -2,7 +2,7 @@
 
 Decisions, rules and hints for further development. Add to this file whenever a decision is made, with the reason if
 it is not obvious. Details of single features live in their own files: [onboarding](onboarding.md),
-[choosing the boss](bosses.md), [the boss fight](boss_fight.md), [messages](messages.md), [cards](cards.md), [QR scanning](qr_scanning.md).
+[choosing the boss](bosses.md), [the boss fight](boss_fight.md), [game over](game_over.md), [messages](messages.md), [cards](cards.md), [QR scanning](qr_scanning.md).
 
 ## Concept
 
@@ -61,8 +61,10 @@ A hero has a name, a race, a class and a seat.
 | Back goes one screen back, also with the back button of a phone | Players expect the phone's back button to go back, not to quit in the middle of setting up. It still quits at the table, the first screen. |
 | The difficulty is chosen on the boss's overview | It is chosen once per fight, and right next to the hints that help to judge it. |
 | Each boss is a script extending `Boss`, not a data file | Most of a boss is data, but its special rules are code. One file per boss keeps both together, and a boss without special rules is still only data. |
-| Back during the fight asks to give up | A fight lasts a while, and a phone's back button is easy to hit by accident. |
-| Giving up leads to the boss list | The party is still set up, and the next thing is usually another try. |
+| Back during the fight asks to end it | A fight lasts a while, and a phone's back button is easy to hit by accident. |
+| The players say when they have lost, or stop the fight without a result | The heroes' health is on the table, so only the players know when a hero has fallen. Stopping is for everything else, such as dinner being ready. |
+| Every fight ends on the game over screen, which leads back to the table | Statistics make even a lost fight worth looking at. At the table, the party can be changed before the next try. |
+| The game over screen ignores taps for its first moment | A tap meant for the fight's last message would otherwise skip it. |
 | Messages in the fight are closed only by their check mark | Confirming is how the players say they did what the message asks. A tap beside it, or a timer, would let one slip by unread. |
 | Message text is in files per language, with an id for each message | Text can be changed and languages added without touching code. The game only knows the ids and the placeholders. |
 | The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
