@@ -5,7 +5,7 @@ extends Control
 
 enum View { PARTY, EDITOR }
 
-const GAME_SCENE := "res://main.tscn"
+const BOSS_SCENE := "res://boss_selection.tscn"
 const CARDS_PATH := "res://cards/cards.json"
 ## A code seen this recently is taken to be still in view. It is what lets a player keep
 ## holding a card while the screen moves on, without that card counting for the next hero.
@@ -44,6 +44,8 @@ const TEXT := {
 	"party_name_placeholder": { "de": "Name der Gruppe", "en": "Party name" },
 }
 
+## False when coming back from the boss list, as the logo was shown when the app started.
+var show_splash := true
 ## Where the party is saved. Set before adding the scene to the tree to use another file.
 var party_path := Party.SAVE_PATH
 ## Where the cards come from. Set before adding the scene to the tree to use another file.
@@ -145,7 +147,11 @@ func _ready() -> void:
 
 	resized.connect(_on_resized)
 	_on_resized()
-	_splash.revealing.connect(_play_intro)
+	if show_splash:
+		_splash.revealing.connect(_play_intro)
+	else:
+		_splash.queue_free()
+		_play_intro()
 	_show_view(View.PARTY)
 	if not _cards.error.is_empty():
 		_camera_problem = _cards.error
@@ -500,7 +506,7 @@ func _start_battle() -> void:
 	fade.tween_interval(0.35)
 	fade.tween_property(_fade, "modulate:a", 1.0, 0.7)
 	await fade.finished
-	get_tree().change_scene_to_file(GAME_SCENE)
+	get_tree().change_scene_to_file(BOSS_SCENE)
 
 
 # Showing a view ------------------------------------------------------------------

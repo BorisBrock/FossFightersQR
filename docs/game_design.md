@@ -2,7 +2,7 @@
 
 Decisions, rules and hints for further development. Add to this file whenever a decision is made, with the reason if
 it is not obvious. Details of single features live in their own files: [onboarding](onboarding.md),
-[cards](cards.md), [QR scanning](qr_scanning.md).
+[choosing the boss](bosses.md), [cards](cards.md), [QR scanning](qr_scanning.md).
 
 ## Concept
 
@@ -12,8 +12,8 @@ A co-operative card game for 1 to 4 players who sit together at a real table.
 - Players draw and play real cards by showing their QR codes to the camera.
 - The app applies the effects of the cards.
 
-*Status: only the onboarding exists. The boss fight is not built yet, and* To Battle! *leads to the old scanner
-test screen (`main.tscn`).*
+*Status: the onboarding and choosing the boss exist, with three dummy bosses. The boss fight is not built yet, and*
+Fight! *leads to the old scanner test screen (`main.tscn`).*
 
 ## Table and screen
 
@@ -57,6 +57,8 @@ A hero has a name, a race, a class and a seat.
 | Buttons do not pulse or wiggle | It was more annoying than helpful. Animate a button only as a direct answer to something a player did. |
 | Removing a hero asks once more | It is the only action that cannot be undone by choosing again. |
 | The game has no camera picture in release builds | Saves power, and the device lies face up, so nobody needs to aim it. |
+| Back goes one screen back, also with the back button of a phone | Players expect the phone's back button to go back, not to quit in the middle of setting up. It still quits at the table, the first screen. |
+| The difficulty is chosen on the boss's overview | It is chosen once per fight, and right next to the hints that help to judge it. |
 | The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
 
 ## Hints for development

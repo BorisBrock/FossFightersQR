@@ -22,6 +22,7 @@ boot_splash/image="res://assets/splash.png"
 
 Settings="*res://scripts/settings.gd"
 Music="*res://music.tscn"
+Encounter="*res://scripts/encounter.gd"
 
 [display]
 

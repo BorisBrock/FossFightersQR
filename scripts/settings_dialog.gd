@@ -1,6 +1,9 @@
+class_name SettingsDialog
 extends CanvasLayer
 ## Changes count at once, so that players hear what they set. They are saved when leaving.
 
+## Screens look for an open dialog in this group, to leave the back button to it.
+const GROUP := &"settings_dialog"
 const SLIDER_OFF_ALPHA := 0.4
 const TEXT := {
 	"title": { "de": "Einstellungen", "en": "Settings" },
@@ -9,6 +12,9 @@ const TEXT := {
 	"language": { "de": "Sprache", "en": "Language" },
 	"done": { "de": "Fertig", "en": "Done" },
 }
+
+## What the back button of a phone did before the dialog opened.
+var _quit_on_go_back := true
 
 @onready var _dim: Control = $Dim
 @onready var _title: Label = $Dim/Center/Panel/Margin/Layout/Title
@@ -27,6 +33,7 @@ const TEXT := {
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_refresh_text()
 	_music_toggle.button_pressed = Settings.music_on
 	_music_volume.value = Settings.music_volume
@@ -49,11 +56,12 @@ func _ready() -> void:
 	_done.pressed.connect(close)
 	_dim.gui_input.connect(_on_dim_input)
 	# The back button of a phone should only leave the dialog, not the game.
+	_quit_on_go_back = get_tree().quit_on_go_back
 	get_tree().quit_on_go_back = false
 
 
 func _exit_tree() -> void:
-	get_tree().quit_on_go_back = true
+	get_tree().quit_on_go_back = _quit_on_go_back
 	Settings.save()
 
 
@@ -66,6 +74,7 @@ func _notification(what: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
 		close()
 
 

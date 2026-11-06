@@ -4,7 +4,7 @@ extends Node
 ## godot --headless res://tests/test_settings.tscn
 
 const PATH := "user://test_settings.cfg"
-const EXPECTED_CHECKS := 44
+const EXPECTED_CHECKS := 46
 
 var _failures := 0
 var _checks_run := 0
@@ -33,6 +33,8 @@ func _check_sounds_use_the_buses() -> void:
 		"res://main.tscn": ["Pling"],
 		"res://onboarding.tscn": ["RevealSound", "SeatSound", "FanfareSound"],
 		"res://settings_dialog.tscn": ["PreviewSound"],
+		"res://boss_selection.tscn": ["SelectSound"],
+		"res://boss_overview.tscn": ["FanfareSound"],
 	}
 	for path: String in scenes:
 		var scene: Node = load(path).instantiate()

@@ -11,7 +11,7 @@ at the table:
 - **A free seat** opens the editor for a new hero.
 - **A taken seat** opens the editor for the hero sitting there. So does tapping a hero in the middle of the screen.
 
-*To Battle!* appears once there is a hero, and loads `main.tscn`. With 4 heroes, free seats can no longer be tapped.
+*To Battle!* appears once there is a hero, and leads to [choosing the boss](bosses.md). With 4 heroes, free seats can no longer be tapped.
 
 The name of the party is at the top of the screen. Tap it to type another one. It is optional, and long names get
 smaller so that they stay readable between the seats.
