@@ -23,10 +23,13 @@ follows the device, *Deutsch* or *English*.
 
 ## Adding text
 
-There are no translation files. Each script keeps its text in a `TEXT` dictionary with one entry per language and looks
+Each script keeps its text in a `TEXT` dictionary with one entry per language and looks
 it up with `CardDatabase.localized(text, TranslationServer.get_locale())`. Whatever is on screen when the language
 changes has to be set again on `NOTIFICATION_TRANSLATION_CHANGED`, as `scripts/main.gd` does. That notification also
 arrives when a node enters the tree, before it is ready, hence the `is_node_ready()` there.
+
+The one exception are the messages in the fight, which are in files per language, as there will be many of them.
+See [Messages](messages.md).
 
 Error details from `CardDatabase.error` are for whoever edits the catalog and stay in English.
 

@@ -1,0 +1,24 @@
+{
+	"round_started": {
+		"title": "Runde {round}",
+		"body": "Eine neue Runde beginnt. Seht euch den Boss an und plant gemeinsam eure Züge."
+	},
+	"phase_draw": {
+		"title": "Phase 1",
+		"body": "Alle Spieler [b]ziehen jetzt ihre Karten[/b] :card:."
+	},
+	"example_venomous_bite": {
+		"title": "Giftbiss",
+		"body": [
+			"[boss]{boss}[/boss] beißt [player]{player}[/player] und verursacht [damage]{damage} Schaden[/damage] :damage:.",
+			"Außerdem nimmt [player]{player}[/player] [poison]{poison} Giftmarker[/poison] :poison:."
+		]
+	},
+	"example_magic_potion": {
+		"title": "Zaubertrank",
+		"body": "Wählt einen Spieler, der [heal]{health} Lebenspunkte[/heal] :health: erhält."
+	},
+	"example_reminder": {
+		"body": "[i]Denkt daran:[/i] Vergiftete Helden verlieren am Ende jeder Runde [damage]1[/damage] :health:."
+	}
+}

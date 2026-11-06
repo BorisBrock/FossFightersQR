@@ -1,0 +1,24 @@
+{
+	"round_started": {
+		"title": "Round {round}",
+		"body": "A new round begins. Look at the boss and plan your moves together."
+	},
+	"phase_draw": {
+		"title": "Phase 1",
+		"body": "All players now [b]draw their cards[/b] :card:."
+	},
+	"example_venomous_bite": {
+		"title": "Venomous Bite",
+		"body": [
+			"[boss]{boss}[/boss] bites [player]{player}[/player], dealing [damage]{damage} damage[/damage] :damage:.",
+			"[player]{player}[/player] also takes [poison]{poison} poison markers[/poison] :poison:."
+		]
+	},
+	"example_magic_potion": {
+		"title": "Magic Potion",
+		"body": "Choose a player to gain [heal]{health} health points[/heal] :health:."
+	},
+	"example_reminder": {
+		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1[/damage] :health: at the end of each round."
+	}
+}

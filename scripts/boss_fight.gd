@@ -10,6 +10,8 @@ const SELECTION_SCENE := "res://boss_selection.tscn"
 const CONFIRM_DIALOG := preload("res://confirm_dialog.tscn")
 const GIVE_UP_FADE_SEC := 0.7
 const BANNER_SEC := 3.0
+## Messages wait while the boss is introduced.
+const INTRO_SEC := 1.6
 const TEXT := {
 	"give_up_title": { "de": "Aufgeben?", "en": "Give up?" },
 	"give_up_message": { "de": "Der Kampf ist dann verloren, und ihr kehrt zur Bossauswahl zurück.", "en": "The fight is then lost, and you return to the boss list." },
@@ -48,6 +50,7 @@ var _give_up_dialog: ConfirmDialog
 @onready var _seats: Array[Node] = $Seats.get_children()
 @onready var _banner: Control = $Banner
 @onready var _banner_text: Label = $Banner/Text
+@onready var messages: MessageBox = $Messages
 @onready var _give_up: BaseButton = $Hud/GiveUp/Button
 @onready var _round: Label = $Hud/Round/Row/Value
 @onready var _health: Label = $Hud/Health/Row/Value
@@ -63,6 +66,7 @@ func _ready() -> void:
 	fight = Fight.new(Bosses.create(Encounter.boss), Encounter.difficulty)
 	fight.round_changed.connect(_on_round_changed)
 	fight.health_changed.connect(_on_health_changed)
+	fight.message.connect(show_message)
 
 	_show_boss(fight.boss)
 	_show_party(Party.load_file(party_path))
@@ -93,6 +97,12 @@ func go_back() -> void:
 
 func give_up() -> void:
 	leave_to(load(SELECTION_SCENE).instantiate(), GIVE_UP_FADE_SEC)
+
+
+## Shows a message large over the fight until the players confirm it. Messages that
+## arrive meanwhile wait. The id is one from messages/<language>.json.
+func show_message(id: String, values := {}) -> void:
+	messages.tell(id, values)
 
 
 ## Shows text across the middle of the screen for a while, such as whose turn it is.
@@ -179,6 +189,7 @@ func _play_intro() -> void:
 		var seat: Control = _seats[i]
 		seat.scale = Vector2.ZERO
 		create_tween().tween_property(seat, "scale", Vector2.ONE, 0.4).set_delay(0.5 + i * 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	messages.hold(INTRO_SEC)
 	_banner.modulate.a = 0.0
 	show_banner(CardDatabase.localized(fight.boss.title, TranslationServer.get_locale()))
 

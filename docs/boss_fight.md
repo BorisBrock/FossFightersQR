@@ -18,6 +18,8 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   hidden.
 - **The banner** across the middle, between the seats, for short messages. `show_banner(text)` shows one for 3 s. At the
   start it announces the boss.
+- **Messages** over the middle, large, each until the players confirm it with the check mark. They announce rounds and
+  phases and say what happens. See [Messages](messages.md).
 - **Top left:** give up. It asks first, then ends the fight and leads to the boss list.
 - **Top right:** the settings.
 - **Bottom left:** the round, from 1. **Bottom right:** the boss's health.
@@ -28,6 +30,8 @@ Escape and the back button of a phone ask to give up, too. With the question or 
 
 - `Fight` (`scripts/fight.gd`) is the state of the fight: the boss, the difficulty, the round and the boss's health. The
   screen only shows it and follows its signals, so the rules can be built and tested in `Fight` without a screen.
+- `Fight.tell(id, values)` shows a message to the players, from the rules or a boss's hooks. The text is in
+  `messages/`, see [Messages](messages.md).
 - What each boss does differently comes from its script in `scripts/bosses/`, through the hooks of `Boss`. See
   [Bosses and difficulties](bosses.md#bosses-and-difficulties).
 - The screen extends `MenuScreen` for the fades and the back button. Its `go_back()` asks to give up instead of leaving.

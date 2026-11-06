@@ -8,6 +8,9 @@ extends RefCounted
 signal round_changed(round_number: int)
 signal health_changed(health: int, max_health: int)
 signal won
+## Asks the screen to show a message to the players (see Messages). values fill in its
+## placeholders.
+signal message(id: String, values: Dictionary)
 
 var boss: Boss
 var difficulty: String
@@ -32,7 +35,14 @@ func start() -> void:
 func next_round() -> void:
 	round_number += 1
 	round_changed.emit(round_number)
+	tell("round_started", { "round": round_number })
 	boss.round_started(self)
+
+
+## Shows the players a message, from the rules or a boss's hooks. The id is one from
+## messages/<language>.json.
+func tell(id: String, values := {}) -> void:
+	message.emit(id, values)
 
 
 ## Lets the boss decide how much of the attack hurts, then takes that off its health.

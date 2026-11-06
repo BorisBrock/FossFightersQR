@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_fight.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
 [ext_resource type="Texture2D" path="res://assets/fight/icon_round.svg" id="9_round"]
 [ext_resource type="Texture2D" path="res://assets/fight/icon_health.svg" id="10_health"]
+[ext_resource type="PackedScene" path="res://message_box.tscn" id="11_messages"]
 
 [sub_resource type="ShaderMaterial" id="background_material"]
 shader = ExtResource("3_background")
@@ -145,6 +146,9 @@ theme_override_font_sizes/font_size = 38
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
+
+[node name="Messages" parent="." instance=ExtResource("11_messages")]
+layout_mode = 1
 
 [node name="Hud" type="Control" parent="."]
 layout_mode = 1

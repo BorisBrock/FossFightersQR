@@ -5,7 +5,7 @@ extends Node
 
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
-const EXPECTED_CHECKS := 27
+const EXPECTED_CHECKS := 38
 
 var _failures := 0
 var _checks_run := 0
@@ -17,6 +17,7 @@ func _ready() -> void:
 	TranslationServer.set_locale("en")
 	_check_fight_state()
 	await _check_screen()
+	await _check_messages()
 	await _check_give_up()
 	_check(_checks_run == EXPECTED_CHECKS - 1, "all checks ran: %d" % _checks_run)
 	DirAccess.remove_absolute(SETTINGS_PATH)
@@ -48,8 +49,11 @@ func _check_fight_state() -> void:
 	var fight := Fight.new(boss, "normal")
 	var won := [false]
 	fight.won.connect(func() -> void: won[0] = true)
+	var told: Array[String] = []
+	fight.message.connect(func(id: String, values: Dictionary) -> void: told.append("%s %s" % [id, values.get("round")]))
 	fight.start()
 	_check(boss.calls == ["fight_started", "round_started 1"], "a fight starts in round 1 and tells the boss")
+	_check(told == ["round_started 1"], "and announces the round to the players")
 	fight.next_round()
 	_check(fight.round_number == 2 and boss.calls[-1] == "round_started 2", "each round tells the boss")
 	fight.attack(5)
@@ -101,6 +105,44 @@ func _check_screen() -> void:
 	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard") - 7), "the health shown follows the fight")
 	screen.fight.next_round()
 	_check(screen.get_node("Hud/Round/Row/Value").text == "2", "and so does the round")
+	screen.queue_free()
+
+
+func _check_messages() -> void:
+	var screen := await _open()
+	var box: MessageBox = screen.messages
+	var layout := box.get_node("Margin/Panel/Margin/Layout")
+	var confirm: Button = layout.get_node("Confirm")
+	var confirmed: Array[String] = []
+	box.confirmed.connect(func(id: String) -> void: confirmed.append(id))
+	var all_confirmed := [false]
+	box.all_confirmed.connect(func() -> void: all_confirmed[0] = true)
+	_check(box.current() == "round_started" and not box.visible, "the first round is announced, but not over the boss's name")
+	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.5).timeout
+	_check(box.visible and layout.get_node("Title").text == "[center]Round 1[/center]", "then the round shows")
+	screen.fight.tell("example_magic_potion", { "health": 10 })
+	screen.show_message("example_reminder")
+	_check(box.queue.size() == 3 and box.current() == "round_started", "later messages wait their turn")
+
+	confirm.pressed.emit()
+	_check(confirmed == ["round_started"] and box.current() == "example_magic_potion", "the check mark shows the next message")
+	_check(layout.get_node("Body").get_parsed_text().contains("10 health points"), "with its placeholders filled in")
+	confirm.pressed.emit()
+	_check(box.current() == "example_magic_potion", "a quick second tap does not close it unread")
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
+	TranslationServer.set_locale("de")
+	await get_tree().process_frame
+	_check(layout.get_node("Body").get_parsed_text().contains("10 Lebenspunkte"), "a new language shows at once")
+	TranslationServer.set_locale("en")
+	await get_tree().process_frame
+
+	confirm.pressed.emit()
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
+	_check(not layout.get_node("Title").visible and box.visible, "a message without a title shows only its body")
+	confirm.pressed.emit()
+	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
+	_check(confirmed == ["round_started", "example_magic_potion", "example_reminder"] and all_confirmed[0], "each message is confirmed in turn")
+	_check(not box.visible and not box.is_showing(), "and then the fight is in view again")
 	screen.queue_free()
 
 
