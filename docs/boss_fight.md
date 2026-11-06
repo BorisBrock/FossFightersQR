@@ -3,8 +3,9 @@
 The game itself: `boss_fight.tscn`, `scripts/boss_fight.gd`. It starts from *Fight!* on the boss overview, with the boss
 and difficulty from `Encounter`.
 
-*Status: only the screen exists. The rules of a turn are not built yet, and the scene has no camera yet, so the round
-stays at 1 and the boss's health does not change.*
+*Status: the rules of the base game are built (see [How a fight goes](#how-a-fight-goes)), with a few card abilities as
+examples. The catalog has no playing cards yet, so a fight can only be played with cards from the tests, or by
+passing.*
 
 ## What is on screen
 
@@ -20,16 +21,70 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   start it announces the boss.
 - **Messages** over the middle, large, each until the players confirm it with the check mark. They announce rounds and
   phases and say what happens. See [Messages](messages.md).
+- **Badges at the seats,** facing each hero: the boss's attack against them this round, with an icon for what it does
+  besides (such as poison), and their status tokens. They appear in the planning phase.
+- **The shields** at the top: melee, ranged and magic, from the shield phase on. A broken shield is dimmed.
+- **The prompt** above the table head, while the fight waits for the players: whose turn it is, or which hero to tap,
+  with buttons for what cannot be done by tapping a hero or showing a card (*Pass*, *Skip*, choices). Below the
+  prompt's text, short notes come and go, such as *This card is already in play this round*.
+- **Hits:** the boss lights up and the damage rises from it.
 - **Top left:** give up. It asks first, then ends the fight and leads to the boss list.
 - **Top right:** the settings.
-- **Bottom left:** the round, from 1. **Bottom right:** the boss's health.
+- **Bottom left:** the round, from 1. **Bottom right:** the boss's health, which counts up as the boss appears.
 
 Escape and the back button of a phone ask to give up, too. With the question or the settings open, they only close it.
 
+## How a fight goes
+
+The rules follow [the rule summary](game-rule-summary.md). The heroes' health and cards stay on the table: the app keeps
+the boss's health and shields, the boss's attacks and the heroes' status tokens.
+
+1. **Start:** the heroes appear at their seats, the boss appears, its health counts up, and it greets the heroes
+   (`Boss.taunt`).
+2. **Each round:** *Round n*.
+3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`), shown at their seat. Knowing
+   them, the players tap the hero who starts. With one hero, nobody is asked.
+4. **Shields:** the boss raises its shields (`Boss.raise_shields`).
+5. **Actions:** curses are revealed, then the heroes take turns clockwise from the starter, three each. Each turn is one
+   action: show a card, or *Pass*. Lightning gives another action within the same turn.
+6. **Attack:** the boss strikes each hero with what is left of its attack (`Boss.attack_hero`). Poison and the like
+   become the hero's tokens.
+7. **Status:** poison and fire take effect. **Discard** and **draw** are reminders.
+
+Every phase starts with a message, and the fight goes on once the players have confirmed it. When the boss's health
+reaches 0, the fight is won at once, and after the message the players return to the boss list. The heroes' health is
+not in the app, so when a hero falls, the players give up. A rule can also end a fight as lost (`Fight.lose()`).
+
+**Cards:**
+
+- A card counts when it is newly shown. One that stays in view, or comes back within 2 s, does not count again.
+- A card already in play this round, one from another hero's race or class deck, and one used up for the fight
+  (`uses_per_fight`) are refused with a note. Items (`deck: items`) can be used again in the same round.
+- Character and class cards are ignored, and so is every card while the fight is not asking for one.
+- What the symbols do: **Attack** breaks the boss's shield of its damage type first, then hurts. **Support** does the
+  same, but only after an attack of its type this round. **Protection** lowers the attack against a hero the players
+  tap, and at exactly 0 its effects are gone too. **Lightning** gives another action. **Heal** and **Draw** tell the
+  players what to do.
+- A hero with panic is reminded to play at random, and loses a panic token with each card that is not an item.
+
 ## How it fits together
 
-- `Fight` (`scripts/fight.gd`) is the state of the fight: the boss, the difficulty, the round and the boss's health. The
-  screen only shows it and follows its signals, so the rules can be built and tested in `Fight` without a screen.
+- `Fight` (`scripts/fight.gd`) is the fight: its state and its rules. It runs by itself as a coroutine from `start()`
+  and waits for the players when it needs them: until they have read its messages (`players_ready()`), and for answers
+  to its `request`: a hero (`choose()`), a card (`scan()`, `pass_action()`) or one of some options
+  (`choose_option()`). The screen only shows what goes on and passes on what the players do, so the rules are tested
+  without a screen (`tests/test_fight.gd`).
+- `FightHero` (`scripts/fight_hero.gd`) is a hero during a fight: the attack against them, their tokens, turns and the
+  cards in their play area. `CardPlay` (`scripts/card_play.gd`) is a card being played, with what it will do.
+- **Everything special is a `FightRule`** (`scripts/fight_rule.gd`): the boss, a card's ability, later the abilities
+  heroes gain with their levels. The fight calls every rule's hooks at each moment of a round, such as `turn_started`,
+  `card_playing` (to change or cancel a card) or `damage_taken`. A hook can wait for the players, for example
+  `await fight.choose_hero(...)`, and the fight waits with it. A rule can join the fight for a while
+  (`Fight.add_rule()`, for the round or for good). **When something new needs to step in at a moment that has no hook
+  yet, add the hook to `FightRule`** with a default that does nothing, and call it from `Fight`.
+- For rules, `Fight` offers what they need: `tell()`, `choose_hero()`, `choose_from()`, `play_actions()` (a hero plays
+  cards right now, without using a turn), `deal_damage()`, `threaten()`, `protect()`, `strike()`, `set_shields()`.
+- Card abilities are described in [Cards](cards.md#abilities).
 - `Fight.tell(id, values)` shows a message to the players, from the rules or a boss's hooks. The text is in
   `messages/`, see [Messages](messages.md).
 - What each boss does differently comes from its script in `scripts/bosses/`, through the hooks of `Boss`. See

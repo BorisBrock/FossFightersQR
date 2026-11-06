@@ -51,7 +51,8 @@ export needs a camera usage description. It would use Godot's camera feed, as th
     godot --headless -s tests/test_party.gd        # saving and loading the party
     godot --headless res://tests/test_settings.tscn  # settings, audio buses and the dialog
     godot --headless res://tests/test_bosses.tscn    # the boss list and overview
-    godot --headless res://tests/test_boss_fight.tscn  # the boss fight screen and its hooks
+    godot --headless -s tests/test_fight.gd        # the rules of the fight
+    godot --headless res://tests/test_boss_fight.tscn  # the boss fight screen
     godot --headless -s tests/test_messages.gd     # the message files and how messages are rendered
     godot res://tests/test_game.tscn               # the game with a fake camera; opens a window
     godot res://tests/test_onboarding.tscn         # the onboarding with a fake camera; opens a window

@@ -1,0 +1,7 @@
+{
+  "schema_version": 2,
+  "cards": [
+    { "qr": "AXE", "deck": "dwarf", "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" } ] },
+    { "qr": "BOLT", "deck": "dryad", "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" }, { "type": "lightning", "strength": 1 } ] }
+  ]
+}

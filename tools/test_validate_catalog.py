@@ -21,6 +21,17 @@ class FindProblems(unittest.TestCase):
     def test_keeps_a_text_ending_in_a_quote(self):
         self.assertEqual(find_problems(catalog({**CARD, "effect": {"de": 'one\nsays "hi"'}})), [])
 
+    def test_accepts_the_fields_of_playing_cards(self):
+        card = {**CARD, "symbols": [{"type": "attack", "strength": 3, "damage_type": "magic"}, {"type": "lightning", "strength": 1}],
+                "ability": "free_play", "ability_values": {"cards": 1}, "uses_per_fight": 1}
+        self.assertEqual(find_problems(catalog(card)), [])
+
+    def test_attacks_and_supports_need_a_damage_type(self):
+        self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "support", "strength": 1}]}))), 1)
+
+    def test_other_symbols_have_no_damage_type(self):
+        self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "heal", "strength": 1, "damage_type": "melee"}]}))), 1)
+
     def test_rejects_broken_json(self):
         self.assertIn("not valid JSON", find_problems('{"cards": [')[0])
 

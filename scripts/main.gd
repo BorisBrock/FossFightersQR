@@ -20,6 +20,9 @@ const SYMBOLS := {
 	"attack": { "de": "Angriff", "en": "Attack" },
 	"support": { "de": "Unterstützung", "en": "Support" },
 	"heal": { "de": "Heilung", "en": "Heal" },
+	"protection": { "de": "Schutz", "en": "Protection" },
+	"lightning": { "de": "Blitz", "en": "Lightning" },
+	"draw": { "de": "Ziehen", "en": "Draw" },
 }
 
 var _cards := CardDatabase.load_file(CARDS_PATH)

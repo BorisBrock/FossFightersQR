@@ -25,8 +25,12 @@ func _init() -> void:
 	motion = Motion.SWAY
 	motion_amount = 10.0
 	motion_seconds = 5.0
+	taunt = {
+		"de": "Bedrohung erkannt. Beginne Säuberung der Stadt.",
+		"en": "Threat detected. Commencing city cleansing.",
+	}
 
 
-## Its armour halves ordinary attacks, rounded down.
-func damage_taken(_fight: Fight, amount: int, kind: String) -> int:
-	return floori(amount / 2.0) if kind == "attack" else amount
+## Its armour halves melee and ranged damage, rounded down. Magic slips through.
+func damage_taken(_fight: Fight, amount: int, kind: String, _play: CardPlay) -> int:
+	return amount if kind == "magic" else floori(amount / 2.0)

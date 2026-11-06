@@ -1,18 +1,185 @@
 {
+	"boss_taunt": {
+		"title": "{boss}",
+		"body": "[i]»{taunt}«[/i]"
+	},
 	"round_started": {
 		"title": "Runde {round}",
 		"body": "Eine neue Runde beginnt. Seht euch den Boss an und plant gemeinsam eure Züge."
 	},
-	"phase_draw": {
-		"title": "Phase 1",
-		"body": "Alle Spieler [b]ziehen jetzt ihre Karten[/b] :card:."
-	},
-	"example_venomous_bite": {
-		"title": "Giftbiss",
+	"phase_planning": {
+		"title": "Phase 1 · Planung",
 		"body": [
-			"[boss]{boss}[/boss] beißt [player]{player}[/player] und verursacht [damage]{damage} Schaden[/damage] :damage:.",
-			"Außerdem nimmt [player]{player}[/player] [poison]{poison} Giftmarker[/poison] :poison:."
+			"[boss]{boss}[/boss] plant seine Angriffe.",
+			"Der Angriff gegen jeden von euch steht an eurem Platz :damage:."
 		]
+	},
+	"phase_shield": {
+		"title": "Phase 2 · Schilde",
+		"body": [
+			"[boss]{boss}[/boss] hebt seine Schilde:",
+			":melee: {melee}   :ranged: {ranged}   :magic: {magic}",
+			"Schaden muss erst einen Schild brechen, bevor er trifft."
+		]
+	},
+	"phase_shield_none": {
+		"title": "Phase 2 · Schilde",
+		"body": "[boss]{boss}[/boss] hebt diese Runde keine Schilde. Jeder Treffer zählt!"
+	},
+	"phase_action": {
+		"title": "Phase 3 · Aktionen",
+		"body": [
+			"Deckt jetzt eure Flüche auf, falls ihr welche habt.",
+			"Jeder Held hat [b]3 Züge[/b] mit je einer Aktion, im Uhrzeigersinn, [player]{player}[/player] beginnt.",
+			"Zeigt eure Karte der Kamera, wenn ihr dran seid."
+		]
+	},
+	"boss_hits": {
+		"title": "Phase 4 · Angriff",
+		"body": "[boss]{boss}[/boss] trifft [player]{player}[/player] mit [damage]{damage} Schaden[/damage] :damage:."
+	},
+	"boss_hits_with_tokens": {
+		"title": "Phase 4 · Angriff",
+		"body": [
+			"[boss]{boss}[/boss] trifft [player]{player}[/player] mit [damage]{damage} Schaden[/damage] :damage:.",
+			"[player]{player}[/player] bekommt außerdem [poison]{tokens}[/poison]."
+		]
+	},
+	"phase_attack_blocked": {
+		"title": "Phase 4 · Angriff",
+		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden."
+	},
+	"status_poison": {
+		"title": "Phase 5 · Status",
+		"body": "[player]{player}[/player] verliert [damage]{count} Lebenspunkte[/damage] :health: durch Gift :poison:."
+	},
+	"status_fire": {
+		"title": "Phase 5 · Status",
+		"body": [
+			"[player]{player}[/player] brennt :fire: und zieht [b]{count}[/b] :card:.",
+			"Für jede Karte: für den Rest des Kampfes entfernen, [i]oder[/i] abwerfen und [damage]2 Lebenspunkte[/damage] :health: verlieren."
+		]
+	},
+	"phase_status_none": {
+		"title": "Phase 5 · Status",
+		"body": "Kein Gift und kein Feuer. Es passiert nichts."
+	},
+	"phase_discard": {
+		"title": "Phase 6 · Abwerfen",
+		"body": [
+			"Legt die Karten aus eurem Spielbereich auf euren Ablagestapel.",
+			"Werft bis auf euer Handkartenlimit ab. Ihr dürft auch mehr abwerfen."
+		]
+	},
+	"phase_draw": {
+		"title": "Phase 7 · Nachziehen",
+		"body": "Zieht bis zu eurem Handkartenlimit nach :card:."
+	},
+	"reminder_paralysis": {
+		"body": "[player]{player}[/player] ist gelähmt :paralysis:: das Handkartenlimit ist um [damage]{count}[/damage] kleiner."
+	},
+	"support_without_attack": {
+		"title": "Ohne Wirkung",
+		"body": "Eine Unterstützung wirkt erst nach einem Angriff der Art [b]{kind}[/b] in dieser Runde. Die Unterstützung von [player]{player}[/player] bewirkt nichts."
+	},
+	"heal": {
+		"body": "[player]{player}[/player] heilt [heal]{amount} Lebenspunkte[/heal] :health:, aber nicht über die Start-Lebenspunkte."
+	},
+	"draw_cards": {
+		"body": "[player]{player}[/player] zieht [b]{count}[/b] :card:."
+	},
+	"extra_turns_now": {
+		"body": "[player]{player}[/player] bekommt in dieser Runde [heal]{count} Züge mehr[/heal]."
+	},
+	"extra_turns_next_round": {
+		"body": "[player]{player}[/player] bekommt in der nächsten Runde [heal]{count} Züge mehr[/heal]."
+	},
+	"empowered": {
+		"body": "Bis zum Ende der Runde bekommt jeder {kind} von [player]{player}[/player] [heal]+{bonus}[/heal]."
+	},
+	"mirefang_bite": {
+		"title": "Giftiger Biss",
+		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:."
+	},
+	"victory": {
+		"title": "Sieg!",
+		"body": "[boss]{boss}[/boss] ist besiegt. Gut gekämpft, Helden!"
+	},
+	"defeat": {
+		"title": "Niederlage",
+		"body": "[boss]{boss}[/boss] hat diesmal gewonnen. Ruht euch aus und versucht es noch einmal!"
+	},
+	"prompt_choose_starter": {
+		"body": "Wer beginnt diese Runde? [b]Tippt einen Helden an.[/b]"
+	},
+	"prompt_action": {
+		"body": "[player]{player}[/player], du bist dran: zeig eine Karte :card:."
+	},
+	"prompt_action_panic": {
+		"body": "[player]{player}[/player], du bist dran: Panik! Nimm eine [b]zufällige[/b] Handkarte :card:."
+	},
+	"prompt_protect": {
+		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :shield:. [b]Tippt den Helden an, der geschützt wird.[/b]"
+	},
+	"prompt_tied_target": {
+		"body": "[boss]{boss}[/boss] kann sich nicht entscheiden. [b]Tippt den Helden an, den er angreift.[/b]"
+	},
+	"prompt_free_play_who": {
+		"body": "[player]{player}[/player] lässt einen anderen Helden eine Karte gratis spielen. [b]Tippt an, wen.[/b]"
+	},
+	"prompt_free_play": {
+		"body": "[player]{player}[/player], spiel eine Karte gratis :card:."
+	},
+	"prompt_lucky_charm": {
+		"body": "[player]{player}[/player], zeig die [b]oberste Karte deines Nachziehstapels[/b] :card:."
+	},
+	"prompt_heal_who": {
+		"body": "[b]Tippt den Helden an[/b], der [heal]{amount}[/heal] :health: heilt."
+	},
+	"prompt_empower_who": {
+		"body": "[b]Tippt den Helden an[/b], den [player]{player}[/player] stärkt."
+	},
+	"prompt_remove_token": {
+		"body": "[player]{player}[/player], welchen Marker entfernst du?"
+	},
+	"notice_unknown_card": {
+		"body": "Diese Karte ist unbekannt."
+	},
+	"notice_played_already": {
+		"body": "Diese Karte liegt diese Runde schon im Spielbereich."
+	},
+	"notice_not_your_card": {
+		"body": "Das ist keine Karte von [player]{player}[/player]."
+	},
+	"notice_used_up": {
+		"body": "[player]{player}[/player] hat das in diesem Kampf schon aufgebraucht."
+	},
+	"notice_no_tokens": {
+		"body": "[player]{player}[/player] hat keine Marker zum Entfernen."
+	},
+	"notice_lightning": {
+		"body": ":lightning: Blitz! [player]{player}[/player] hat noch eine Aktion."
+	},
+	"notice_panic_token": {
+		"body": "[player]{player}[/player] beruhigt sich etwas: ein Panik-Marker :panic: weniger."
+	},
+	"option_pass": {
+		"body": "Passen"
+	},
+	"option_skip": {
+		"body": "Auslassen"
+	},
+	"option_token_poison": {
+		"body": "Gift"
+	},
+	"option_token_panic": {
+		"body": "Panik"
+	},
+	"option_token_paralysis": {
+		"body": "Lähmung"
+	},
+	"option_token_fire": {
+		"body": "Feuer"
 	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",

@@ -1,5 +1,6 @@
 extends Boss
-## A dummy boss to build the screens with. Its hints describe rules that do not exist yet.
+## A dummy boss to build the screens with. Its hints describe rules that do not exist yet,
+## except for its venomous bite, which shows how a boss plans its own attacks.
 
 
 func _init() -> void:
@@ -24,3 +25,23 @@ func _init() -> void:
 	motion = Motion.BREATHE
 	motion_amount = 16.0
 	motion_seconds = 4.5
+	taunt = {
+		"de": "Quaaak! Ich hab seit hundert Jahren nichts gegessen. Wie nett, dass ihr vorbeikommt.",
+		"en": "Croooak! I have not eaten in a hundred years. How kind of you to drop by.",
+	}
+
+
+## Its strongest attack each round is a venomous bite, which poisons. With a tie, the
+## players choose who is bitten.
+func plan_attacks(fight: Fight) -> void:
+	super(fight)
+	var strongest := 0
+	for hero in fight.heroes:
+		strongest = maxi(strongest, hero.threat)
+	if strongest == 0:
+		return
+	var candidates := fight.heroes_where(func(hero: FightHero) -> bool: return hero.threat == strongest)
+	var bitten := await fight.choose_hero(candidates, "prompt_tied_target", { "boss": title })
+	if bitten != null:
+		fight.threaten(bitten, bitten.threat, { "poison": 1 })
+		fight.tell("mirefang_bite", { "boss": title, "player": bitten.name })

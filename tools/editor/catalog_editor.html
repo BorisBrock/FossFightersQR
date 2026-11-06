@@ -35,6 +35,7 @@
   td.effect { color:var(--muted); max-width:420px; }
   .tag { display:inline-block; padding:0 7px; margin:1px 2px 1px 0; border-radius:10px; border:1px solid var(--line); font-size:12px; white-space:nowrap; }
   .tag.attack { color:#c62828; } .tag.support { color:#1565c0; } .tag.heal { color:#2e7d32; }
+  .tag.protection { color:#5e35b1; } .tag.lightning { color:#f9a825; } .tag.draw { color:#6d4c41; }
   .missing { color:var(--warn); font-style:italic; }
   .empty { padding:40px; text-align:center; color:var(--muted); }
   dialog { width:min(720px, 94vw); padding:0; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); }
@@ -193,6 +194,11 @@
       <div id="symbols"></div>
       <button type="button" id="addSym">+ Symbol</button>
     </div>
+    <div class="grid3">
+      <label>Ability (scripts/abilities/, empty if none)<input id="f_ability" placeholder="free_play"></label>
+      <label>Ability values (JSON)<input id="f_ability_values" placeholder='{"cards": 1}'></label>
+      <label>Uses per fight (empty for no limit)<input id="f_uses" type="number" min="1"></label>
+    </div>
     <div class="err" id="formErr"></div>
     <div class="actions">
       <button type="button" id="del" class="danger left">Delete</button>
@@ -213,13 +219,16 @@ const DECKS = [
   "loot", "items",
 ];
 for (const id of ["deck", "f_deck"]) document.getElementById(id).append(...DECKS.map(d => new Option(d)));
+const SYMBOL_TYPES = ["attack", "support", "protection", "heal", "lightning", "draw"];
+const DAMAGE_SYMBOLS = ["attack", "support"];
+const DAMAGE_TYPES = ["melee", "ranged", "magic"];
 
 // One line per field keeps the file readable and its diffs small.
 function serializeCatalog(cards) {
   const oneLine = value => JSON.stringify(value, null, 1).replace(/\n\s*/g, " ");
   const present = v => v != null && (typeof v !== "object" || Object.keys(v).length > 0);
   const entries = cards.map(c => {
-    const fields = ["qr", "deck", "race", "hero_class", "level", "title", "symbols", "effect"].filter(k => present(c[k]));
+    const fields = ["qr", "deck", "race", "hero_class", "level", "title", "symbols", "effect", "ability", "ability_values", "uses_per_fight"].filter(k => present(c[k]));
     return "    {\n" + fields.map(k => `      ${JSON.stringify(k)}: ${oneLine(c[k])}`).join(",\n") + "\n    }";
   });
   return `{\n  "$schema": "./cards.schema.json",\n  "schema_version": ${SCHEMA_VERSION},\n  "cards": [\n${entries.join(",\n")}\n  ]\n}\n`;
@@ -234,7 +243,13 @@ function validateCard(c, all) {
   if (c.effect && Object.keys(c.effect).length && !c.effect.de) e.push("German effect is required when an effect exists");
   if (c.race && c.hero_class) e.push("a card cannot be both a character and a class card");
   if (c.level != null && !(Number.isInteger(c.level) && c.level >= 1 && c.level <= 10)) e.push("level must be 1–10");
-  for (const s of c.symbols ?? []) if (!["attack", "support", "heal"].includes(s.type) || !(Number.isInteger(s.strength) && s.strength >= 0)) e.push("invalid symbol");
+  for (const s of c.symbols ?? []) {
+    if (!SYMBOL_TYPES.includes(s.type) || !(Number.isInteger(s.strength) && s.strength >= 0)) e.push("invalid symbol");
+    else if (DAMAGE_SYMBOLS.includes(s.type) !== DAMAGE_TYPES.includes(s.damage_type)) e.push(`${s.type}: ${DAMAGE_SYMBOLS.includes(s.type) ? "needs" : "has no"} damage type`);
+  }
+  if (c.ability != null && !/^[a-z0-9_]+$/.test(c.ability)) e.push("ability must be an id like free_play");
+  if (c.ability_values != null && (typeof c.ability_values !== "object" || Array.isArray(c.ability_values))) e.push("ability values must be a JSON object");
+  if (c.uses_per_fight != null && !(Number.isInteger(c.uses_per_fight) && c.uses_per_fight >= 1)) e.push("uses per fight must be at least 1");
   if (all.some(o => o !== c && o.qr === c.qr)) e.push("QR code is used by another card");
   return e;
 }
@@ -338,7 +353,7 @@ if (typeof document !== "undefined") (() => {
       tr.append(eff ? el("td", "effect", eff.replace(/\s*\n\s*/g, " ")) : el("td", "effect missing", "—"));
       const sym = el("td");
       if (!c.symbols.length) sym.append(el("span", "missing", "none"));
-      for (const s of c.symbols) sym.append(el("span", "tag " + s.type, `${s.type} ${s.strength}`));
+      for (const s of c.symbols) sym.append(el("span", "tag " + s.type, `${s.type}${s.damage_type ? " " + s.damage_type : ""} ${s.strength}`));
       tr.append(sym);
       if (validateCard(c, cards).length) tr.style.boxShadow = "inset 3px 0 var(--bad)";
       tr.onclick = () => edit(c);
@@ -361,12 +376,15 @@ if (typeof document !== "undefined") (() => {
   });
 
   // ----- dialog -----
-  function symbolRow(s = { type: "attack", strength: 1 }) {
+  function symbolRow(s = { type: "attack", strength: 1, damage_type: "melee" }) {
     const row = el("div", "sym");
-    const type = el("select"); for (const t of ["attack", "support", "heal"]) type.append(new Option(t, t, false, t === s.type));
+    const type = el("select"); for (const t of SYMBOL_TYPES) type.append(new Option(t, t, false, t === s.type));
+    const kind = el("select"); for (const k of DAMAGE_TYPES) kind.append(new Option(k, k, false, k === s.damage_type));
+    const showKind = () => kind.hidden = !DAMAGE_SYMBOLS.includes(type.value);
+    type.onchange = showKind; showKind();
     const str = el("input"); str.type = "number"; str.min = 0; str.value = s.strength;
     const rm = el("button", "danger", "✕"); rm.type = "button"; rm.onclick = () => row.remove();
-    row.append(type, str, rm); $("symbols").append(row);
+    row.append(type, kind, str, rm); $("symbols").append(row);
   }
   $("addSym").onclick = () => symbolRow();
 
@@ -401,6 +419,8 @@ if (typeof document !== "undefined") (() => {
     $("f_title_de").value = c.title.de ?? ""; $("f_title_en").value = c.title.en ?? "";
     $("f_eff_de").value = c.effect?.de ?? ""; $("f_eff_en").value = c.effect?.en ?? "";
     $("symbols").replaceChildren(); c.symbols.forEach(symbolRow);
+    $("f_ability").value = c.ability ?? ""; $("f_uses").value = c.uses_per_fight ?? "";
+    $("f_ability_values").value = c.ability_values ? JSON.stringify(c.ability_values) : "";
     $("formErr").textContent = ""; $("del").hidden = !card;
     if (!scanMode) showScan(card);
     $("dlg").showModal();
@@ -421,7 +441,11 @@ if (typeof document !== "undefined") (() => {
       return result;
     };
     const level = $("f_level").value.trim();
-    const symbols = [...$("symbols").children].map(r => ({ type: r.children[0].value, strength: parseInt(r.children[1].value || "0", 10) }));
+    const symbols = [...$("symbols").children].map(r => {
+      const s = { type: r.children[0].value, strength: parseInt(r.children[2].value || "0", 10) };
+      if (DAMAGE_SYMBOLS.includes(s.type)) s.damage_type = r.children[1].value;
+      return s;
+    });
     const draft = {
       ...(editing ?? {}), qr: $("f_qr").value.trim(), deck: $("f_deck").value,
       title: text(editing?.title, "f_title_de", "f_title_en"),
@@ -429,6 +453,14 @@ if (typeof document !== "undefined") (() => {
       symbols,
     };
     if (level) draft.level = parseInt(level, 10); else delete draft.level;
+    const ability = $("f_ability").value.trim(), abilityValues = $("f_ability_values").value.trim(), uses = $("f_uses").value.trim();
+    if (ability) draft.ability = ability; else delete draft.ability;
+    if (uses) draft.uses_per_fight = parseInt(uses, 10); else delete draft.uses_per_fight;
+    delete draft.ability_values;
+    if (abilityValues) {
+      try { draft.ability_values = JSON.parse(abilityValues); }
+      catch { e.preventDefault(); $("formErr").textContent = "ability values are no valid JSON"; return; }
+    }
     delete draft.race; delete draft.hero_class;
     const [heroField, heroValue] = $("f_hero").value.split(":");
     if (heroValue) draft[heroField] = heroValue;

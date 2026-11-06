@@ -24,3 +24,7 @@ func _init() -> void:
 	motion = Motion.HOVER
 	motion_amount = 18.0
 	motion_seconds = 3.0
+	taunt = {
+		"de": "Brennt! Alles brennt! Und ihr seid die Nächsten.",
+		"en": "Burn! Everything burns! And you are next.",
+	}

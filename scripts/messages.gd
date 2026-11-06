@@ -22,6 +22,14 @@ const SYMBOLS := {
 	"poison": "res://assets/fight/icon_poison.svg",
 	"card": "res://assets/fight/icon_card.svg",
 	"dice": "res://assets/onboarding/icons/dice.svg",
+	"melee": "res://assets/fight/icon_melee.svg",
+	"ranged": "res://assets/fight/icon_ranged.svg",
+	"magic": "res://assets/fight/icon_magic.svg",
+	"shield": "res://assets/fight/icon_shield.svg",
+	"lightning": "res://assets/fight/icon_lightning.svg",
+	"fire": "res://assets/fight/icon_fire.svg",
+	"panic": "res://assets/fight/icon_panic.svg",
+	"paralysis": "res://assets/fight/icon_paralysis.svg",
 }
 
 ## Tags for what comes up again and again, so that it looks the same in every message.

@@ -4,8 +4,11 @@ extends RefCounted
 
 
 class Symbol:
+	## attack, support, protection, heal, lightning or draw.
 	var type: String
 	var strength: int
+	## melee, ranged or magic for attacks and supports, empty for all others.
+	var damage_type := ""
 
 
 var qr: String
@@ -20,6 +23,17 @@ var hero_class := ""
 var title: Dictionary
 var effect: Dictionary
 var symbols: Array[Symbol] = []
+## What the card does beyond its symbols: the id of a script in scripts/abilities/, or
+## empty. ability_values are passed to it, see [CardAbility].
+var ability := ""
+var ability_values := {}
+## How often each hero can use this card in a fight, such as a potion. 0 for no limit.
+var uses_per_fight := 0
+
+
+## Items stay with their hero and can be used again in the same round.
+func is_item() -> bool:
+	return deck == "items"
 
 
 ## Returns the card for parsed JSON data, or null if a field is missing or has the wrong
@@ -37,11 +51,16 @@ static func from_data(data: Variant) -> Card:
 	var title_value: Variant = data.get("title", {})
 	var effect_value: Variant = data.get("effect", {})
 	var symbols_value: Variant = data.get("symbols", [])
+	var ability_value: Variant = data.get("ability", "")
+	var ability_values_value: Variant = data.get("ability_values", {})
+	var uses_value: Variant = data.get("uses_per_fight", 0)
 	if not qr_value is String or qr_value.is_empty() or not deck_value is String:
 		return null
 	if not _is_integer(level_value) or not _is_text(title_value) or not _is_text(effect_value):
 		return null
 	if not symbols_value is Array or not race_value is String or not hero_class_value is String:
+		return null
+	if not ability_value is String or not ability_values_value is Dictionary or not _is_integer(uses_value):
 		return null
 	card.qr = qr_value
 	card.deck = deck_value
@@ -50,12 +69,19 @@ static func from_data(data: Variant) -> Card:
 	card.hero_class = hero_class_value
 	card.title = title_value
 	card.effect = effect_value
+	card.ability = ability_value
+	card.ability_values = ability_values_value
+	card.uses_per_fight = int(uses_value)
 	for entry: Variant in symbols_value:
 		if not entry is Dictionary or not entry.get("type") is String or not _is_integer(entry.get("strength")):
 			return null
 		var symbol := Symbol.new()
 		symbol.type = entry.type
 		symbol.strength = int(entry.strength)
+		var damage_type: Variant = entry.get("damage_type", "")
+		if not damage_type is String:
+			return null
+		symbol.damage_type = damage_type
 		card.symbols.append(symbol)
 	return card
 

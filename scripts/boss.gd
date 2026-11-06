@@ -1,11 +1,12 @@
 class_name Boss
-extends RefCounted
+extends FightRule
 ## One boss. What all bosses have in common lives here: the text for the menus, the
 ## pictures, how the fight looks and the rules every boss follows.
 ##
 ## Each boss is a script in scripts/bosses/ that extends this one. It fills in its data in
-## _init() and overrides the hooks below for whatever makes it special. A boss with no
-## special rules overrides nothing but _init(). See docs/bosses.md.
+## _init() and overrides hooks for whatever makes it special: the boss's own ones below,
+## and those of every rule in FightRule. A boss with no special rules overrides nothing
+## but _init(). See docs/bosses.md.
 
 ## The drifting particles over the background. All are tinted with ambience_color.
 enum Ambience {
@@ -58,6 +59,20 @@ var motion := Motion.BREATHE
 var motion_amount := 12.0
 ## How long one movement takes, back and forth.
 var motion_seconds := 4.0
+## What the boss says when the fight begins, { "de": …, "en": … }.
+var taunt := {
+	"de": "Muahaha! Ihr werdet alle untergehen!",
+	"en": "Muahaha! You are all going to die!",
+}
+#endregion
+
+#region Rules
+## The range of its attack against each hero per round, on normal difficulty. The
+## difficulty adds its attack_bonus (Bosses.DIFFICULTIES).
+var attack_min := 2
+var attack_max := 5
+## The shields it raises each round, by damage type. A missing type gets no shield.
+var shields := { "melee": 2, "ranged": 2, "magic": 2 }
 #endregion
 
 
@@ -66,20 +81,32 @@ func max_health(difficulty: String) -> int:
 	return maxi(1, roundi(health * Bosses.DIFFICULTIES[difficulty].health_factor))
 
 
-#region Hooks for special rules
-# Each is called by the fight at the moment its name says. The defaults do what a boss
-# without special rules does. The fight passes itself, so a boss can read and change it.
-
-func fight_started(_fight: Fight) -> void:
-	pass
+## The attack against one hero on a difficulty, before anything lowers it.
+func attack_range(difficulty: String) -> Vector2i:
+	var bonus: int = Bosses.DIFFICULTIES[difficulty].attack_bonus
+	return Vector2i(maxi(0, attack_min + bonus), maxi(0, attack_max + bonus))
 
 
-func round_started(_fight: Fight) -> void:
-	pass
+#region The boss's own hooks
+# Only the boss has these, as they are what it does in its phases. The defaults are what a
+# boss without special rules does. Each may wait for the players, as all hooks may (see
+# FightRule). The hooks every rule has are in FightRule.
+
+## Phase 1: decides the attack against each hero, through fight.threaten(). By default
+## each hero gets a random attack from attack_range().
+func plan_attacks(fight: Fight) -> void:
+	var attack := attack_range(fight.difficulty)
+	for hero in fight.heroes:
+		fight.threaten(hero, fight.rng.randi_range(attack.x, attack.y))
 
 
-## Returns the damage the boss really takes from an attack of amount, for bosses that
-## resist or are weak to something. kind is the attack's symbol, such as "attack".
-func damage_taken(_fight: Fight, amount: int, _kind: String) -> int:
-	return amount
+## Phase 2: raises the shields, through fight.set_shields(). By default the same each
+## round, replacing what is left of the last ones.
+func raise_shields(fight: Fight) -> void:
+	fight.set_shields(shields)
+
+
+## Phase 4: strikes one hero. By default with what is left of its planned attack.
+func attack_hero(fight: Fight, hero: FightHero) -> void:
+	fight.strike(hero)
 #endregion

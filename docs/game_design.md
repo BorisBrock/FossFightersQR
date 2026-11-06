@@ -12,8 +12,9 @@ A co-operative card game for 1 to 4 players who sit together at a real table.
 - Players draw and play real cards by showing their QR codes to the camera.
 - The app applies the effects of the cards.
 
-*Status: the onboarding, choosing the boss and the screen of the boss fight exist, with three dummy bosses. The rules
-of the fight are not built yet. The old scanner test screen (`main.tscn`) is only reached through its test.*
+*Status: the onboarding, choosing the boss and the boss fight with the rules of the base game exist, with three dummy
+bosses. The catalog has no playing cards yet. The old scanner test screen (`main.tscn`) is only reached through its
+test.*
 
 ## Table and screen
 
@@ -65,6 +66,12 @@ A hero has a name, a race, a class and a seat.
 | Messages in the fight are closed only by their check mark | Confirming is how the players say they did what the message asks. A tap beside it, or a timer, would let one slip by unread. |
 | Message text is in files per language, with an id for each message | Text can be changed and languages added without touching code. The game only knows the ids and the placeholders. |
 | The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
+| The heroes' health and cards are not in the app | They are on the table, on the health counters and in the players' hands. The app keeps what only it can know: the boss's health and shields, its attacks and the tokens it gives. |
+| Who starts is chosen after the boss has planned its attacks | Knowing the attacks, the players can plan their turns, such as letting a hero with Protection go first. |
+| Every phase is announced, also when nothing happens in it | The players always know where in the round they are. |
+| Card results that need no doing show on screen, not as a message | Damage and shields can be seen. Messages are for what players have to do (draw, heal, take tokens), so they do not tap through every attack. |
+| Boss, cards and hero abilities all are `FightRule`s with the same hooks | A special rule can come from anywhere, and each kind of moment needs only one hook for all of them. |
+| A card ability is a script, named by the card, with values from the card | Many cards share an effect with different numbers. The catalog stays data, and only new kinds of effects need code. |
 
 ## Hints for development
 

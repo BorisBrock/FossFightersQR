@@ -16,16 +16,19 @@ const DIFFICULTIES := {
 		"title": { "de": "Leicht", "en": "Easy" },
 		"description": { "de": "Für den ersten Kampf oder einen entspannten Abend.", "en": "For a first fight, or a relaxed evening." },
 		"health_factor": 0.75,
+		"attack_bonus": -1,
 	},
 	"normal": {
 		"title": { "de": "Normal", "en": "Normal" },
 		"description": { "de": "Der Boss, wie er gedacht ist.", "en": "The boss as it is meant to be." },
 		"health_factor": 1.0,
+		"attack_bonus": 0,
 	},
 	"hard": {
 		"title": { "de": "Schwer", "en": "Hard" },
 		"description": { "de": "Für erfahrene Helden. Jeder Fehler tut weh.", "en": "For seasoned heroes. Every mistake hurts." },
 		"health_factor": 1.25,
+		"attack_bonus": 1,
 	},
 }
 

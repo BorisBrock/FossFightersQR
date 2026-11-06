@@ -26,9 +26,16 @@
       "additionalProperties": false,
       "required": ["type", "strength"],
       "properties": {
-        "type": { "enum": ["attack", "support", "heal"] },
-        "strength": { "type": "integer", "minimum": 0 }
-      }
+        "type": { "enum": ["attack", "support", "protection", "heal", "lightning", "draw"] },
+        "strength": { "type": "integer", "minimum": 0 },
+        "damage_type": {
+          "description": "For attacks and supports only: which of the boss's shields the damage hits first.",
+          "enum": ["melee", "ranged", "magic"]
+        }
+      },
+      "if": { "properties": { "type": { "enum": ["attack", "support"] } } },
+      "then": { "required": ["damage_type"] },
+      "else": { "not": { "required": ["damage_type"] } }
     },
     "card": {
       "type": "object",
@@ -66,7 +73,21 @@
           "type": "array",
           "items": { "$ref": "#/definitions/symbol" }
         },
-        "level": { "type": "integer", "minimum": 1, "maximum": 10 }
+        "level": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "ability": {
+          "description": "What the card does beyond its symbols: the id of a script in scripts/abilities/, such as free_play. See docs/cards.md.",
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "ability_values": {
+          "description": "Values for the ability, such as { \"cards\": 1 }. The ability's script says which it reads.",
+          "type": "object"
+        },
+        "uses_per_fight": {
+          "description": "How often each hero can use this card in a fight, such as a potion. Left out for no limit.",
+          "type": "integer",
+          "minimum": 1
+        }
       }
     }
   }

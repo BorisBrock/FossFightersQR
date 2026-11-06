@@ -1,18 +1,185 @@
 {
+	"boss_taunt": {
+		"title": "{boss}",
+		"body": "[i]»{taunt}«[/i]"
+	},
 	"round_started": {
 		"title": "Round {round}",
 		"body": "A new round begins. Look at the boss and plan your moves together."
 	},
-	"phase_draw": {
-		"title": "Phase 1",
-		"body": "All players now [b]draw their cards[/b] :card:."
-	},
-	"example_venomous_bite": {
-		"title": "Venomous Bite",
+	"phase_planning": {
+		"title": "Phase 1 · Planning",
 		"body": [
-			"[boss]{boss}[/boss] bites [player]{player}[/player], dealing [damage]{damage} damage[/damage] :damage:.",
-			"[player]{player}[/player] also takes [poison]{poison} poison markers[/poison] :poison:."
+			"[boss]{boss}[/boss] is planning its attacks.",
+			"The attack against each of you is shown at your seat :damage:."
 		]
+	},
+	"phase_shield": {
+		"title": "Phase 2 · Shields",
+		"body": [
+			"[boss]{boss}[/boss] raises its shields:",
+			":melee: {melee}   :ranged: {ranged}   :magic: {magic}",
+			"Damage has to break a shield before it hurts."
+		]
+	},
+	"phase_shield_none": {
+		"title": "Phase 2 · Shields",
+		"body": "[boss]{boss}[/boss] raises no shields this round. Every hit counts!"
+	},
+	"phase_action": {
+		"title": "Phase 3 · Actions",
+		"body": [
+			"Reveal your curses now, if you have any.",
+			"Each hero has [b]3 turns[/b] with one action each, clockwise, starting with [player]{player}[/player].",
+			"Show your card to the camera when it is your turn."
+		]
+	},
+	"boss_hits": {
+		"title": "Phase 4 · Attack",
+		"body": "[boss]{boss}[/boss] hits [player]{player}[/player] for [damage]{damage} damage[/damage] :damage:."
+	},
+	"boss_hits_with_tokens": {
+		"title": "Phase 4 · Attack",
+		"body": [
+			"[boss]{boss}[/boss] hits [player]{player}[/player] for [damage]{damage} damage[/damage] :damage:.",
+			"[player]{player}[/player] also takes [poison]{tokens}[/poison]."
+		]
+	},
+	"phase_attack_blocked": {
+		"title": "Phase 4 · Attack",
+		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round."
+	},
+	"status_poison": {
+		"title": "Phase 5 · Status",
+		"body": "[player]{player}[/player] loses [damage]{count} health[/damage] :health: to poison :poison:."
+	},
+	"status_fire": {
+		"title": "Phase 5 · Status",
+		"body": [
+			"[player]{player}[/player] burns :fire: and draws [b]{count}[/b] :card:.",
+			"For each card: remove it for the rest of the fight, [i]or[/i] discard it and lose [damage]2 health[/damage] :health:."
+		]
+	},
+	"phase_status_none": {
+		"title": "Phase 5 · Status",
+		"body": "No poison and no fire. Nothing happens."
+	},
+	"phase_discard": {
+		"title": "Phase 6 · Discard",
+		"body": [
+			"Move the cards from your play area to your discard pile.",
+			"Discard down to your hand limit. You may discard more."
+		]
+	},
+	"phase_draw": {
+		"title": "Phase 7 · Draw",
+		"body": "Draw up to your hand limit :card:."
+	},
+	"reminder_paralysis": {
+		"body": "[player]{player}[/player] is paralysed :paralysis:: their hand limit is [damage]{count} lower[/damage]."
+	},
+	"support_without_attack": {
+		"title": "No effect",
+		"body": "A support only works after a [b]{kind}[/b] attack this round. [player]{player}[/player]'s support does nothing."
+	},
+	"heal": {
+		"body": "[player]{player}[/player] heals [heal]{amount} health[/heal] :health:, but not above their starting health."
+	},
+	"draw_cards": {
+		"body": "[player]{player}[/player] draws [b]{count}[/b] :card:."
+	},
+	"extra_turns_now": {
+		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] this round."
+	},
+	"extra_turns_next_round": {
+		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] next round."
+	},
+	"empowered": {
+		"body": "Until the end of the round, every {kind} of [player]{player}[/player] gets [heal]+{bonus}[/heal]."
+	},
+	"mirefang_bite": {
+		"title": "Venomous Bite",
+		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:."
+	},
+	"victory": {
+		"title": "Victory!",
+		"body": "[boss]{boss}[/boss] is defeated. Well fought, heroes!"
+	},
+	"defeat": {
+		"title": "Defeat",
+		"body": "[boss]{boss}[/boss] has won this time. Rest, and try again!"
+	},
+	"prompt_choose_starter": {
+		"body": "Who starts this round? [b]Tap a hero.[/b]"
+	},
+	"prompt_action": {
+		"body": "[player]{player}[/player], your turn: show a card :card:."
+	},
+	"prompt_action_panic": {
+		"body": "[player]{player}[/player], your turn: panic! Pick a [b]random[/b] card from your hand :card:."
+	},
+	"prompt_protect": {
+		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :shield:. [b]Tap the hero to protect.[/b]"
+	},
+	"prompt_tied_target": {
+		"body": "[boss]{boss}[/boss] cannot decide. [b]Tap the hero it targets.[/b]"
+	},
+	"prompt_free_play_who": {
+		"body": "[player]{player}[/player] lets another hero play a card for free. [b]Tap who.[/b]"
+	},
+	"prompt_free_play": {
+		"body": "[player]{player}[/player], play a card for free :card:."
+	},
+	"prompt_lucky_charm": {
+		"body": "[player]{player}[/player], show the [b]top card of your draw pile[/b] :card:."
+	},
+	"prompt_heal_who": {
+		"body": "[b]Tap the hero[/b] who heals [heal]{amount}[/heal] :health:."
+	},
+	"prompt_empower_who": {
+		"body": "[b]Tap the hero[/b] that [player]{player}[/player] strengthens."
+	},
+	"prompt_remove_token": {
+		"body": "[player]{player}[/player], which token do you remove?"
+	},
+	"notice_unknown_card": {
+		"body": "This card is unknown."
+	},
+	"notice_played_already": {
+		"body": "This card is already in play this round."
+	},
+	"notice_not_your_card": {
+		"body": "This is not a card of [player]{player}[/player]."
+	},
+	"notice_used_up": {
+		"body": "[player]{player}[/player] has used this up in this fight."
+	},
+	"notice_no_tokens": {
+		"body": "[player]{player}[/player] has no tokens to remove."
+	},
+	"notice_lightning": {
+		"body": ":lightning: Lightning! [player]{player}[/player] takes another action."
+	},
+	"notice_panic_token": {
+		"body": "[player]{player}[/player] calms down a little: one panic token :panic: less."
+	},
+	"option_pass": {
+		"body": "Pass"
+	},
+	"option_skip": {
+		"body": "Skip"
+	},
+	"option_token_poison": {
+		"body": "Poison"
+	},
+	"option_token_panic": {
+		"body": "Panic"
+	},
+	"option_token_paralysis": {
+		"body": "Paralysis"
+	},
+	"option_token_fire": {
+		"body": "Fire"
 	},
 	"example_magic_potion": {
 		"title": "Magic Potion",

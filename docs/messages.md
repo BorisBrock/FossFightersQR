@@ -63,21 +63,27 @@ Each message has an id, by which the game shows it, a `body` and, if it needs on
   | `:poison:` | `assets/fight/icon_poison.svg` |
   | `:card:` | `assets/fight/icon_card.svg` |
   | `:dice:` | `assets/onboarding/icons/dice.svg` |
+  | `:melee:`, `:ranged:`, `:magic:` | `assets/fight/icon_melee.svg` and so on |
+  | `:shield:`, `:lightning:` | `assets/fight/icon_shield.svg`, `assets/fight/icon_lightning.svg` |
+  | `:fire:`, `:panic:`, `:paralysis:` | `assets/fight/icon_fire.svg` and so on |
 
 Keep messages short. They have to be read out at a table, and a long one does not fit the screen.
 
 `tests/test_messages.gd` checks the files: that every language has every message, with the same placeholders, that
 every symbol and style exists and that every tag is closed. Run it after changing them.
 
-The messages starting with `example_` show what the format can do. They are not used yet: replace them when the rules
-are built.
+The messages starting with `example_` show what the format can do, for the tests. The fight does not use them.
+
+Besides the messages the players confirm, the files hold the short texts of the fight that need no confirming, in the
+same format: what the fight asks for (`prompt_…`), notes that come and go (`notice_…`) and the labels of buttons
+(`option_…`, plain text only).
 
 ## Showing a message
 
 From the rules in `Fight`, or from a boss's hooks, which get the fight:
 
 ```gdscript
-fight.tell("example_venomous_bite", { "boss": fight.boss.title, "player": hero.name, "damage": 5, "poison": 2 })
+fight.tell("mirefang_bite", { "boss": fight.boss.title, "player": hero.name })
 ```
 
 Values are shown as they are, never read as formatting, so a hero called `[b]Bo` stays `[b]Bo`. A value can also be
@@ -85,7 +91,8 @@ Values are shown as they are, never read as formatting, so a hero called `[b]Bo`
 stays as it is, with a warning, to be noticed.
 
 The fight screen shows what `Fight.tell()` sends, through `BossFight.show_message()`, which the screen can also call
-itself. So far, the fight announces each round (`round_started`).
+itself. The fight waits until every message so far is confirmed before it goes on, see
+[The boss fight](boss_fight.md#how-it-fits-together).
 
 ## How it fits together
 
@@ -98,5 +105,4 @@ itself. So far, the fight announces each round (`round_started`).
 - The box lies between the seats and the HUD in `boss_fight.tscn`, so that the HUD stays usable. Dialogs, such as
   giving up, are above it.
 - Italics are Almendra, slanted by a `FontVariation`, as the font has no italic of its own.
-- The rules of a turn will need to wait for the players at times. `MessageBox.confirmed` and `all_confirmed` are
-  there for that.
+- When `MessageBox.all_confirmed` fires, the screen calls `Fight.players_ready()`, and the fight goes on.

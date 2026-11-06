@@ -37,8 +37,8 @@ func _init() -> void:
 	ambience = Ambience.FIREFLIES
 
 ## Only what is special about this boss needs code.
-func damage_taken(fight: Fight, amount: int, kind: String) -> int:
-	return amount * 2 if kind == "fire" else amount
+func damage_taken(fight: Fight, amount: int, kind: String, play: CardPlay) -> int:
+	return amount * 2 if kind == "magic" else amount
 ```
 
 What a boss has:
@@ -54,12 +54,19 @@ What a boss has:
 | `ambience`, `ambience_color` | the particles over the background: `EMBERS`, `FIREFLIES` or `DUST`, tinted |
 | `mist_color` | the mist drifting over the ground of the background |
 | `motion`, `motion_amount`, `motion_seconds` | how the boss moves while it waits: `BREATHE`, `HOVER` or `SWAY` |
+| `taunt` | what it says when the fight begins |
+| `attack_min`, `attack_max` | its attack against each hero per round, on *Normal*. Each difficulty adds its `attack_bonus`. |
+| `shields` | the shields it raises each round, such as `{ "melee": 2, "ranged": 2, "magic": 2 }` |
 
-The hooks are listed at the end of `scripts/boss.gd`, each with the default that a boss without special rules uses:
-`fight_started`, `round_started` and `damage_taken` so far. Each gets the `Fight` (`scripts/fight.gd`), which holds the
-round and the boss's health, so a hook can read and change them. **When the game rules are built, add a hook to
-`Boss` for every moment a boss could want to step in**, call it from `Fight`, and keep the default plain, so that most
-bosses need no code at all.
+`Boss` extends `FightRule` (`scripts/fight_rule.gd`), so a boss can step in at every moment of the fight that has a
+hook there, such as `round_started`, `card_playing`, `damage_taken` or `boss_hurt` (for something that happens at half
+health). Three hooks only the boss has, as they are its phases: `plan_attacks`, `raise_shields` and `attack_hero`, at
+the end of `scripts/boss.gd`. Each hook has the default that a boss without special rules uses, and gets the `Fight`
+(`scripts/fight.gd`) to read and change. A hook can wait for the players, for example to let them choose between tied
+targets: `await fight.choose_hero(...)`. See [The boss fight](boss_fight.md#how-it-fits-together).
+
+**Add a hook for every new moment a boss could want to step in**, call it from `Fight`, and keep the default plain, so
+that most bosses need no code at all.
 
 `Bosses.create(id)` makes a new boss each time, so each fight gets its own and a boss can keep track of things, such as
 a heat counter, in its own variables.
@@ -70,8 +77,9 @@ All text needs a German and an English version (see [Adding text](settings.md#ad
 `tests/test_bosses.gd` checks this, and the pictures, for every boss and every difficulty.
 
 **The three bosses there now (Old Mirefang, Ashwing, the Brass Colossus) are dummies** to build the screens with.
-Replace them when the real bosses are designed. Their hints describe mechanics that do not exist yet, apart from the
-colossus's armour, which halves ordinary attacks as an example of a hook.
+Replace them when the real bosses are designed. Their hints describe mechanics that do not exist yet, apart from two
+examples of hooks: the colossus's armour halves melee and ranged damage, and Old Mirefang's strongest attack each
+round poisons, with the players choosing the target on a tie.
 
 ## Artwork
 
