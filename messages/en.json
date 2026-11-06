@@ -66,6 +66,9 @@
 	"heal": {
 		"body": "[player]{player}[/player] heals [heal]{amount} health[/heal] :health:, but not above their starting health."
 	},
+	"health_loss": {
+		"body": "[player]{player}[/player] loses [damage]{amount} health[/damage] :health:."
+	},
 	"draw_cards": {
 		"body": "[player]{player}[/player] draws [b]{count}[/b] :card:."
 	},

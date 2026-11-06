@@ -41,6 +41,8 @@ signal lost
 enum Phase { SETUP, PLANNING, SHIELD, ACTION, ATTACK, STATUS, DISCARD, DRAW, OVER }
 
 const DAMAGE_TYPES: Array[String] = ["melee", "ranged", "magic"]
+## The kind of damage from the broken heart: no shield takes it.
+const DIRECT := "direct"
 const TURNS_PER_ROUND := 3
 ## For the text of messages: symbols, damage types and tokens.
 const NAMES := {
@@ -347,7 +349,8 @@ func play_card(play: CardPlay) -> void:
 	await until_read()
 
 
-## Damage of kind to the boss: its shield of that kind takes it first. play is the card
+## Damage of kind to the boss: its shield of that kind takes it first. DIRECT damage has no
+## shield and goes straight to its health. play is the card
 ## that does it, or null. Returns the damage that reached its health.
 func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if over or amount <= 0:
@@ -672,6 +675,12 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 				notice.emit("notice_lightning", { "player": hero.name })
 		"draw":
 			tell("draw_cards", { "player": hero.name, "count": effect.strength })
+		"health_loss":
+			tell("health_loss", { "player": hero.name, "amount": effect.strength })
+		"direct_damage":
+			await deal_damage(effect.strength, DIRECT, play)
+		"special":
+			pass  # Only marks the card: what it does is its ability.
 		_:
 			push_warning("Card %s: unknown symbol '%s'" % [play.card.qr, effect.type])
 	await until_read()

@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 89
+const EXPECTED_CHECKS := 94
 
 var _failures := 0
 var _checks_run := 0
@@ -167,6 +167,21 @@ func _check_cards() -> void:
 	fight.pass_action()
 	fight.scan(_card("CALM", [["lightning", 1]], "halfling"))
 	_check(fight.scan(backpack) == "", "an item can be used again in the same round")
+	fight.abandon()
+	fight = _started(TestBoss.new())
+	_check(fight.scan(_card("STAR", [["health_loss", 2]], "halfling")) == "" and _told[-1] == "health_loss", "losing health is told")
+	_check(fight.stats.of(fight.hero_at(1)).healing == 0, "and is no healing")
+	fight.abandon()
+	fight = _started(TestBoss.new())
+	fight.set_shields({ "melee": 5, "ranged": 5, "magic": 5 })
+	var health_before := fight.health
+	fight.scan(_card("HART", [["direct_damage", 2]], "halfling"))
+	_check(fight.health == health_before - 2, "direct damage hurts the boss past its shields")
+	_check(fight.shields == { "melee": 5, "ranged": 5, "magic": 5 }, "and leaves the shields alone")
+	fight.abandon()
+	fight = _started(TestBoss.new())
+	var told_before := _told.size()
+	_check(fight.scan(_card("WISH", [["special", 0]], "halfling")) == "" and _told.size() == told_before, "the special mark does nothing by itself")
 	fight.abandon()
 
 

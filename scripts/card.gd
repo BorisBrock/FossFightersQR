@@ -4,7 +4,7 @@ extends RefCounted
 
 
 class Symbol:
-	## attack, support, protection, heal, lightning or draw.
+	## attack, support, protection, heal, lightning, draw, poison, health_loss, direct_damage or special.
 	var type: String
 	var strength: int
 	## melee, ranged or magic for attacks and supports, empty for all others.

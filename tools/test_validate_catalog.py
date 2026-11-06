@@ -29,6 +29,17 @@ class FindProblems(unittest.TestCase):
     def test_attacks_and_supports_need_a_damage_type(self):
         self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "support", "strength": 1}]}))), 1)
 
+    def test_poison_symbol(self):
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "poison", "strength": 1}]})), [])
+        self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "poison", "strength": 1, "damage_type": "melee"}]}))), 1)
+
+    def test_direct_damage_symbol(self):
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "direct_damage", "strength": 2}]})), [])
+        self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "direct_damage", "strength": 2, "damage_type": "magic"}]}))), 1)
+
+    def test_special_symbol(self):
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}]})), [])
+
     def test_other_symbols_have_no_damage_type(self):
         self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "heal", "strength": 1, "damage_type": "melee"}]}))), 1)
 

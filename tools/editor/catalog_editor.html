@@ -35,7 +35,7 @@
   td.effect { color:var(--muted); max-width:420px; }
   .tag { display:inline-block; padding:0 7px; margin:1px 2px 1px 0; border-radius:10px; border:1px solid var(--line); font-size:12px; white-space:nowrap; }
   .tag.attack { color:#c62828; } .tag.support { color:#1565c0; } .tag.heal { color:#2e7d32; }
-  .tag.protection { color:#5e35b1; } .tag.lightning { color:#f9a825; } .tag.draw { color:#6d4c41; }
+  .tag.protection { color:#5e35b1; } .tag.lightning { color:#f9a825; } .tag.draw { color:#6d4c41; } .tag.direct_damage { color:#ad1457; }
   .missing { color:var(--warn); font-style:italic; }
   .empty { padding:40px; text-align:center; color:var(--muted); }
   dialog { width:min(720px, 94vw); padding:0; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); }
@@ -219,7 +219,7 @@ const DECKS = [
   "loot", "items",
 ];
 for (const id of ["deck", "f_deck"]) document.getElementById(id).append(...DECKS.map(d => new Option(d)));
-const SYMBOL_TYPES = ["attack", "support", "protection", "heal", "lightning", "draw"];
+const SYMBOL_TYPES = ["attack", "support", "protection", "heal", "lightning", "draw", "poison", "health_loss", "direct_damage", "special"];
 const DAMAGE_SYMBOLS = ["attack", "support"];
 const DAMAGE_TYPES = ["melee", "ranged", "magic"];
 

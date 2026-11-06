@@ -74,8 +74,8 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
 - Character and class cards are ignored, and so is every card while the fight is not asking for one.
 - What the symbols do: **Attack** breaks the boss's shield of its damage type first, then hurts. **Support** does the
   same, but only after an attack of its type this round. **Protection** lowers the attack against a hero the players
-  tap, and at exactly 0 its effects are gone too. **Lightning** gives another action. **Heal** and **Draw** tell the
-  players what to do.
+  tap, and at exactly 0 its effects are gone too. **Direct damage** (the broken heart) hurts the boss past its shields. **Lightning** gives another action. **Heal**, **Draw** and **Health loss** (the red heart) tell
+  the players what to do. **Special** (the `*`) only marks a card with a special effect, which its ability does.
 - The actions message reminds heroes with panic to play at random.
 
 ## How it fits together

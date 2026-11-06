@@ -26,7 +26,10 @@
       "additionalProperties": false,
       "required": ["type", "strength"],
       "properties": {
-        "type": { "enum": ["attack", "support", "protection", "heal", "lightning", "draw"] },
+        "type": {
+          "description": "poison: the boss gets this many poison tokens. health_loss (the red heart): the hero who plays the card loses this much health. direct_damage (the broken heart): this much damage goes straight to the boss's health, past its shields. special (the *): the card has a special effect, see its effect text and ability; its strength is not used, use 0.",
+          "enum": ["attack", "support", "protection", "heal", "lightning", "draw", "poison", "health_loss", "direct_damage", "special"]
+        },
         "strength": { "type": "integer", "minimum": 0 },
         "damage_type": {
           "description": "For attacks and supports only: which of the boss's shields the damage hits first.",

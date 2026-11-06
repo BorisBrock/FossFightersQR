@@ -39,9 +39,13 @@ To fill the file from physical cards, see [tools/README.md](../tools/README.md).
 
 What the fight reads from a card (see [The boss fight](boss_fight.md#how-a-fight-goes) for what each does):
 
-- **`symbols`:** each with a `type` (`attack`, `support`, `protection`, `heal`, `lightning`, `draw`) and a `strength`.
-  Attacks and supports also have a `damage_type`: `melee`, `ranged` or `magic`. They take effect in their order on the
-  card.
+- **`symbols`:** each with a `type` (`attack`, `support`, `protection`, `heal`, `lightning`, `draw`, `poison`,
+  `health_loss`, `special`) and a `strength`. Attacks and supports also have a `damage_type`: `melee`, `ranged` or `magic`. They
+  take effect in their order on the card. `health_loss` is the red heart: the hero who plays the card loses that much
+  health. `direct_damage` is the broken heart: that much damage goes straight to the boss's health, past its
+  shields. `poison` (the boss gets that many poison tokens) is only recorded so far: the fight does not apply it yet and
+  ignores it with a warning. `special` is the `*`: it only marks a card with a special effect, which
+  its `ability` does; give it strength `0`.
 - **`ability`:** what the card does beyond its symbols, as the id of a script in `scripts/abilities/`, with
   `ability_values` for it. Left out for cards that only have symbols.
 - **`uses_per_fight`:** how often each hero can use the card in a fight, such as a potion. Left out for no limit.

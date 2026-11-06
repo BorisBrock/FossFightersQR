@@ -66,6 +66,9 @@
 	"heal": {
 		"body": "[player]{player}[/player] heilt [heal]{amount} Lebenspunkte[/heal] :health:, aber nicht über die Start-Lebenspunkte."
 	},
+	"health_loss": {
+		"body": "[player]{player}[/player] verliert [damage]{amount} Lebenspunkte[/damage] :health:."
+	},
 	"draw_cards": {
 		"body": "[player]{player}[/player] zieht [b]{count}[/b] :card:."
 	},

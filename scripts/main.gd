@@ -23,6 +23,10 @@ const SYMBOLS := {
 	"protection": { "de": "Schutz", "en": "Protection" },
 	"lightning": { "de": "Blitz", "en": "Lightning" },
 	"draw": { "de": "Ziehen", "en": "Draw" },
+	"poison": { "de": "Gift", "en": "Poison" },
+	"health_loss": { "de": "Lebensverlust", "en": "Health loss" },
+	"direct_damage": { "de": "Direkter Schaden", "en": "Direct damage" },
+	"special": { "de": "Spezialeffekt *", "en": "Special effect *" },
 }
 
 var _cards := CardDatabase.load_file(CARDS_PATH)
@@ -145,7 +149,7 @@ func _show_card(qr: String) -> void:
 		var symbols := PackedStringArray()
 		for symbol: Card.Symbol in card.symbols:
 			var symbol_name: String = CardDatabase.localized(SYMBOLS[symbol.type], locale) if SYMBOLS.has(symbol.type) else symbol.type.capitalize()
-			symbols.append("%s %d" % [symbol_name, symbol.strength])
+			symbols.append(symbol_name if symbol.type == "special" else "%s %d" % [symbol_name, symbol.strength])
 		lines.append(" · ".join(symbols))
 	if not card.effect.is_empty():
 		lines.append(CardDatabase.localized(card.effect, locale))

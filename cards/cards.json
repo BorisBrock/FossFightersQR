@@ -186,31 +186,281 @@
       "qr": "AgAAAA==",
       "deck": "troll",
       "title": { "de": "Wurfbeil" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" } ],
       "effect": { "de": "Fernkampf-Angriff 2." }
     },
     {
       "qr": "EQAAAA==",
-      "deck": "classes",
+      "deck": "troll",
       "title": { "de": "Horn des Häuptlings" },
+      "symbols": [ { "type": "draw", "strength": 3 }, { "type": "special", "strength": 1 } ],
       "effect": { "de": "Ein Held deiner Wahl zieht 3 Karten.\nDieser Held darf sofort\neine Aktion ausführen." }
     },
     {
       "qr": "DwAAAA==",
-      "deck": "classes",
+      "deck": "troll",
       "title": { "de": "Geisterspeer" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
       "effect": { "de": "Magie-Angriff 3." }
     },
     {
       "qr": "CgAAAA==",
-      "deck": "classes",
+      "deck": "troll",
       "title": { "de": "Krötensmoothie" },
+      "symbols": [ { "type": "heal", "strength": 3 }, { "type": "draw", "strength": 2 } ],
       "effect": { "de": "Ein Held deiner Wahl erhält 3 Lebenspunkte. Dieser Held zieht 2 Karten." }
     },
     {
       "qr": "EAAAAA==",
       "deck": "troll",
       "title": { "de": "Schulterramme" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 1 } ],
       "effect": { "de": "Nahkampf-Verstärkung 3. Hast du danach 15 Lebenspunkte oder mehr: Du erhältst 3 Lebenspunkte." }
+    },
+    {
+      "qr": "BgAAAA==",
+      "deck": "troll",
+      "title": { "de": "Omas Helm" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 1 } ],
+      "effect": { "de": "Schutz 4. Hast du danach 15 Lebenspunkte oder mehr: Entferne 2 beliebige deiner Statusmarken." }
+    },
+    {
+      "qr": "EgAAAA==",
+      "deck": "troll",
+      "title": { "de": "Ahnenstein" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 4." }
+    },
+    {
+      "qr": "BQAAAA==",
+      "deck": "troll",
+      "title": { "de": "Opas Gürtel" },
+      "symbols": [ { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Schutz 3." }
+    },
+    {
+      "qr": "EwAAAA==",
+      "deck": "troll",
+      "title": { "de": "Krawumm" },
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "melee" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Nahkampf Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "AQAAAA==",
+      "deck": "troll",
+      "title": { "de": "Knochenkeule" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 4. Hast du danach 15 Lebenspunkte oder mehr: Ziehe 2 Karten." }
+    },
+    {
+      "qr": "VAAAAA==",
+      "deck": "thief",
+      "title": { "de": "Fluch des Raben" },
+      "symbols": [ { "type": "direct_damage", "strength": 2 } ],
+      "effect": { "de": "Der Boss verliert sofort 2 Leben. Lege diese Karte dauerhaft neben deine Heldenkarte. Lege sie ab, um eine @-Fähigkeit des Bosses gegen dich zu verhindern." }
+    },
+    {
+      "qr": "AgEAAA==",
+      "deck": "thief",
+      "title": { "de": "Rauchbombe" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 2. Entfernt den Zusatzeffekt der reduzierten Boss-Attacke. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "UwAAAA==",
+      "deck": "thief",
+      "title": { "de": "Hornissenstachel" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "special", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "UQAAAA==",
+      "deck": "thief",
+      "title": { "de": "Vipernzahn" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "poison", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff 2. Der Boss erhält 1 Gift." }
+    },
+    {
+      "qr": "TAAAAA==",
+      "deck": "thief",
+      "title": { "de": "Dornenfalle" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 4." }
+    },
+    {
+      "qr": "UAAAAA==",
+      "deck": "thief",
+      "title": { "de": "Schattenrobe" },
+      "symbols": [ { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Schutz 3." }
+    },
+    {
+      "qr": "TgAAAA==",
+      "deck": "thief",
+      "title": { "de": "Wurfmesser" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "SwAAAA==",
+      "deck": "thief",
+      "title": { "de": "Schattenklinge" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "TQAAAA==",
+      "deck": "thief",
+      "title": { "de": "Hand-Armbrust" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 3." }
+    },
+    {
+      "qr": "TwAAAA==",
+      "deck": "thief",
+      "title": { "de": "Giftklinge" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "melee" }, { "type": "poison", "strength": 1 } ],
+      "effect": { "de": "Nahkampf-Angriff 2. Der Boss erhält 1 Gift." }
+    },
+    {
+      "qr": "GwAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Rune des Königs" },
+      "symbols": [ { "type": "draw", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Jeder Held zieht Karte. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "HAAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Runenstein" },
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "magic" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Magie-Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "HQAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Titan-Armschienen" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "protection", "strength": 2 } ],
+      "effect": { "de": "Schutz 2. Schutz 2." }
+    },
+    {
+      "qr": "HgAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Gardehelm" },
+      "symbols": [ { "type": "protection", "strength": 2 } ],
+      "effect": { "de": "Schutz 2. Entferne 1 Statusmarke deiner Wahl von einem Helden deiner Wahl." }
+    },
+    {
+      "qr": "GAAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Wampenschoner" },
+      "symbols": [ { "type": "protection", "strength": 4 } ],
+      "effect": { "de": "Schutz 4." }
+    },
+    {
+      "qr": "VQEAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Anti-Boss-3000" },
+      "symbols": [ { "type": "special", "strength": 1 } ],
+      "effect": { "de": "Die nächste @-Fähigkeit 5 des Bosses wird verhindert. Entferne Anti-Boss-3000 für den restlichen Bosskampf aus dem Spiel." }
+    },
+    {
+      "qr": "GgAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Morgenstern" },
+      "symbols": [ { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Nahkampf-Verstärkung 5. Du verlierst 2 Lebenspunkte." }
+    },
+    {
+      "qr": "FgAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Stollensprenger" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 2." }
+    },
+    {
+      "qr": "GQAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Schlagring" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "FQAAAA==",
+      "deck": "dwarf",
+      "title": { "de": "Felsspalter" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 4." }
+    },
+    {
+      "qr": "WgEAAA==",
+      "deck": "warrior",
+      "title": { "de": "Rune der Rache" },
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "ranged" }, { "type": "special", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der Stärke der Boss-Attacke, die dich bedroht. Fügt dieser Angriff 9 oder mehr Schaden zu, verlierst du 4 Lebenspunkte." }
+    },
+    {
+      "qr": "PQAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Ritterlicher Beistand" },
+      "symbols": [ { "type": "special", "strength": 1 } ],
+      "effect": { "de": "Die Boss-Attacke, die dich aktuell bedroht, entfällt. Lenke stattdessen eine Boss-Attacke, die einen anderen Helden bedroht, auf dich um." }
+    },
+    {
+      "qr": "NwAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Schwert der Rubingarde" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 4." }
+    },
+    {
+      "qr": "PgAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Finte" },
+      "symbols": [ { "type": "support", "strength": 2, "damage_type": "melee" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Nahkampf-Verstärkung 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "PwAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Schulterdorne" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "melee" }, { "type": "protection", "strength": 2 } ],
+      "effect": { "de": "Nahkampf-Angriff 2. Schutz 2." }
+    },
+    {
+      "qr": "PAAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Kettenhemd" },
+      "symbols": [ { "type": "protection", "strength": 4 } ],
+      "effect": { "de": "Schutz 4." }
+    },
+    {
+      "qr": "OAAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Amulett des Bären" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "OQAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Hand-Armbrust" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 3." }
+    },
+    {
+      "qr": "OgAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Wurfdolche" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "OwAAAA==",
+      "deck": "warrior",
+      "title": { "de": "Klingenblitz" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 3." }
     }
   ]
 }
