@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 67
+const EXPECTED_CHECKS := 69
 
 var _failures := 0
 var _checks_run := 0
@@ -109,6 +109,9 @@ func _check_screen() -> void:
 
 	screen.fight.deal_damage(7, "magic")
 	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard") - 7), "the health shown follows the fight")
+	_check(not screen.get_node("Hud/Poison").visible, "the boss's poison only shows once it has some")
+	screen.fight.poison_boss(2)
+	_check(screen.get_node("Hud/Poison").visible and screen.get_node("Hud/Poison/Row/Value").text == "2", "then how much")
 	screen.queue_free()
 
 

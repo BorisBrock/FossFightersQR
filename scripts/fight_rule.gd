@@ -110,6 +110,17 @@ func damage_taken(_fight: Fight, amount: int, _kind: String, _play: CardPlay) ->
 	return amount
 
 
+## The boss got amount poison tokens (Fight.poison), from play or something else (null).
+func boss_poisoned(_fight: Fight, _amount: int, _play: CardPlay) -> void:
+	pass
+
+
+## How much the boss's poison hurts it at the end of the round, by default 1 per token
+## (Fight.poison).
+func poison_damage(_fight: Fight, amount: int) -> int:
+	return amount
+
+
 ## The boss's health went down from old to new, such as for something that happens at
 ## half health.
 func boss_hurt(_fight: Fight, _old: int, _new: int) -> void:

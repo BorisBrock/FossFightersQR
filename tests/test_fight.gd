@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 139
+const EXPECTED_CHECKS := 197
 
 var _failures := 0
 var _checks_run := 0
@@ -61,6 +61,9 @@ func _initialize() -> void:
 	_check_traits()
 	_check_more_traits()
 	_check_catalog_abilities()
+	_check_loot_cards()
+	_check_boss_poison()
+	_check_combos()
 	_check_actions()
 	_check_bosses()
 	_check_end()
@@ -497,6 +500,287 @@ func _check_catalog_abilities() -> void:
 		if ability == null:
 			missing.append("%s (%s)" % [card.ability, card.qr])
 	_check(missing.is_empty(), "every ability of the catalog exists: %s" % ", ".join(missing))
+
+
+## The loot cards with an ability, from the catalog.
+func _check_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Arkanfalter: its attack does not set off the shield's effect.
+	var boss := TestBoss.new()
+	var fight := _started(boss)
+	fight.scan(catalog.find("NAEAAA=="))
+	_check(fight.health == 28 and not boss.calls.has("shield_hit magic") and _asks_card_of(fight, 1), "Arkanfalter: past the shield's effect, then another action")
+	# Lichtpfeile: the next card with a ranged attack gets a Lightning.
+	fight.scan(catalog.find("JwEAAA=="))
+	_check(fight.health == 24 and _asks_card_of(fight, 3), "Lichtpfeile: a ranged attack")
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 23 and _asks_card_of(fight, 3), "and the next ranged attack gets a Lightning")
+	# Stachelbola: the next card with a ranged attack takes effect twice.
+	fight.scan(catalog.find("OQEAAA=="))
+	_check(_asks_card_of(fight, 3), "Stachelbola gives another action")
+	fight.scan(_card("BOW2", [["attack", 2, "ranged"]], "dwarf"))
+	_check(fight.health == 19 and _told[-1] == "card_repeated", "and the next ranged attack takes effect twice")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5) and fight.hero_at(3).played.count("BOW2") == 1, "but is played once")
+	# Amulett der Zeit: the last card with an attack, by anyone, once more.
+	fight.scan(catalog.find("HgEAAA=="))
+	_check(fight.health == 17 and _told[-1] == "card_repeated" and _values[-1].player == "Borin", "Amulett der Zeit: the last attack again")
+	fight.abandon()
+
+	# Geisterwolf: stronger for each Support the hero played this round.
+	boss = TestBoss.new()
+	boss.threats = { 1: 9 }
+	fight = _started(boss)
+	fight.scan(_card("ZAP", [["attack", 1, "magic"], ["lightning", 1]], "halfling"))
+	fight.scan(_card("SUP", [["support", 1, "magic"], ["lightning", 1]], "halfling"))
+	fight.scan(catalog.find("2QEAAA=="))
+	_check(fight.health == 23 and _asks_card_of(fight, 3), "Geisterwolf: 2 more for the Support before")
+	# Kultistenkette: a hero's attack is halved and loses its effects.
+	fight.scan(catalog.find("0wEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 1 and fight.hero_at(5).threat_effects.is_empty() and _told[-1] == "attack_halved", "Kultistenkette: an attack halved, without its poison")
+	_ready(fight)
+	# Schleimiger Helm: the boss loses what is left of the attack.
+	fight.scan(catalog.find("2AEAAA=="))
+	fight.choose(fight.hero_at(1))
+	_check(fight.hero_at(1).threat == 5 and fight.health == 18, "Schleimiger Helm: the boss loses what is left of the attack")
+	fight.abandon()
+
+	# Bombling: its attack goes off at the start of the hero's first turn next round.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("1gEAAA=="))
+	_check(fight.health == 30 and _told[-1] == "attack_delayed", "Bombling: no damage yet")
+	_ready(fight)
+	for i in 8:
+		fight.pass_action()
+	for i in 20:
+		if fight.request != null:
+			break
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_check(fight.round_number == 2 and fight.health == 25 and _told[-1] == "delayed_attack_now", "but at the start of the hero's turn next round")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "which is still theirs")
+	fight.abandon()
+
+	# Magmahorn: a card from the draw pile, which is then out of the game.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("1AEAAA=="))
+	_check(_asks_card_of(fight, 1) and fight.request.prompt == "prompt_search_pile", "Magmahorn: which card from the pile?")
+	fight.scan(_card("FOUND", [["attack", 2, "ranged"], ["lightning", 1]], "halfling"))
+	_check(fight.health == 28 and "FOUND" in fight.removed and _told[-1] == "searched_card_removed", "it is played, then out of the game")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "its Lightning still counts")
+	# Lianenschlange: an item at once.
+	fight.scan(catalog.find("ywEAAA=="))
+	_check(fight.request.prompt == "prompt_use_item" and fight.scan(_card("AXE", [["attack", 1, "melee"]], "halfling")) == "notice_not_allowed_now", "Lianenschlange: only an item")
+	fight.scan(_card("POTION", [["heal", 2]], "items"))
+	_check(_told[-1] == "heal", "which is used")
+	_ready(fight)
+	_check(fight.poison == 1, "and the boss gets its poison")
+	# Toxikum: each poison costs the boss more health.
+	fight.scan(catalog.find("awEAAA=="))
+	_check(_told[-1] == "toxin_ready", "Toxikum")
+	_ready(fight)
+	# Pestbote: a hand card on the pile, then poison.
+	fight.scan(catalog.find("aAEAAA=="))
+	_check(_told[-1] == "card_to_pile" and fight.health == 28, "Pestbote: first a hand card on the pile")
+	_ready(fight)
+	_check(fight.poison == 3 and fight.health == 28, "then the boss gets its poison")
+	_ready(fight)
+	# Fluchbrecher: the players are told.
+	fight.scan(catalog.find("CAEAAA=="))
+	_check(_told[-1] == "remove_curse", "Fluchbrecher")
+	_ready(fight)
+	# Borax' Kriegshammer: an attack, and a hero of the players' choice removes a token.
+	fight.scan(catalog.find("HQEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.health == 26 and _told[-1] == "remove_tokens" and _values[-1].count == 1, "Borax' Kriegshammer")
+	_ready(fight)
+	# Wunderlampe: a hero of the players' choice plays their top 3 cards.
+	fight.scan(catalog.find("GwEAAA=="))
+	_check(fight.request.prompt == "prompt_play_top_who", "Wunderlampe: who?")
+	fight.choose(fight.hero_at(3))
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_lucky_charm", "that hero shows their top card")
+	fight.scan(_card("TOP1", [["attack", 1, "ranged"], ["lightning", 1]], "dwarf"))
+	fight.pass_action()
+	fight.scan(_card("TOP3", [["draw", 1]], "dwarf"))
+	_check(fight.health == 25 and _told[-1] == "draw_cards", "three times")
+	_ready(fight)
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "then the Lightning on them")
+	fight.skip()
+	_check(_asks_card_of(fight, 1), "then the next turn")
+	_pass_until(fight, "boss_poison")
+	_check(_values[-1].poison == 3 and _values[-1].damage == 6, "at the end of the round, Toxikum doubles what the poison costs")
+	_ready(fight)
+	_check(fight.health == 19, "past the shields")
+	fight.abandon()
+
+
+## The boss's poison: kept for the whole fight, and it hurts the boss at the end of each round.
+func _check_boss_poison() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var fight := _started(TestBoss.new())
+	var changes: Array[int] = []
+	fight.poison_changed.connect(func(poison: int) -> void: changes.append(poison))
+	_pass_until(fight, "phase_draw")
+	_ready(fight)
+	_check(not _told.has("boss_poison") and fight.round_number == 2, "without poison, nothing happens at the end of a round")
+	for i in 3:
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_ready(fight)
+	fight.scan(catalog.find("UQAAAA=="))
+	_check(fight.poison == 1 and changes == [1] and fight.health == 28, "Vipernzahn: an attack and 1 poison, shown on screen")
+	# Two Toxikum, from two heroes, add up.
+	fight.scan(catalog.find("awEAAA=="))
+	_ready(fight)
+	fight.scan(catalog.find("awEAAA=="))
+	_ready(fight)
+	_pass_until(fight, "boss_poison")
+	_check(_values[-1].damage == 3 and fight.health == 28, "two Toxikum: 3 per token, told before it hurts")
+	_ready(fight)
+	_check(fight.health == 25 and fight.poison == 1, "the poison hurts, and stays")
+	_pass_until(fight, "boss_poison")
+	_ready(fight)
+	_check(fight.round_number == 4 and fight.health == 22, "and hurts again the next round")
+	fight.abandon()
+
+	# Poison can win the fight.
+	fight = _started(TestBoss.new())
+	fight.set_health(2)
+	fight.scan(catalog.find("aAEAAA=="))
+	_ready(fight)
+	_pass_until(fight, "boss_poison")
+	_ready(fight)
+	_check(fight.over and fight.health == 0 and _told[-1] == "victory", "poison can defeat the boss")
+
+
+## Cards that meet each other.
+func _check_combos() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Stachelbola, then Lichtpfeile: it takes effect twice, so the next ranged attack gets two Lightnings.
+	var fight := _started(TestBoss.new())
+	fight.scan(catalog.find("OQEAAA=="))
+	fight.scan(catalog.find("JwEAAA=="))
+	_check(fight.health == 22 and _told[-1] == "card_repeated", "Stachelbola and Lichtpfeile: 4 damage twice")
+	_ready(fight)
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 21 and _asks_card_of(fight, 3) and _actions(fight.hero_at(3)) == "BBTT", "and the next ranged attack gets two Lightnings")
+	fight.abandon()
+
+	# Lichtpfeile, then Stachelbola: Stachelbola is the next card, which uses up the Lightning.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("JwEAAA=="))
+	fight.scan(catalog.find("OQEAAA=="))
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 24 and _told[-1] == "card_repeated", "Lichtpfeile, then Stachelbola: the next ranged attack twice")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5), "but without a Lightning")
+	fight.abandon()
+
+	# A card that is not a ranged attack uses up Stachelbola.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("OQEAAA=="))
+	fight.scan(_card("SHIELD", [["protection", 1]], "halfling"))
+	fight.choose(fight.hero_at(1))
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 29 and _asks_card_of(fight, 5), "Stachelbola: only the very next card counts")
+	fight.abandon()
+
+	# Amulett der Zeit and Arkanfalter: again past the shield's effect, with its Lightning.
+	var boss := TestBoss.new()
+	fight = _started(boss)
+	fight.scan(catalog.find("NAEAAA=="))
+	fight.scan(catalog.find("HgEAAA=="))
+	_check(fight.health == 25 and not boss.calls.has("shield_hit magic"), "Amulett der Zeit repeats Arkanfalter, past the shield's effect")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "with its Lightning for the same hero")
+	fight.pass_action()
+	fight.scan(catalog.find("HgEAAA=="))
+	_ready(fight)
+	_check(fight.health == 22 and _asks_card_of(fight, 5), "for another hero, without")
+	_check(fight.hero_at(1).played.count("NAEAAA==") == 1 and fight.history.size() == 3, "repeated cards are not played again")
+	fight.abandon()
+
+	# Amulett der Zeit and Bombling: two blasts next round.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("1gEAAA=="))
+	_ready(fight)
+	fight.scan(catalog.find("HgEAAA=="))
+	_check(_told[-1] == "attack_delayed" and fight.health == 30, "Amulett der Zeit repeats Bombling: it waits too")
+	_pass_until(fight, "phase_draw")
+	for i in 4:
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_check(fight.health == 25 and _told[-1] == "delayed_attack_now", "next round, the first blast")
+	_ready(fight)
+	_check(fight.health == 18 and _told[-1] == "delayed_attack_now", "then the second, past the broken shield")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "then the hero's turn")
+	fight.abandon()
+
+	# Lichtpfeile repeated by Amulett der Zeit: the Amulett is the next card, which uses up
+	# the first Lightning, but the repeat gives a new one.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("JwEAAA=="))
+	fight.scan(catalog.find("HgEAAA=="))
+	_check(fight.health == 22, "Amulett der Zeit repeats Lichtpfeile")
+	_ready(fight)
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "dryad"))
+	_check(fight.health == 21 and _actions(fight.hero_at(5)) == "BTT", "the next ranged attack gets one Lightning")
+	fight.abandon()
+
+	# Kultistenkette, then Schleimiger Helm on the same hero: nothing left to hurt the boss.
+	boss = TestBoss.new()
+	boss.threats = { 1: 9 }
+	fight = _started(boss)
+	fight.scan(catalog.find("0wEAAA=="))
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	fight.scan(catalog.find("2AEAAA=="))
+	fight.choose(fight.hero_at(1))
+	_check(fight.hero_at(1).threat == 0 and fight.health == 30, "Kultistenkette and Schleimiger Helm: 9 halved to 4, then blocked")
+	fight.abandon()
+
+	# Geisterwolf counts only the hero's own Supports.
+	fight = _started(TestBoss.new())
+	fight.scan(_card("ZAP", [["attack", 1, "magic"]], "halfling"))
+	fight.scan(_card("SUP", [["support", 1, "magic"]], "dwarf"))
+	fight.scan(_card("SUP2", [["support", 1, "magic"]], "dryad"))
+	fight.scan(catalog.find("2QEAAA=="))
+	_check(fight.health == 24, "Geisterwolf: no bonus for the Supports of others")
+	fight.abandon()
+
+	# Magmahorn finding Lianenschlange: its poison, and an item, all in one action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("1AEAAA=="))
+	fight.scan(catalog.find("ywEAAA=="))
+	_check(fight.request.prompt == "prompt_use_item", "Magmahorn plays Lianenschlange, which asks for an item")
+	fight.skip()
+	_check(fight.poison == 1 and "ywEAAA==" in fight.removed and _told[-1] == "searched_card_removed", "the boss is poisoned, the card out of the game")
+	_ready(fight)
+	_check(_asks_card_of(fight, 3), "and the turn is over")
+	_check(fight.scan(catalog.find("ywEAAA==")) == "notice_removed", "nobody can play it again")
+	fight.abandon()
+
+
+## Passes every action, reads every message and chooses the first hero asked for, until
+## the fight tells id.
+func _pass_until(fight: Fight, id: String) -> void:
+	var start := _told.size()
+	for i in 200:
+		if fight.over or (_told.size() > start and _told[-1] == id):
+			return
+		if fight.request != null and fight.request.kind == Fight.Request.Kind.ACTION:
+			fight.pass_action()
+		elif fight.request != null and fight.request.kind == Fight.Request.Kind.HERO:
+			fight.choose(fight.request.heroes[0])
+		else:
+			_ready(fight)
 
 
 func _give_trait(fight: Fight, catalog: CardDatabase, qr: String, hero: FightHero) -> void:

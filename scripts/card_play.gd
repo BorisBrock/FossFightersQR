@@ -37,6 +37,11 @@ var targets: Array[FightHero] = []
 var shield_damage := 0
 var damage := 0
 var protected: Array[FightHero] = []
+## The round it was played in.
+var round_number := 0
+## Its effects happen once more or later, as some cards make happen (Fight.play_again):
+## the card is not played a second time, so it is not counted as played again.
+var replay := false
 
 
 func _init(play_hero: FightHero, played_card: Card) -> void:

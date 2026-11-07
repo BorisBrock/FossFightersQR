@@ -102,6 +102,9 @@ var _plate: StyleBox
 @onready var _give_up: BaseButton = $Hud/GiveUp/Button
 @onready var _round: Label = $Hud/Round/Row/Value
 @onready var _health: Label = $Hud/Health/Row/Value
+## The boss's poison tokens, shown once it has any.
+@onready var _poison: Control = $Hud/Poison
+@onready var _poison_value: Label = $Hud/Poison/Row/Value
 @onready var _shields: HBoxContainer = $Shields
 @onready var _prompt: Control = $Prompt
 @onready var _prompt_text: RichTextLabel = $Prompt/Layout/Text
@@ -123,6 +126,7 @@ func _ready() -> void:
 	fight.round_changed.connect(_on_round_changed)
 	fight.health_changed.connect(_on_health_changed)
 	fight.shields_changed.connect(_on_shields_changed)
+	fight.poison_changed.connect(_on_poison_changed)
 	fight.shields_raised.connect(_on_shields_raised)
 	fight.hero_changed.connect(_refresh_badge)
 	fight.phase_changed.connect(_on_phase_changed)
@@ -299,6 +303,13 @@ func _on_round_changed(round_number: int) -> void:
 func _on_health_changed(health: int, _max_health: int) -> void:
 	_health.text = str(health)
 	_pop(_health)
+
+
+func _on_poison_changed(poison: int) -> void:
+	_poison_value.text = str(poison)
+	_poison.visible = poison > 0
+	if poison > 0:
+		_pop(_poison_value)
 
 
 func _on_messages_read() -> void:

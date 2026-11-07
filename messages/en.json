@@ -220,6 +220,51 @@
 	"option_no": {
 		"body": "No"
 	},
+	"prompt_search_pile": {
+		"body": "[player]{player}[/player], search your [b]draw pile[/b] for a card and show it :card:."
+	},
+	"shuffle_pile": {
+		"body": "[player]{player}[/player] shuffles their draw pile."
+	},
+	"searched_card_removed": {
+		"body": "[player]{player}[/player] shuffles their draw pile and puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
+	},
+	"toxin_ready": {
+		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison token[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] more at the end of the round."
+	},
+	"card_repeated": {
+		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect once more."
+	},
+	"nothing_to_repeat": {
+		"body": "No card with an attack has been played yet, so nothing takes effect again."
+	},
+	"attack_delayed": {
+		"body": "[b]{card}[/b] of [player]{player}[/player] only goes off at the start of their first turn next round."
+	},
+	"delayed_attack_now": {
+		"body": "[b]{card}[/b] of [player]{player}[/player] goes off now!"
+	},
+	"prompt_halve_who": {
+		"body": "[b]Tap the hero[/b] whose attack is halved."
+	},
+	"attack_halved": {
+		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :damage: and loses its extra effect."
+	},
+	"remove_curse": {
+		"body": "[player]{player}[/player] puts 1 active curse of any hero on the curse discard pile."
+	},
+	"prompt_use_item": {
+		"body": "[player]{player}[/player], use an [b]item[/b] of your choice :card:."
+	},
+	"card_to_pile": {
+		"body": "[player]{player}[/player] puts [b]{count}[/b] other card from their hand on top of their draw pile :card:."
+	},
+	"prompt_play_top_who": {
+		"body": "[b]Tap the hero[/b] who plays the top [b]{count}[/b] cards of their draw pile."
+	},
+	"boss_poison": {
+		"body": "The poison works! [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health:."
+	},
 	"example_magic_potion": {
 		"title": "Magic Potion",
 		"body": "Choose a player to gain [heal]{health} health points[/heal] :health:."

@@ -18,6 +18,8 @@ signal round_changed(round_number: int)
 signal phase_changed(phase: Phase)
 signal health_changed(health: int, max_health: int)
 signal shields_changed(shields: Dictionary)
+## The boss's poison tokens changed.
+signal poison_changed(poison: int)
 ## The boss has raised its shields for the round. The view shows them rising instead of a
 ## message, so the fight goes on without waiting for the players.
 signal shields_raised(shields: Dictionary)
@@ -43,6 +45,8 @@ enum Phase { SETUP, PLANNING, SHIELD, ACTION, ATTACK, STATUS, DISCARD, DRAW, OVE
 const DAMAGE_TYPES: Array[String] = ["melee", "ranged", "magic"]
 ## The kind of damage from the broken heart: no shield takes it.
 const DIRECT := "direct"
+## The kind of damage the boss's poison does at the end of a round: no shield takes it.
+const POISON := "poison"
 const TURNS_PER_ROUND := 3
 ## For the text of messages: symbols, damage types and tokens.
 const NAMES := {
@@ -97,9 +101,15 @@ var health := 0
 var max_health := 0
 ## The boss's shields, by damage type.
 var shields := {}
+## The boss's poison tokens. They stay for the whole fight, and at the end of each round
+## each costs the boss 1 health (see FightRule.poison_damage).
+var poison := 0
 ## The cards out of the game for the rest of the fight (remove_from_game), by QR code.
 ## They cannot be played again, by any hero.
 var removed: Array[String] = []
+## Every card played in the fight so far, in order, not counting replays
+## (CardPlay.replay).
+var history: Array[CardPlay] = []
 ## The damage types attacked this round, which Supports need.
 var attacked: Array[String] = []
 ## Who starts this round's action phase.
@@ -377,12 +387,16 @@ func _unreserve(hero: FightHero, count: int) -> void:
 
 
 ## Plays a card: the rules see it, then its ability and symbols take effect.
+## A replay (CardPlay.replay) is not counted as played, and keeps the ability it has.
 func play_card(play: CardPlay) -> void:
 	var hero := play.hero
-	if not play.card.is_item():
-		hero.played.append(play.card.qr)
-	hero.uses[play.card.qr] = hero.uses.get(play.card.qr, 0) + 1
-	play.ability = CardAbility.create(play.card)
+	play.round_number = round_number
+	if not play.replay:
+		if not play.card.is_item():
+			hero.played.append(play.card.qr)
+		hero.uses[play.card.qr] = hero.uses.get(play.card.qr, 0) + 1
+		history.append(play)
+		play.ability = CardAbility.create(play.card)
 	await _each_rule("card_playing", [play])
 	if play.cancelled or over:
 		return
@@ -397,9 +411,25 @@ func play_card(play: CardPlay) -> void:
 	if over:
 		return
 	await _each_rule("card_played", [play])
-	stats.card_played(play)
+	if not play.replay:
+		stats.card_played(play)
 	card_played.emit(play)
 	await until_read()
+
+
+## Plays the card of original once more, as some cards make happen: the rules see it
+## again, then its ability and symbols take effect, but the card is not played a second
+## time (CardPlay.replay). Lightning on it gives extra actions only if by, the card that
+## makes it happen, is of the same hero, and then through by, as by's own Lightning would.
+func play_again(original: CardPlay, by: CardPlay) -> CardPlay:
+	var again := CardPlay.new(original.hero, original.card)
+	again.replay = true
+	again.ignore_lightning = original.ignore_lightning or by == null or by.hero != original.hero
+	again.ability = CardAbility.create(original.card)
+	await play_card(again)
+	if not again.ignore_lightning:
+		by.extra_actions += again.extra_actions
+	return again
 
 
 ## Damage of kind to the boss: its shield of that kind takes it first. DIRECT damage has no
@@ -437,6 +467,20 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 		set_health(health - dealt)
 		await _each_rule("boss_hurt", [old, health])
 	return dealt
+
+
+## The boss gets amount poison tokens, from play or something else (null).
+func poison_boss(amount: int, play: CardPlay = null) -> void:
+	if amount <= 0 or over:
+		return
+	poison += amount
+	poison_changed.emit(poison)
+	await _each_rule("boss_poisoned", [amount, play])
+
+
+func set_poison(value: int) -> void:
+	poison = maxi(0, value)
+	poison_changed.emit(poison)
 
 
 func set_health(value: int) -> void:
@@ -655,6 +699,9 @@ func _play_round() -> void:
 	if over:
 		return
 
+	await _poison_tick()
+	if over:
+		return
 	await _each_rule("round_ended")
 	for rule in _round_rules:
 		rules.erase(rule)
@@ -663,6 +710,20 @@ func _play_round() -> void:
 	await until_read()
 	if over:
 		return
+
+
+## At the end of the round, the boss's poison hurts it, past its shields.
+func _poison_tick() -> void:
+	if poison <= 0:
+		return
+	var damage := poison
+	for rule in rules.duplicate():
+		damage = rule.poison_damage(self, damage)
+	if damage <= 0:
+		return
+	tell("boss_poison", { "boss": boss.title, "poison": poison, "damage": damage })
+	await until_read()
+	await deal_damage(damage, POISON)
 
 
 func _choose_starter() -> void:
@@ -760,6 +821,8 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 		"take_from_pile":
 			for receiver in play.receivers():
 				tell("take_from_pile", { "player": receiver.name, "count": effect.strength })
+		"poison":
+			await poison_boss(effect.strength, play)
 		"remove_from_game":
 			if not play.card.qr in removed:
 				removed.append(play.card.qr)

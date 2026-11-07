@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_fight.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
 [ext_resource type="Texture2D" path="res://assets/fight/icon_round.svg" id="9_round"]
 [ext_resource type="Texture2D" path="res://assets/fight/icon_health.svg" id="10_health"]
+[ext_resource type="Texture2D" uid="uid://cef75cq1bceym" path="res://assets/fight/icon_poison.svg" id="15_poison"]
 [ext_resource type="PackedScene" path="res://message_box.tscn" id="11_messages"]
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="12_scanner"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="13_regular"]
@@ -379,6 +380,46 @@ custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 mouse_filter = 2
 texture = ExtResource("10_health")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Poison" type="PanelContainer" parent="Hud"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -282.0
+offset_top = -84.0
+offset_right = -166.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("plate_right")
+
+[node name="Row" type="HBoxContainer" parent="Hud/Poison"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Value" type="Label" parent="Hud/Poison/Row"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.714, 0.878, 0.29, 1)
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Hud/Poison/Row"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("15_poison")
 expand_mode = 1
 stretch_mode = 5
 

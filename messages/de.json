@@ -220,6 +220,51 @@
 	"option_no": {
 		"body": "Nein"
 	},
+	"prompt_search_pile": {
+		"body": "[player]{player}[/player], durchsuche deinen [b]Nachziehstapel[/b] nach einer Karte und zeig sie :card:."
+	},
+	"shuffle_pile": {
+		"body": "[player]{player}[/player] mischt den Nachziehstapel."
+	},
+	"searched_card_removed": {
+		"body": "[player]{player}[/player] mischt den Nachziehstapel und legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
+	},
+	"toxin_ready": {
+		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] mehr."
+	},
+	"card_repeated": {
+		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt noch einmal."
+	},
+	"nothing_to_repeat": {
+		"body": "Es wurde noch keine Karte mit Angriff gespielt, also wird nichts wiederholt."
+	},
+	"attack_delayed": {
+		"body": "[b]{card}[/b] von [player]{player}[/player] geht erst zu Beginn des ersten Zuges in der nächsten Runde los."
+	},
+	"delayed_attack_now": {
+		"body": "[b]{card}[/b] von [player]{player}[/player] geht jetzt los!"
+	},
+	"prompt_halve_who": {
+		"body": "[b]Tippt den Helden an[/b], dessen Angriff halbiert wird."
+	},
+	"attack_halved": {
+		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :damage: halbiert und verliert seinen Zusatzeffekt."
+	},
+	"remove_curse": {
+		"body": "[player]{player}[/player] legt 1 aktiven Fluch eines beliebigen Helden auf den Fluch-Ablagestapel."
+	},
+	"prompt_use_item": {
+		"body": "[player]{player}[/player], nutze einen [b]Gegenstand[/b] deiner Wahl :card:."
+	},
+	"card_to_pile": {
+		"body": "[player]{player}[/player] legt [b]{count}[/b] andere Handkarte oben auf den Nachziehstapel :card:."
+	},
+	"prompt_play_top_who": {
+		"body": "[b]Tippt den Helden an[/b], der die obersten [b]{count}[/b] Karten seines Nachziehstapels ausspielt."
+	},
+	"boss_poison": {
+		"body": "Das Gift wirkt! [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert [damage]{damage} Leben[/damage] :health:."
+	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",
 		"body": "Wählt einen Spieler, der [heal]{health} Lebenspunkte[/heal] :health: erhält."

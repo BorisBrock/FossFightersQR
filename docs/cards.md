@@ -47,8 +47,8 @@ What the fight reads from a card (see [The boss fight](boss_fight.md#how-a-fight
   goes straight to the boss's health, past its shields. `take_from_pile` (a deck with two arrows): the player takes that
   many cards of their choice from their draw pile, unlike `draw`, which takes the top ones. `remove_from_game` (a card
   ripped in half): the players are told to put the card away, and it cannot be played again in the fight, by anyone;
-  give it strength `0`. `poison` (the boss gets that many poison tokens) is only
-  recorded so far: the fight does not apply it yet and ignores it with a warning. `special` is the `*`: it only marks a
+  give it strength `0`. `poison`: the boss gets that many poison tokens
+  (`Fight.poison`), which stay for the fight and cost it 1 health each at the end of every round. `special` is the `*`: it only marks a
   card with a special effect, which its `ability` does; give it strength `0`. An attack whose strength the text
   decides, such as *Krawumm*'s, has strength `0`, and its ability sets it.
 - **`ability`:** what the card does beyond its symbols, as the id of a script in `scripts/abilities/`, with
@@ -88,7 +88,7 @@ serves many cards.
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table. | `count` (2), `choose` (false: the hero who plays it) | Gardehelm |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table. | `count` (2), `choose` (false: the hero who plays it) | Gardehelm, Borax’ Kriegshammer |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
 | `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
@@ -101,6 +101,23 @@ serves many cards.
 | `raven_curse` | The card lies by the hero; the players may discard it to prevent an @-ability against them. | | Fluch des Raben |
 | `anti_boss` | Prevents the boss's next @-ability up to `strength`. | `strength` (5) | Anti-Boss-3000 |
 | `build_robot` | The hero builds a battle robot, for `battle_robot`. | | (the goblin's robot cards) |
+| `ignore_shield_effects` | The card's attacks do not set off what the boss's shields do besides absorbing. | | Arkanfalter |
+| `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
+| `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
+| `support_per_support` | The card's Supports are stronger for each card with a Support the hero played this round. | `bonus` (2) | Geisterwolf |
+| `next_card` | The next card played, by anyone, gets a Lightning or takes effect twice, if it has an attack of `damage_type`. | `damage_type` (ranged), `then` (`lightning` or `repeat`) | Lichtpfeile, Stachelbola |
+| `delayed_attack` | The card's attacks only take effect at the start of the hero's first turn next round. | | Bombling |
+| `threat_hurts_boss` | The boss loses what is left of its attack against the heroes the card protected. | | Schleimiger Helm |
+| `halve_attack` | The attack against a hero of the players' choice is halved, rounded down, and loses its extra effect. | | Kultistenkette |
+| `remove_curse` | Tells the players to discard an active curse of a hero. | | Fluchbrecher |
+| `use_item` | The hero uses an item at once. | | Lianenschlange |
+| `card_to_pile` | Tells the hero to put `count` other hand cards on their draw pile first. | `count` (1) | Pestbote |
+| `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe |
+| `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
+
+A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
+ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions
+only to the hero who made it happen. `Fight.history` has every card played in the fight, for abilities that look back.
 
 For example, the Healing Potion:
 

@@ -24,6 +24,7 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **Badges at the seats,** facing each hero: the boss's attack against them this round, with an icon for what it does
   besides (such as poison). They appear in the planning phase. The heroes' own status tokens are not shown: they are
   real tokens on the table.
+- **The boss's poison** at the bottom right, next to its health, once it has any (`Fight.poison_changed`).
 - **The shields** at the bottom, below the boss: melee, ranged and magic, from the shield phase on. A broken shield is dimmed.
 - **The prompt** above the table head, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Pass*, *Skip*, choices). Below the
@@ -60,6 +61,8 @@ on and take off themselves.
    players are told which tokens the hero takes.
 7. **Status:** a reminder of what poison and fire do. **Discard** and **draw** are reminders too, the latter with
    paralysis.
+8. **End of the round:** the boss's poison hurts it, past its shields: 1 health per token, which rules can change
+   (`FightRule.poison_damage`, such as the Toxikum). Its tokens stay for the whole fight.
 
 Every phase but the shields starts with a message, and the fight goes on once the players have confirmed it. When the
 boss's health reaches 0, the fight is won at once. The heroes' health is not in the app, so when a hero falls, the players say *We
