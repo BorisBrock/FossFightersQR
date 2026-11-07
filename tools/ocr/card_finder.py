@@ -12,9 +12,10 @@ _WORK_SIZE = 1000  # the search runs on a copy of the photo scaled to this longe
 _MAX_TILT = np.radians(12)
 _MAX_ASPECT_ERROR = 0.06
 _MIN_SUPPORT = 0.5  # fraction of each side of the outline that must lie on an edge
+_MIN_LINE_GAP = 10  # pixels of the work size between two lines that are both kept
 
 
-def _lines(edges, vertical, count=12):
+def _lines(edges, vertical, count=16):
     """The strongest straight lines near one orientation as (a, b): x = a + b*y for vertical lines,
     y = a + b*x for horizontal ones. HoughLines (unlike HoughLinesP) sums the votes along the whole line,
     so a card edge that is broken up by a light background is still found."""
@@ -34,8 +35,10 @@ def _lines(edges, vertical, count=12):
             a, b = rho / np.cos(theta), -np.tan(theta)
         else:
             a, b = rho / np.sin(theta), -np.cos(theta) / np.sin(theta)
-        # the lines come sorted by votes, so a near duplicate of a line already taken is the weaker one
-        if all(abs(a - a2) > 4 or abs(b - b2) > 0.03 for a2, b2 in lines):
+        # the lines come sorted by votes, so a near duplicate of a line already taken is the weaker one. The
+        # gold lines printed on the card give several strong lines a few pixels apart, which must not crowd
+        # the card's own edge out of the list, so lines this close count as one.
+        if all(abs(a - a2) > _MIN_LINE_GAP or abs(b - b2) > 0.03 for a2, b2 in lines):
             lines.append((a, b))
             if len(lines) == count:
                 break

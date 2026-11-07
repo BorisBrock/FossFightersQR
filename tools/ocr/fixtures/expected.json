@@ -34,5 +34,13 @@
   "09_rune_der_rache.jpg": {
     "title": "Rune der Rache",
     "effect": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der Stärke der Boss-Attacke, die dich bedroht. Fügt dieser Angriff 9 oder mehr Schaden zu, verlierst du 4 Lebenspunkte."
+  },
+  "10_krone_des_prinzen.jpg": {
+    "title": "Krone des Prinzen",
+    "effect": "Wähle einen Helden. Bis zum Ende des Bosskampfes erhält der Boss jedes Mal 1 Gift, wenn er diesen Helden mit einer Boss-Attacke von 4 oder mehr angreift. Führe 1 weitere Aktion aus. Entferne diese Karte für den restlichen Bosskampf aus dem Spiel."
+  },
+  "11_magische_eruption.jpg": {
+    "title": "Magische Eruption",
+    "effect": "Senke alle Boss-Attacken in der nächsten Runde um 3. Ein Held deiner Wahl darf 2 Karten ziehen."
   }
 }

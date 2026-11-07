@@ -23,14 +23,19 @@ from card_text import Word, group_lines, join_paragraphs, clean
 CARD_WIDTH = 1200  # pixels of the straightened card; the scales and the kernel below are tuned for this
 # x0, y0, x1, y1 as fractions of the card
 TITLE_AREA = (0.06, 0.0, 0.94, 0.09)
-EFFECT_AREA = (0.11, 0.635, 0.89, 0.895)
+EFFECT_AREA = (0.11, 0.635, 0.89, 0.91)
 TITLE_SCALE = 0.5  # the title letters are big, tesseract reads them better scaled down
 EFFECT_SCALE = 1.4  # and the effect letters a bit bigger
+# How strongly coloured pixels are darkened before thresholding. Darkening them takes the gold ornaments out of
+# the title band, but on some cards it also eats into dimly lit letters, so the title is read both ways and the
+# more confident reading wins. Not used for the effect: its warm cream text on the brown panel loses too much.
+TITLE_SATURATION_WEIGHTS = (0, 1)
 EFFECT_BACKGROUND_KERNEL = 25  # wider than a letter stroke, narrower than the shading of the panel
 MIN_WORD_CONFIDENCE = 20  # the preprocessing leaves little noise, so even unsure words are mostly right
-# An effect is only kept if at least one word of 4 letters or more was read with this confidence: words of the
-# effect text come out at 85-93, noise read from card art or QR codes never got there.
-CLEAR_WORD_CONFIDENCE = 80
+# An effect is only kept if at least one word of 4 letters or more, and made of letters apart from a hyphen or a
+# full stop, was read with this confidence: words of the effect text mostly come out at 85-93, single short
+# effects like "Schutz 3." at 76-77; noise read from card art or QR codes stayed below 55.
+CLEAR_WORD_CONFIDENCE = 70
 
 
 def _drop_border_blobs(binary):
@@ -43,9 +48,16 @@ def _drop_border_blobs(binary):
     return np.where(keep[labels], 255, 0).astype(np.uint8)
 
 
-def text_image(crop, scale, background_kernel=0):
+def text_image(crop, scale, background_kernel=0, saturation_weight=0):
     """Black text on white from a crop with light text, scaled by the given factor."""
-    bright = crop.min(axis=2) if crop.ndim == 3 else crop  # cream text is bright in every channel
+    if crop.ndim == 3:
+        # cream text is bright in every channel; gold ornaments are bright too, but strongly coloured, so the
+        # spread between the channels can be taken off
+        channels = crop.astype(np.int16)
+        spread = channels.max(axis=2) - channels.min(axis=2)
+        bright = np.clip(channels.min(axis=2) - saturation_weight * spread, 0, 255).astype(np.uint8)
+    else:
+        bright = crop
     bright = cv2.GaussianBlur(bright, (3, 3), 0)  # JPEG noise
     if background_kernel:
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (background_kernel, background_kernel))
@@ -73,13 +85,43 @@ def _crop(image, box):
     return image[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
 
 
+def _is_word(text):
+    letters = sum(c.isalpha() for c in text)
+    return letters >= 4 and letters >= len(text.strip(".,:;-")) - 1
+
+
 def _read(crop, lang, psm, scale, background_kernel=0):
     """Reading of a crop as (lines, whether it contains at least one clearly recognised word)."""
     words = _words(text_image(crop, scale, background_kernel), lang, psm)
     # stray marks come out as words without letters or digits
     words = [w for w in words if w.conf >= MIN_WORD_CONFIDENCE and any(c.isalnum() for c in w.text)]
-    clear = any(w.conf >= CLEAR_WORD_CONFIDENCE and sum(c.isalpha() for c in w.text) >= 4 for w in words)
+    clear = any(w.conf >= CLEAR_WORD_CONFIDENCE and _is_word(w.text) for w in words)
     return group_lines(words, 0), clear
+
+
+def _title_reading(crop, lang, saturation_weight):
+    """The title read from its band as (text, mean confidence of its words)."""
+    words = _words(text_image(crop, TITLE_SCALE, 0, saturation_weight), lang, 7)
+    words = [w for w in words if w.conf >= MIN_WORD_CONFIDENCE and any(c.isalnum() for c in w.text)]
+    words.sort(key=lambda w: (w.block, w.par, w.line, w.left))
+    # the ornaments beside the title come out as short stray words at either end
+    while words and _is_stray(words[0].text):
+        words.pop(0)
+    while words and _is_stray(words[-1].text):
+        words.pop()
+    text = clean(re.sub(r"^[\W_]+|[\W_]+$", "", " ".join(w.text for w in words)))
+    return text, (sum(w.conf for w in words) / len(words) if words else 0)
+
+
+def _is_stray(text):
+    return sum(c.isalnum() for c in text) < 3
+
+
+def read_title(crop, lang):
+    readings = [_title_reading(crop, lang, weight) for weight in TITLE_SATURATION_WEIGHTS]
+    title = max(readings, key=lambda r: r[1])[0]
+    # a title starts with a capital; tesseract reads the title font's "A" as "ü"
+    return re.sub(r"^ü", "A", title)
 
 
 class Reading(NamedTuple):
@@ -136,12 +178,10 @@ def read_front(image, lang, photo_boxes=None, card_boxes=None):
         return _crop(card, box)
 
     with ThreadPoolExecutor(2) as pool:  # tesseract runs as separate processes
-        title_job = pool.submit(_read, area("title", TITLE_AREA), lang, 7, TITLE_SCALE)
+        title_job = pool.submit(read_title, area("title", TITLE_AREA), lang)
         effect_job = pool.submit(_read, area("effect", EFFECT_AREA), lang, 6, EFFECT_SCALE, EFFECT_BACKGROUND_KERNEL)
-        title_lines, _ = title_job.result()
+        title = title_job.result()
         effect_lines, clear = effect_job.result()
-    # decoration next to the title comes out as stray characters
-    title = clean(re.sub(r"^[\W_]+|[\W_]+$", "", " ".join(l.text for l in title_lines)))
     effect = join_paragraphs(effect_lines)
     matrix = None if to_card is None else [round(float(v), 6) for v in to_card.flatten()]
     if photo_boxes.get("effect") or card_boxes.get("effect"):
