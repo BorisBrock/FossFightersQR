@@ -1,8 +1,15 @@
 extends CardAbility
-## The hero removes some of their own status tokens. The tokens are on the table, so the
+## A hero removes some of their status tokens. The tokens are on the table, so the
 ## players are only told.
-## values: "count" (2).
+## values: "count" (2), and "choose" (false): true for a hero of the players' choice,
+## otherwise the hero who played the card.
 
 
 func after_effects(fight: Fight, play: CardPlay) -> void:
-	fight.tell("remove_tokens", { "player": play.hero.name, "count": value("count", 2) })
+	var count: int = value("count", 2)
+	var hero := play.hero
+	if value("choose", false):
+		hero = await fight.choose_hero(fight.heroes, "prompt_remove_tokens_who", { "player": play.hero.name, "count": count })
+		if hero == null:
+			return
+	fight.tell("remove_tokens", { "player": hero.name, "count": count })

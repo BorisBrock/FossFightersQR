@@ -144,6 +144,73 @@
 	"option_skip": {
 		"body": "Auslassen"
 	},
+	"draw_cards_everyone": {
+		"body": "Jeder Held zieht [heal]{count}[/heal] :card:."
+	},
+	"attack_effects_removed": {
+		"body": "Der Angriff gegen [player]{player}[/player] verliert seinen Zusatzeffekt."
+	},
+	"attack_cancelled": {
+		"body": "Der Angriff gegen [player]{player}[/player] entfällt."
+	},
+	"attack_redirected": {
+		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :damage: trifft jetzt [player]{player}[/player]."
+	},
+	"ward_placed": {
+		"body": "[player]{player}[/player] legt [b]{card}[/b] neben die Heldenkarte. Sie kann eine @-Fähigkeit des Bosses gegen [player]{player}[/player] verhindern."
+	},
+	"ward_ready": {
+		"body": "[b]{card}[/b] von [player]{player}[/player] verhindert die nächste @-Fähigkeit bis [b]{strength}[/b] des Bosses."
+	},
+	"boss_ability_prevented": {
+		"title": "Verhindert!",
+		"body": "[b]{card}[/b] verhindert die Fähigkeit von [boss]{boss}[/boss]."
+	},
+	"robot_built": {
+		"body": "[player]{player}[/player] baut einen Kampfroboter."
+	},
+	"may_draw": {
+		"body": "[player]{player}[/player] darf [heal]{count}[/heal] :card: ziehen."
+	},
+	"shield_breaker": {
+		"body": "Schild zerstört! [boss]{boss}[/boss] verliert sofort [damage]{damage} Leben[/damage]."
+	},
+	"prompt_if_healthy": {
+		"body": "Hat [player]{player}[/player] jetzt [b]{health} Lebenspunkte[/b] :health: oder mehr?"
+	},
+	"prompt_chosen_hero": {
+		"body": "[b]Tippt den Helden an[/b], für den die Karte von [player]{player}[/player] ist."
+	},
+	"prompt_remove_tokens_who": {
+		"body": "[b]Tippt den Helden an[/b], der bis zu [heal]{count}[/heal] Marker entfernt."
+	},
+	"prompt_redirect_who": {
+		"body": "[b]Tippt den Helden an[/b], dessen Angriff [player]{player}[/player] auf sich lenkt."
+	},
+	"prompt_use_ward": {
+		"body": "[boss]{boss}[/boss] setzt eine @-Fähigkeit gegen [player]{player}[/player] ein. [b]{card}[/b] ablegen, um sie zu verhindern?"
+	},
+	"prompt_robot_working": {
+		"body": "Funktioniert der Kampfroboter von [player]{player}[/player] noch?"
+	},
+	"prompt_top_card_or_item": {
+		"body": "[player]{player}[/player], spiele die [b]oberste Karte deines Decks[/b] :card: oder nutze Opas Glasauge."
+	},
+	"prompt_attack_or_item": {
+		"body": "[player]{player}[/player], spiele eine Handkarte mit [b]Angriff[/b] :card: oder nutze den Trinkschlauch."
+	},
+	"notice_still_in_play": {
+		"body": "Diese Karte liegt noch neben der Heldenkarte von [player]{player}[/player]."
+	},
+	"notice_not_allowed_now": {
+		"body": "Diese Karte kann [player]{player}[/player] jetzt nicht spielen."
+	},
+	"option_yes": {
+		"body": "Ja"
+	},
+	"option_no": {
+		"body": "Nein"
+	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",
 		"body": "Wählt einen Spieler, der [heal]{health} Lebenspunkte[/heal] :health: erhält."

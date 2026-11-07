@@ -73,6 +73,34 @@ func card_playing(_fight: Fight, _play: CardPlay) -> void:
 ## A card has taken effect.
 func card_played(_fight: Fight, _play: CardPlay) -> void:
 	pass
+
+
+## play has the first attack of kind this round, by anyone.
+func attack_type_opened(_fight: Fight, _kind: String, _play: CardPlay) -> void:
+	pass
+
+
+## A Protection of play lowered the attack against hero, which was before.
+func hero_protected(_fight: Fight, _hero: FightHero, _before: int, _play: CardPlay) -> void:
+	pass
+#endregion
+
+#region The boss and the heroes
+## The boss's shield of kind is broken, by play or by something else (null).
+func shield_broken(_fight: Fight, _kind: String, _play: CardPlay) -> void:
+	pass
+
+
+## hero lost amount health, from the boss's attack or a card (play, or null). The app
+## does not count the heroes' health, so this only says that it happened.
+func hero_hurt(_fight: Fight, _hero: FightHero, _amount: int, _play: CardPlay) -> void:
+	pass
+
+
+## The boss is about to use one of its @-abilities. A rule can stop it with
+## ability.prevented, and says by what through ability.prevented_by.
+func boss_ability_used(_fight: Fight, _ability: BossAbility) -> void:
+	pass
 #endregion
 
 #region Values the rules can change
@@ -91,4 +119,16 @@ func boss_hurt(_fight: Fight, _old: int, _new: int) -> void:
 ## How much a Protection lowers the attack against hero.
 func protection(_fight: Fight, amount: int, _hero: FightHero, _play: CardPlay) -> int:
 	return amount
+
+
+## Whether a Support of kind in play works without an attack of its kind this round. If
+## any rule says so, it does.
+func support_without_attack(_fight: Fight, _kind: String, _play: CardPlay) -> bool:
+	return false
+
+
+## Whether play hitting the boss's shield of kind ignores what that shield does besides
+## absorbing damage (Boss.shield_hit). If any rule says so, it does.
+func ignores_shield_effect(_fight: Fight, _kind: String, _play: CardPlay) -> bool:
+	return false
 #endregion

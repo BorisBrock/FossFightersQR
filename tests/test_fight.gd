@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 94
+const EXPECTED_CHECKS := 136
 
 var _failures := 0
 var _checks_run := 0
@@ -39,11 +39,28 @@ class TestBoss extends Boss:
 	func boss_hurt(_fight: Fight, old: int, new: int) -> void:
 		calls.append("hurt %d %d" % [old, new])
 
+	## Before striking the hero at ability_seat, it uses an @-ability of ability_strength.
+	var ability_seat := -1
+	var ability_strength := 0
+
+	func attack_hero(fight: Fight, hero: FightHero) -> void:
+		if hero.seat == ability_seat and await fight.boss_ability("test", ability_strength, hero):
+			calls.append("ability")
+		await super(fight, hero)
+
+	func shield_hit(_fight: Fight, kind: String, _amount: int, _play: CardPlay) -> void:
+		calls.append("shield_hit %s" % kind)
+
 
 func _initialize() -> void:
 	_check_round()
 	_check_cards()
 	_check_abilities()
+	_check_card_abilities()
+	_check_boss_abilities()
+	_check_traits()
+	_check_more_traits()
+	_check_catalog_abilities()
 	_check_actions()
 	_check_bosses()
 	_check_end()
@@ -246,6 +263,239 @@ func _check_abilities() -> void:
 	fight.abandon()
 
 
+## The abilities of the cards in the catalog.
+func _check_card_abilities() -> void:
+	# Krawumm: as strong as the round.
+	var fight := _started(TestBoss.new())
+	var krawumm := _card("KRA", [["attack", 0, "ranged"], ["lightning", 1]], "halfling")
+	krawumm.ability = "attack_by_round"
+	fight.scan(krawumm)
+	_check(fight.health == 29 and _asks_card_of(fight, 1), "an attack as strong as the round, 1 in round 1")
+
+	# Every hero draws.
+	var rune := _card("KING", [["draw", 1]], "halfling")
+	rune.ability = "every_hero"
+	fight.scan(rune)
+	_check(_told[-1] == "draw_cards_everyone" and _values[-1].count == 1, "a card can make every hero draw")
+	_ready(fight)
+
+	# A Draw for a hero of the players' choice, who then acts at once.
+	var horn := _card("HORN", [["draw", 3], ["special", 0]], "dwarf")
+	horn.ability = "for_chosen_hero"
+	horn.ability_values = { "action": true }
+	fight.scan(horn)
+	_check(fight.request.kind == Fight.Request.Kind.HERO and fight.request.prompt == "prompt_chosen_hero", "a card for a hero of the players' choice: who?")
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "draw_cards" and _values[-1].player == "Sonja", "that hero draws")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "and may act at once")
+	fight.skip()
+	_check(_asks_card_of(fight, 5) and fight.hero_at(5).turns_left == 2, "then Sonja's own turn")
+
+	# Gardehelm: a hero of the players' choice removes a token.
+	var helmet := _card("HELM", [["protection", 2], ["special", 0]], "dryad")
+	helmet.ability = "remove_tokens"
+	helmet.ability_values = { "count": 1, "choose": true }
+	fight.scan(helmet)
+	fight.choose(fight.hero_at(1))
+	_check(fight.request.prompt == "prompt_remove_tokens_who", "removing a token: from whom?")
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "remove_tokens" and _values[-1].player == "Borin" and _values[-1].count == 1, "that hero removes it")
+	fight.abandon()
+
+	# "If you have 15 health or more afterwards", which the players are asked.
+	fight = _started(TestBoss.new())
+	var club := _card("CLUB", [["attack", 1, "ranged"], ["special", 0]], "halfling")
+	club.ability = "if_healthy"
+	club.ability_values = { "draw": 2 }
+	fight.scan(club)
+	_check(fight.request.kind == Fight.Request.Kind.OPTION and fight.request.options == ["option_yes", "option_no"] and fight.health == 29, "after its attack, a troll card asks about the hero's health")
+	fight.choose_option(0)
+	_check(_told[-1] == "draw_cards" and _values[-1].count == 2, "with enough, the hero gets more")
+	_ready(fight)
+	var belt := _card("BELT", [["special", 0]], "dwarf")
+	belt.ability = "if_healthy"
+	belt.ability_values = { "heal": 3 }
+	var told_before := _told.size()
+	fight.scan(belt)
+	fight.choose_option(1)
+	_check(_told.size() == told_before and _asks_card_of(fight, 5), "without, nothing more")
+
+	# Rauchbombe: the protected attack loses its poison.
+	var smoke := _card("SMOKE", [["protection", 1], ["special", 0]], "dryad")
+	smoke.ability = "clear_attack_effects"
+	fight.scan(smoke)
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 2 and fight.hero_at(5).threat_effects.is_empty(), "a protection can take away an attack's poison")
+	_check(_told[-1] == "attack_effects_removed", "which the players are told")
+	fight.abandon()
+
+	# Rune der Rache: as strong as the attack against the hero, and costly when strong.
+	var boss := TestBoss.new()
+	boss.threats = { 1: 9, 5: 6 }
+	fight = _started(boss)
+	var revenge := _card("REVENGE", [["attack", 0, "ranged"], ["special", 0]], "halfling")
+	revenge.ability = "attack_by_threat"
+	revenge.ability_values = { "threshold": 9, "health_loss": 4 }
+	fight.scan(revenge)
+	_check(fight.health == 21 and _told[-1] == "health_loss" and _values[-1].amount == 4, "an attack as strong as the boss's against the hero, which hurts them at 9")
+
+	# Ritterlicher Beistand: the hero takes on another hero's attack instead of their own.
+	_ready(fight)
+	var aid := _card("AID", [["special", 0]], "dwarf")
+	aid.ability = "knightly_aid"
+	fight.scan(aid)
+	_check(fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes == [fight.hero_at(1), fight.hero_at(5)], "taking on an attack: whose?")
+	fight.choose(fight.hero_at(5))
+	var borin := fight.hero_at(3)
+	_check(borin.threat == 6 and borin.threat_effects == { "poison": 1 } and fight.hero_at(5).threat == 0, "the attack and its poison go to the hero, their own is gone")
+	_check(_told[-1] == "attack_redirected" and _values[-1].other == "Sonja", "which the players are told")
+	fight.abandon()
+
+
+## Cards that prevent the boss's @-abilities.
+func _check_boss_abilities() -> void:
+	var boss := TestBoss.new()
+	boss.ability_seat = 1
+	boss.ability_strength = 7
+	var fight := _started(boss)
+	var raven := _card("RAVEN", [["direct_damage", 2]], "halfling")
+	raven.ability = "raven_curse"
+	fight.scan(raven)
+	_check(fight.health == 28 and _told[-1] == "ward_placed", "the raven's curse lies by its hero")
+	_ready(fight)
+	for i in 8:
+		fight.pass_action()
+	_check(fight.request.kind == Fight.Request.Kind.OPTION and fight.request.prompt == "prompt_use_ward", "when the boss uses an @-ability against them, the players are asked")
+	fight.choose_option(0)
+	_check(_told[-1] == "boss_ability_prevented" and not "ability" in boss.calls, "discarding it prevents the ability")
+	_check(fight.rules.size() == 1 and not fight.hero_at(1).notes.has("ward RAVEN"), "and the card is gone")
+	fight.abandon()
+
+	boss = TestBoss.new()
+	boss.ability_seat = 3
+	boss.ability_strength = 5
+	fight = _started(boss)
+	var anti := _card("ANTI", [["special", 0]], "halfling")
+	anti.ability = "anti_boss"
+	anti.ability_values = { "strength": 5 }
+	anti.uses_per_fight = 1
+	fight.scan(anti)
+	_check(_told[-1] == "ward_ready", "a card can prevent the next @-ability")
+	_ready(fight)
+	for i in 8:
+		fight.pass_action()
+	_check(_told.has("boss_ability_prevented") and not "ability" in boss.calls and fight.rules.size() == 1, "it does, without asking, once")
+	fight.abandon()
+
+	boss = TestBoss.new()
+	boss.ability_seat = 3
+	boss.ability_strength = 6
+	fight = _started(boss)
+	fight.scan(anti)
+	_ready(fight)
+	for i in 8:
+		fight.pass_action()
+	_check("ability" in boss.calls, "but not one that is too strong")
+	fight.abandon()
+
+
+## What the heroes' levels give them, from their character and class cards in the catalog.
+func _check_traits() -> void:
+	var boss := TestBoss.new()
+	var fight := _started(boss, "normal", true, true)
+	_check(fight.rules.size() == 7, "each hero's character and class card joins the fight")
+	# Rosie, Rogue King: a support without an attack. Halfling Luckmaster: breaking the magic
+	# shield costs the boss 4 more.
+	fight.scan(_card("SUP", [["support", 3, "magic"]], "halfling"))
+	_check(fight.health == 24 and fight.shields.magic == 0 and _told.has("shield_breaker"), "the Rogue King's support needs no attack, the Luckmaster's broken shield hurts")
+	_ready(fight)
+	# Borin, Elite Warrior: his first attack ignores what the shield does.
+	fight.scan(_card("HIT", [["attack", 1, "melee"]], "dwarf"))
+	_check(fight.shields.melee == 1 and not "shield_hit melee" in boss.calls, "the Elite Warrior's first attack ignores the shield's effect")
+	# Sonja, High Druid: her first Protection gets a Lightning. Dryad Primal Force: so does
+	# her first form.
+	fight.scan(_card("GUARD", [["protection", 2]], "dryad"))
+	fight.choose(fight.hero_at(3))
+	_check(_asks_card_of(fight, 5) and _notices[-1] == "notice_lightning", "the High Druid's first protection gets a lightning")
+	var form := _card("FORM", [], "dryad")
+	form.tags = ["form"]
+	fight.scan(form)
+	_check(_asks_card_of(fight, 5) and fight.hero_at(5).turns_left == 2, "and the dryad's first form")
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(_card("HIT2", [["attack", 1, "melee"]], "dwarf"))
+	_check("shield_hit melee" in boss.calls, "his second attack does not ignore it")
+	fight.pass_action()
+	fight.pass_action()
+	# Borin, Dwarven Treasure Keeper: lowering an attack to 0 gives an attack card at once.
+	fight.scan(_card("WALL", [["protection", 1]], "dwarf"))
+	fight.choose(fight.hero_at(3))
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_attack_or_item", "blocking an attack fully lets the Treasure Keeper attack")
+	_check(fight.scan(_card("NOPE", [["protection", 1]], "dwarf")) == "notice_not_allowed_now", "only with an attack or an item")
+	_check(fight.scan(_card("AXE", [["attack", 2, "ranged"]], "dwarf")) == "" and fight.health == 22, "which is played")
+	fight.abandon()
+
+
+## Traits of the other heroes, given to Rosie for the test.
+func _check_more_traits() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var fight := _started(TestBoss.new())
+	var rosie := fight.hero_at(1)
+	_give_trait(fight, catalog, "ugEAAA==", rosie)
+	fight.scan(_card("A1", [["attack", 1, "ranged"], ["lightning", 1]], "halfling"))
+	_check(_told[-1] == "heal" and _values[-1].amount == 3, "the Celestial Paladin heals from the first attack of a type")
+	_ready(fight)
+	_give_trait(fight, catalog, "/QAAAA==", rosie)
+	var told_before := _told.size()
+	fight.scan(_card("A2", [["attack", 1, "ranged"], ["lightning", 1]], "halfling"))
+	_check(_told.size() == told_before, "but not from the second")
+	fight.scan(_card("S1", [["support", 2, "ranged"], ["lightning", 1]], "halfling"))
+	_check(fight.health == 24, "the Elven Keeper's supports hit 2 harder after her own attack of their type")
+	_give_trait(fight, catalog, "KQEAAA==", rosie)
+	fight.scan(_card("OUCH", [["health_loss", 1]], "halfling"))
+	_check(_told.slice(-2) == ["health_loss", "may_draw"], "the Archmage may draw when losing health")
+	fight.abandon()
+
+	fight = _started(TestBoss.new())
+	rosie = fight.hero_at(1)
+	_give_trait(fight, catalog, "/gAAAA==", rosie)
+	_give_trait(fight, catalog, "hwEAAA==", rosie)
+	var robot := _card("ROBOT", [["lightning", 1]], "goblin")
+	robot.deck = "items"
+	robot.ability = "build_robot"
+	fight.scan(robot)
+	_check(_told[-1] == "robot_built" and rosie.notes.get("robot", false), "a goblin builds a battle robot")
+	_ready(fight)
+	fight.scan(_card("B1", [["attack", 1, "ranged"]], "halfling"))
+	_check(fight.health == 27, "with which the Goblin Genius's attacks are 2 stronger")
+	_check(_asks_card_of(fight, 1) and fight.request.prompt == "prompt_top_card_or_item", "the Troll Chieftain's first hit in a turn plays the top card")
+	fight.scan(_card("B2", [["attack", 1, "ranged"]], "halfling"))
+	_check(_asks_card_of(fight, 3), "but only the first")
+	fight.abandon()
+
+
+## Every ability the catalog names exists, and is one.
+func _check_catalog_abilities() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var missing := PackedStringArray()
+	var file := FileAccess.open("res://cards/cards.json", FileAccess.READ)
+	for entry: Dictionary in JSON.parse_string(file.get_as_text()).cards:
+		var card := catalog.find(entry.qr)
+		if card.ability.is_empty():
+			continue
+		var ability := CardAbility.create(card)
+		if ability == null:
+			missing.append("%s (%s)" % [card.ability, card.qr])
+	_check(missing.is_empty(), "every ability of the catalog exists: %s" % ", ".join(missing))
+
+
+func _give_trait(fight: Fight, catalog: CardDatabase, qr: String, hero: FightHero) -> void:
+	var ability := CardAbility.create(catalog.find(qr))
+	ability.owner = hero
+	fight.add_rule(ability)
+
+
 ## The actions each hero has left, which the screen shows as spheres: T for their turns,
 ## B for extra ones and L for extra ones that allow only some cards.
 func _check_actions() -> void:
@@ -328,17 +578,24 @@ func _check_end() -> void:
 	_check(fight.stats.outcome == FightStats.Outcome.LOST, "and stays lost")
 
 
-## A fight against boss with Rosie, Borin and Sonja, its messages noted.
-func _fight(boss: Boss, difficulty := "normal") -> Fight:
+## A fight against boss with Rosie, Borin and Sonja, its messages noted. With levels,
+## they have shown their level cards from the catalog: Rosie is a Halfling Luckmaster and
+## Rogue King, Borin a Dwarven Treasure Keeper and Elite Warrior, Sonja a Dryad Primal
+## Force and High Druid.
+func _fight(boss: Boss, difficulty := "normal", levels := false) -> Fight:
 	var heroes: Array[Party.Hero] = []
-	for entry: Array in [["Sonja", "dryad", "druid", 5], ["Rosie", "halfling", "thief", 1], ["Borin", "dwarf", "warrior", 3]]:
+	for entry: Array in [["Sonja", "dryad", "druid", 5, "iAEAAA==", "KwEAAA=="], ["Rosie", "halfling", "thief", 1, "AAEAAA==", "KgEAAA=="],
+			["Borin", "dwarf", "warrior", 3, "/wAAAA==", "KAEAAA=="]]:
 		var hero := Party.Hero.new()
 		hero.name = entry[0]
 		hero.race = entry[1]
 		hero.hero_class = entry[2]
 		hero.seat = entry[3]
+		if levels:
+			hero.race_card = entry[4]
+			hero.class_card = entry[5]
 		heroes.append(hero)
-	var fight := Fight.new(boss, difficulty, heroes)
+	var fight := Fight.new(boss, difficulty, heroes, CardDatabase.load_file("res://cards/cards.json"))
 	fight.rng.seed = 7
 	_told.clear()
 	_values.clear()
@@ -354,8 +611,8 @@ func _fight(boss: Boss, difficulty := "normal") -> Fight:
 
 ## A fight up to the first card of round 1, with Rosie starting. Without to_cards, up to
 ## the boss planning its attacks.
-func _started(boss: Boss, difficulty := "normal", to_cards := true) -> Fight:
-	var fight := _fight(boss, difficulty)
+func _started(boss: Boss, difficulty := "normal", to_cards := true, levels := false) -> Fight:
+	var fight := _fight(boss, difficulty, levels)
 	fight.start()
 	_ready(fight)
 	_ready(fight)

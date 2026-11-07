@@ -144,6 +144,73 @@
 	"option_skip": {
 		"body": "Skip"
 	},
+	"draw_cards_everyone": {
+		"body": "Every hero draws [heal]{count}[/heal] :card:."
+	},
+	"attack_effects_removed": {
+		"body": "The attack against [player]{player}[/player] loses its extra effect."
+	},
+	"attack_cancelled": {
+		"body": "The attack against [player]{player}[/player] is gone."
+	},
+	"attack_redirected": {
+		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :damage: now hits [player]{player}[/player]."
+	},
+	"ward_placed": {
+		"body": "[player]{player}[/player] places [b]{card}[/b] next to their hero card. It can prevent one of the boss's @-abilities against [player]{player}[/player]."
+	},
+	"ward_ready": {
+		"body": "[b]{card}[/b] of [player]{player}[/player] prevents the boss's next @-ability up to [b]{strength}[/b]."
+	},
+	"boss_ability_prevented": {
+		"title": "Prevented!",
+		"body": "[b]{card}[/b] prevents the ability of [boss]{boss}[/boss]."
+	},
+	"robot_built": {
+		"body": "[player]{player}[/player] builds a battle robot."
+	},
+	"may_draw": {
+		"body": "[player]{player}[/player] may draw [heal]{count}[/heal] :card:."
+	},
+	"shield_breaker": {
+		"body": "Shield destroyed! [boss]{boss}[/boss] loses [damage]{damage} health[/damage] at once."
+	},
+	"prompt_if_healthy": {
+		"body": "Does [player]{player}[/player] now have [b]{health} health[/b] :health: or more?"
+	},
+	"prompt_chosen_hero": {
+		"body": "[b]Tap the hero[/b] the card of [player]{player}[/player] is for."
+	},
+	"prompt_remove_tokens_who": {
+		"body": "[b]Tap the hero[/b] who removes up to [heal]{count}[/heal] tokens."
+	},
+	"prompt_redirect_who": {
+		"body": "[b]Tap the hero[/b] whose attack [player]{player}[/player] takes on."
+	},
+	"prompt_use_ward": {
+		"body": "[boss]{boss}[/boss] uses an @-ability against [player]{player}[/player]. Discard [b]{card}[/b] to prevent it?"
+	},
+	"prompt_robot_working": {
+		"body": "Does the battle robot of [player]{player}[/player] still work?"
+	},
+	"prompt_top_card_or_item": {
+		"body": "[player]{player}[/player], play the [b]top card of your deck[/b] :card: or use Grandpa's Glass Eye."
+	},
+	"prompt_attack_or_item": {
+		"body": "[player]{player}[/player], play a hand card with an [b]attack[/b] :card: or use the Water Skin."
+	},
+	"notice_still_in_play": {
+		"body": "This card still lies next to the hero card of [player]{player}[/player]."
+	},
+	"notice_not_allowed_now": {
+		"body": "[player]{player}[/player] cannot play this card now."
+	},
+	"option_yes": {
+		"body": "Yes"
+	},
+	"option_no": {
+		"body": "No"
+	},
 	"example_magic_potion": {
 		"title": "Magic Potion",
 		"body": "Choose a player to gain [heal]{health} health points[/heal] :health:."

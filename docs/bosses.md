@@ -65,6 +65,22 @@ the end of `scripts/boss.gd`. Each hook has the default that a boss without spec
 (`scripts/fight.gd`) to read and change. A hook can wait for the players, for example to let them choose between tied
 targets: `await fight.choose_hero(...)`. See [The boss fight](boss_fight.md#how-it-fits-together).
 
+Besides these, `shield_hit` is for what a shield does besides absorbing damage, such as hurting whoever hits it.
+Cards can let an attack ignore it (`FightRule.ignores_shield_effect`).
+
+**@-abilities** are the boss's own code, in any of its hooks. Before using one, a boss asks the fight, as cards can
+prevent them:
+
+```gdscript
+func attack_hero(fight: Fight, hero: FightHero) -> void:
+	if fight.round_number % 3 == 0 and await fight.boss_ability("tongue", 4, hero):
+		hero.threat += 4
+	await super(fight, hero)
+```
+
+`boss_ability(id, strength, target)` returns false if a card prevented it, and then tells the players by what.
+`strength` is the number on the @; `target` is the hero it is against, or null for everyone.
+
 **Add a hook for every new moment a boss could want to step in**, call it from `Fight`, and keep the default plain, so
 that most bosses need no code at all.
 

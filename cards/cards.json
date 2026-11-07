@@ -78,7 +78,9 @@
       "hero_class": "druid",
       "level": 8,
       "title": { "de": "Hochdruide" },
-      "effect": { "de": "In jeder Runde bekommt der erste Schutz, den du spielst, ein Blitz-Symbol." }
+      "effect": { "de": "In jeder Runde bekommt der erste Schutz, den du spielst, ein Blitz-Symbol." },
+      "ability": "first_gets_lightning",
+      "ability_values": { "symbol": "protection" }
     },
     {
       "qr": "ugEAAA==",
@@ -86,7 +88,9 @@
       "hero_class": "paladin",
       "level": 8,
       "title": { "de": "Himmelspaladin" },
-      "effect": { "de": "Jedes Mal, wenn du in einer Runde die erste Person bist, die den ersten Angriff einer Schadensart spielt, erhältst du 3 Lebenspunkte." }
+      "effect": { "de": "Jedes Mal, wenn du in einer Runde die erste Person bist, die den ersten Angriff einer Schadensart spielt, erhältst du 3 Lebenspunkte." },
+      "ability": "heal_on_first_attack",
+      "ability_values": { "amount": 3 }
     },
     {
       "qr": "iQEAAA==",
@@ -94,7 +98,9 @@
       "hero_class": "shaman",
       "level": 8,
       "title": { "de": "Seelenschamane" },
-      "effect": { "de": "In jeder Runde erhält das erste Totem, das du spielst, einen Blitz." }
+      "effect": { "de": "In jeder Runde erhält das erste Totem, das du spielst, einen Blitz." },
+      "ability": "first_gets_lightning",
+      "ability_values": { "tag": "totem" }
     },
     {
       "qr": "KQEAAA==",
@@ -102,7 +108,9 @@
       "hero_class": "magician",
       "level": 8,
       "title": { "de": "Erzmagier" },
-      "effect": { "de": "Immer wenn du 1 oder mehr Lebenspunkte verlierst, darfst du 1 Karte ziehen." }
+      "effect": { "de": "Immer wenn du 1 oder mehr Lebenspunkte verlierst, darfst du 1 Karte ziehen." },
+      "ability": "draw_when_hurt",
+      "ability_values": { "count": 1 }
     },
     {
       "qr": "cgAAAA==",
@@ -117,7 +125,9 @@
       "race": "elf",
       "level": 5,
       "title": { "de": "Elfen-Bewahrerin" },
-      "effect": { "de": "Deine Verstärkungen fügen 2 Schaden mehr zu, wenn du in der laufenden Runde bereits einen Angriff der entsprechenden Art gespielt hast." }
+      "effect": { "de": "Deine Verstärkungen fügen 2 Schaden mehr zu, wenn du in der laufenden Runde bereits einen Angriff der entsprechenden Art gespielt hast." },
+      "ability": "support_bonus_after_attack",
+      "ability_values": { "bonus": 2 }
     },
     {
       "qr": "iAEAAA==",
@@ -125,7 +135,9 @@
       "race": "dryad",
       "level": 5,
       "title": { "de": "Dryaden-Urgewalt" },
-      "effect": { "de": "Du kannst als Aktion eine neue Form annehmen. In jeder Runde erhält die erste Form, die du spielst, einen Blitz." }
+      "effect": { "de": "Du kannst als Aktion eine neue Form annehmen. In jeder Runde erhält die erste Form, die du spielst, einen Blitz." },
+      "ability": "first_gets_lightning",
+      "ability_values": { "tag": "form" }
     },
     {
       "qr": "AAEAAA==",
@@ -133,7 +145,9 @@
       "race": "halfling",
       "level": 5,
       "title": { "de": "Halbling-Glücksmeisterin" },
-      "effect": { "de": "Zerstörst du einen Boss-Schild, verliert der Boss sofort 4 Leben." }
+      "effect": { "de": "Zerstörst du einen Boss-Schild, verliert der Boss sofort 4 Leben." },
+      "ability": "shield_breaker",
+      "ability_values": { "damage": 4 }
     },
     {
       "qr": "aQAAAA==",
@@ -148,7 +162,9 @@
       "race": "goblin",
       "level": 5,
       "title": { "de": "Goblin-Genie" },
-      "effect": { "de": "Du kannst einen Kampfroboter bauen. Solange dein Kampfroboter funktionsfähig ist, sind alle deine Angriffe um 2 erhöht." }
+      "effect": { "de": "Du kannst einen Kampfroboter bauen. Solange dein Kampfroboter funktionsfähig ist, sind alle deine Angriffe um 2 erhöht." },
+      "ability": "battle_robot",
+      "ability_values": { "bonus": 2 }
     },
     {
       "qr": "/gAAAA==",
@@ -156,7 +172,8 @@
       "race": "troll",
       "level": 5,
       "title": { "de": "Troll-Häuptling" },
-      "effect": { "de": "Fügst du das erste Mal in deinem Zug dem Boss mit einem Angriff Schaden zu, spiele die oberste Karte deines Decks oder nutze Opas Glasauge." }
+      "effect": { "de": "Fügst du das erste Mal in deinem Zug dem Boss mit einem Angriff Schaden zu, spiele die oberste Karte deines Decks oder nutze Opas Glasauge." },
+      "ability": "play_top_on_first_hit"
     },
     {
       "qr": "/wAAAA==",
@@ -164,7 +181,8 @@
       "race": "dwarf",
       "level": 5,
       "title": { "de": "Zwergen-Schatzhüter" },
-      "effect": { "de": "Senkst du mit einem Schutz eine Boss-Attacke auf 0, darfst du eine Handkarte mit einem Angriff spielen oder den Trinkschlauch nutzen." }
+      "effect": { "de": "Senkst du mit einem Schutz eine Boss-Attacke auf 0, darfst du eine Handkarte mit einem Angriff spielen oder den Trinkschlauch nutzen." },
+      "ability": "act_on_full_block"
     },
     {
       "qr": "KgEAAA==",
@@ -172,7 +190,8 @@
       "hero_class": "thief",
       "level": 8,
       "title": { "de": "Schurkenkönig" },
-      "effect": { "de": "Du darfst Verstärkungen spielen, ohne dass zuvor ein Angriff gespielt werden muss." }
+      "effect": { "de": "Du darfst Verstärkungen spielen, ohne dass zuvor ein Angriff gespielt werden muss." },
+      "ability": "free_supports"
     },
     {
       "qr": "KAEAAA==",
@@ -180,7 +199,8 @@
       "hero_class": "warrior",
       "level": 8,
       "title": { "de": "Elitekrieger" },
-      "effect": { "de": "Greifst du mit deinem ersten Angriff in einer Runde einen Boss-Schild an, ignoriere dessen Schild-Effekt." }
+      "effect": { "de": "Greifst du mit deinem ersten Angriff in einer Runde einen Boss-Schild an, ignoriere dessen Schild-Effekt." },
+      "ability": "ignore_first_shield_effect"
     },
     {
       "qr": "AgAAAA==",
@@ -193,8 +213,10 @@
       "qr": "EQAAAA==",
       "deck": "troll",
       "title": { "de": "Horn des Häuptlings" },
-      "symbols": [ { "type": "draw", "strength": 3 }, { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Ein Held deiner Wahl zieht 3 Karten.\nDieser Held darf sofort\neine Aktion ausführen." }
+      "symbols": [ { "type": "draw", "strength": 3 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl zieht 3 Karten.\nDieser Held darf sofort\neine Aktion ausführen." },
+      "ability": "for_chosen_hero",
+      "ability_values": { "action": true }
     },
     {
       "qr": "DwAAAA==",
@@ -208,21 +230,26 @@
       "deck": "troll",
       "title": { "de": "Krötensmoothie" },
       "symbols": [ { "type": "heal", "strength": 3 }, { "type": "draw", "strength": 2 } ],
-      "effect": { "de": "Ein Held deiner Wahl erhält 3 Lebenspunkte. Dieser Held zieht 2 Karten." }
+      "effect": { "de": "Ein Held deiner Wahl erhält 3 Lebenspunkte. Dieser Held zieht 2 Karten." },
+      "ability": "for_chosen_hero"
     },
     {
       "qr": "EAAAAA==",
       "deck": "troll",
       "title": { "de": "Schulterramme" },
-      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Nahkampf-Verstärkung 3. Hast du danach 15 Lebenspunkte oder mehr: Du erhältst 3 Lebenspunkte." }
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Verstärkung 3. Hast du danach 15 Lebenspunkte oder mehr: Du erhältst 3 Lebenspunkte." },
+      "ability": "if_healthy",
+      "ability_values": { "heal": 3 }
     },
     {
       "qr": "BgAAAA==",
       "deck": "troll",
       "title": { "de": "Omas Helm" },
-      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Schutz 4. Hast du danach 15 Lebenspunkte oder mehr: Entferne 2 beliebige deiner Statusmarken." }
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 4. Hast du danach 15 Lebenspunkte oder mehr: Entferne 2 beliebige deiner Statusmarken." },
+      "ability": "if_healthy",
+      "ability_values": { "remove_tokens": 2 }
     },
     {
       "qr": "EgAAAA==",
@@ -243,34 +270,39 @@
       "deck": "troll",
       "title": { "de": "Krawumm" },
       "symbols": [ { "type": "attack", "strength": 0, "damage_type": "melee" }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Nahkampf Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Nahkampf Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." },
+      "ability": "attack_by_round"
     },
     {
       "qr": "AQAAAA==",
       "deck": "troll",
       "title": { "de": "Knochenkeule" },
-      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" } ],
-      "effect": { "de": "Nahkampf-Angriff 4. Hast du danach 15 Lebenspunkte oder mehr: Ziehe 2 Karten." }
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 4. Hast du danach 15 Lebenspunkte oder mehr: Ziehe 2 Karten." },
+      "ability": "if_healthy",
+      "ability_values": { "draw": 2 }
     },
     {
       "qr": "VAAAAA==",
       "deck": "thief",
       "title": { "de": "Fluch des Raben" },
       "symbols": [ { "type": "direct_damage", "strength": 2 } ],
-      "effect": { "de": "Der Boss verliert sofort 2 Leben. Lege diese Karte dauerhaft neben deine Heldenkarte. Lege sie ab, um eine @-Fähigkeit des Bosses gegen dich zu verhindern." }
+      "effect": { "de": "Der Boss verliert sofort 2 Leben. Lege diese Karte dauerhaft neben deine Heldenkarte. Lege sie ab, um eine @-Fähigkeit des Bosses gegen dich zu verhindern." },
+      "ability": "raven_curse"
     },
     {
       "qr": "AgEAAA==",
       "deck": "thief",
       "title": { "de": "Rauchbombe" },
-      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Schutz 2. Entfernt den Zusatzeffekt der reduzierten Boss-Attacke. Führe 1 weitere Aktion aus." }
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 2. Entfernt den Zusatzeffekt der reduzierten Boss-Attacke. Führe 1 weitere Aktion aus." },
+      "ability": "clear_attack_effects"
     },
     {
       "qr": "UwAAAA==",
       "deck": "thief",
       "title": { "de": "Hornissenstachel" },
-      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "special", "strength": 1 } ],
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "lightning", "strength": 1 } ],
       "effect": { "de": "Fernkampf-Angriff 2. Führe 1 weitere Aktion aus." }
     },
     {
@@ -327,14 +359,16 @@
       "deck": "dwarf",
       "title": { "de": "Rune des Königs" },
       "symbols": [ { "type": "draw", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Jeder Held zieht Karte. Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Jeder Held zieht 1 Karte. Führe 1 weitere Aktion aus." },
+      "ability": "every_hero"
     },
     {
       "qr": "HAAAAA==",
       "deck": "dwarf",
       "title": { "de": "Runenstein" },
       "symbols": [ { "type": "attack", "strength": 0, "damage_type": "magic" }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Magie-Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Magie-Angriff: Die Stärke des Angriffs entspricht der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." },
+      "ability": "attack_by_round"
     },
     {
       "qr": "HQAAAA==",
@@ -347,8 +381,10 @@
       "qr": "HgAAAA==",
       "deck": "dwarf",
       "title": { "de": "Gardehelm" },
-      "symbols": [ { "type": "protection", "strength": 2 } ],
-      "effect": { "de": "Schutz 2. Entferne 1 Statusmarke deiner Wahl von einem Helden deiner Wahl." }
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 2. Entferne 1 Statusmarke deiner Wahl von einem Helden deiner Wahl." },
+      "ability": "remove_tokens",
+      "ability_values": { "count": 1, "choose": true }
     },
     {
       "qr": "GAAAAA==",
@@ -361,14 +397,17 @@
       "qr": "VQEAAA==",
       "deck": "dwarf",
       "title": { "de": "Anti-Boss-3000" },
-      "symbols": [ { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Die nächste @-Fähigkeit 5 des Bosses wird verhindert. Entferne Anti-Boss-3000 für den restlichen Bosskampf aus dem Spiel." }
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Die nächste @-Fähigkeit 5 des Bosses wird verhindert. Entferne Anti-Boss-3000 für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "anti_boss",
+      "ability_values": { "strength": 5 },
+      "uses_per_fight": 1
     },
     {
       "qr": "GgAAAA==",
       "deck": "dwarf",
       "title": { "de": "Morgenstern" },
-      "symbols": [ { "type": "health_loss", "strength": 2 } ],
+      "symbols": [ { "type": "support", "strength": 5, "damage_type": "melee" }, { "type": "health_loss", "strength": 2 } ],
       "effect": { "de": "Nahkampf-Verstärkung 5. Du verlierst 2 Lebenspunkte." }
     },
     {
@@ -396,15 +435,18 @@
       "qr": "WgEAAA==",
       "deck": "warrior",
       "title": { "de": "Rune der Rache" },
-      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "ranged" }, { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der Stärke der Boss-Attacke, die dich bedroht. Fügt dieser Angriff 9 oder mehr Schaden zu, verlierst du 4 Lebenspunkte." }
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der Stärke der Boss-Attacke, die dich bedroht. Fügt dieser Angriff 9 oder mehr Schaden zu, verlierst du 4 Lebenspunkte." },
+      "ability": "attack_by_threat",
+      "ability_values": { "threshold": 9, "health_loss": 4 }
     },
     {
       "qr": "PQAAAA==",
       "deck": "warrior",
       "title": { "de": "Ritterlicher Beistand" },
-      "symbols": [ { "type": "special", "strength": 1 } ],
-      "effect": { "de": "Die Boss-Attacke, die dich aktuell bedroht, entfällt. Lenke stattdessen eine Boss-Attacke, die einen anderen Helden bedroht, auf dich um." }
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Die Boss-Attacke, die dich aktuell bedroht, entfällt. Lenke stattdessen eine Boss-Attacke, die einen anderen Helden bedroht, auf dich um." },
+      "ability": "knightly_aid"
     },
     {
       "qr": "NwAAAA==",

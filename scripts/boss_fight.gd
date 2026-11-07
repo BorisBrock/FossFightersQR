@@ -119,7 +119,7 @@ func _ready() -> void:
 		Encounter.difficulty = Bosses.DEFAULT_DIFFICULTY
 	var party := Party.load_file(party_path)
 	_cards = CardDatabase.load_file(cards_path)
-	fight = Fight.new(Bosses.create(Encounter.boss), Encounter.difficulty, party.heroes)
+	fight = Fight.new(Bosses.create(Encounter.boss), Encounter.difficulty, party.heroes, _cards)
 	fight.round_changed.connect(_on_round_changed)
 	fight.health_changed.connect(_on_health_changed)
 	fight.shields_changed.connect(_on_shields_changed)

@@ -41,6 +41,10 @@ group only needs one tap. A hero that is still in the editor is not saved.
 - Only character and class cards count, and only in the editor. All other cards and unknown codes do nothing, without
   any message.
 - Showing another card of the same kind replaces the choice.
+- The card shown is kept with the hero (`race_card`, `class_card` in the party file), as it says their level: a level 5
+  or 8 card gives the hero its ability in the fight (see [Cards](cards.md#hero-levels)). Showing a card of the same
+  race or class at another level changes only the level. Tapping a tile keeps the card of the race or class already
+  chosen; a new one tapped is level 1.
 - A card that was in view when the editor opened only counts after it has been out of view for 2 s. Otherwise a card
   a player is still holding would choose for the next hero, too.
 - Each race and each class can only be picked once. A taken one is refused, the hint says who has it, and its tile

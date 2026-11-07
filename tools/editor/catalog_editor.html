@@ -198,6 +198,7 @@
       <label>Ability (scripts/abilities/, empty if none)<input id="f_ability" placeholder="free_play"></label>
       <label>Ability values (JSON)<input id="f_ability_values" placeholder='{"cards": 1}'></label>
       <label>Uses per fight (empty for no limit)<input id="f_uses" type="number" min="1"></label>
+      <label>Tags (comma separated, such as totem)<input id="f_tags" placeholder="totem"></label>
     </div>
     <div class="err" id="formErr"></div>
     <div class="actions">
@@ -228,7 +229,7 @@ function serializeCatalog(cards) {
   const oneLine = value => JSON.stringify(value, null, 1).replace(/\n\s*/g, " ");
   const present = v => v != null && (typeof v !== "object" || Object.keys(v).length > 0);
   const entries = cards.map(c => {
-    const fields = ["qr", "deck", "race", "hero_class", "level", "title", "symbols", "effect", "ability", "ability_values", "uses_per_fight"].filter(k => present(c[k]));
+    const fields = ["qr", "deck", "race", "hero_class", "level", "title", "symbols", "effect", "ability", "ability_values", "uses_per_fight", "tags"].filter(k => present(c[k]));
     return "    {\n" + fields.map(k => `      ${JSON.stringify(k)}: ${oneLine(c[k])}`).join(",\n") + "\n    }";
   });
   return `{\n  "$schema": "./cards.schema.json",\n  "schema_version": ${SCHEMA_VERSION},\n  "cards": [\n${entries.join(",\n")}\n  ]\n}\n`;
@@ -248,6 +249,7 @@ function validateCard(c, all) {
     else if (DAMAGE_SYMBOLS.includes(s.type) !== DAMAGE_TYPES.includes(s.damage_type)) e.push(`${s.type}: ${DAMAGE_SYMBOLS.includes(s.type) ? "needs" : "has no"} damage type`);
   }
   if (c.ability != null && !/^[a-z0-9_]+$/.test(c.ability)) e.push("ability must be an id like free_play");
+  if (c.tags != null && c.tags.some(t => !/^[a-z0-9_]+$/.test(t))) e.push("tags must be ids like totem");
   if (c.ability_values != null && (typeof c.ability_values !== "object" || Array.isArray(c.ability_values))) e.push("ability values must be a JSON object");
   if (c.uses_per_fight != null && !(Number.isInteger(c.uses_per_fight) && c.uses_per_fight >= 1)) e.push("uses per fight must be at least 1");
   if (all.some(o => o !== c && o.qr === c.qr)) e.push("QR code is used by another card");
@@ -428,6 +430,7 @@ if (typeof document !== "undefined") (() => {
     $("symbols").replaceChildren(); c.symbols.forEach(symbolRow);
     $("f_ability").value = c.ability ?? ""; $("f_uses").value = c.uses_per_fight ?? "";
     $("f_ability_values").value = c.ability_values ? JSON.stringify(c.ability_values) : "";
+    $("f_tags").value = (c.tags ?? []).join(", ");
     $("formErr").textContent = ""; $("del").hidden = !card;
     if (!scanMode) showScan(card);
     $("dlg").showModal();
@@ -463,6 +466,8 @@ if (typeof document !== "undefined") (() => {
     const ability = $("f_ability").value.trim(), abilityValues = $("f_ability_values").value.trim(), uses = $("f_uses").value.trim();
     if (ability) draft.ability = ability; else delete draft.ability;
     if (uses) draft.uses_per_fight = parseInt(uses, 10); else delete draft.uses_per_fight;
+    const tags = [...new Set($("f_tags").value.split(",").map(t => t.trim()).filter(t => t))];
+    if (tags.length) draft.tags = tags; else delete draft.tags;
     delete draft.ability_values;
     if (abilityValues) {
       try { draft.ability_values = JSON.parse(abilityValues); }

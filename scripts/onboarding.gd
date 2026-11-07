@@ -235,9 +235,9 @@ func _apply_card(card: Card) -> void:
 	if card == null or _view != View.EDITOR:
 		return
 	if HeroOptions.RACES.has(card.race):
-		_select_race(card.race)
+		_select_race(card.race, card.qr)
 	elif HeroOptions.CLASSES.has(card.hero_class):
-		_select_class(card.hero_class)
+		_select_class(card.hero_class, card.qr)
 
 
 ## A card that is still in view must first be taken away before it counts for a new hero.
@@ -259,27 +259,41 @@ func _may_change_selection() -> bool:
 # Choices -------------------------------------------------------------------------
 
 
-func _select_race(race: String) -> void:
+## card is the QR code of the character card shown, which says the hero's level. A tile
+## tapped has none: it keeps the card of the race already chosen, or starts at level 1.
+func _select_race(race: String, card := "") -> void:
 	var owner_hero := _party.hero_with_race(race, _editing)
 	if owner_hero != null:
 		_show_taken(race, HeroOptions.RACES[race], owner_hero)
 		return
-	if race == _draft.race or not _may_change_selection():
+	if race == _draft.race:
+		# The same race at another level, such as a level 5 card, needs no new choice.
+		if not card.is_empty():
+			_draft.race_card = card
+		return
+	if not _may_change_selection():
 		return
 	_draft.race = race
+	_draft.race_card = card
 	if _draft.name.is_empty() or _name_is_suggested:
 		_suggest_name()
 	_show_new_choice(race)
 
 
-func _select_class(hero_class: String) -> void:
+## card as for _select_race().
+func _select_class(hero_class: String, card := "") -> void:
 	var owner_hero := _party.hero_with_class(hero_class, _editing)
 	if owner_hero != null:
 		_show_taken(hero_class, HeroOptions.CLASSES[hero_class], owner_hero)
 		return
-	if hero_class == _draft.hero_class or not _may_change_selection():
+	if hero_class == _draft.hero_class:
+		if not card.is_empty():
+			_draft.class_card = card
+		return
+	if not _may_change_selection():
 		return
 	_draft.hero_class = hero_class
+	_draft.class_card = card
 	_show_new_choice(hero_class)
 
 

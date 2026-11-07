@@ -9,6 +9,9 @@ extends FightRule
 ##
 ## A new one is made each time the card is played. As a FightRule, it can stay in the
 ## fight for a while (Fight.add_rule) and step in at any moment of it.
+##
+## Character and class cards can have one too, for what a hero's level gives them. That
+## one joins the fight at its start, for its hero (owner), and stays.
 
 const SCRIPT_PATH := "res://scripts/abilities/%s.gd"
 
@@ -16,6 +19,10 @@ var id := ""
 ## From the card's ability_values.
 var values := {}
 var card: Card
+## For the ability of a character or class card, what a hero's level gives them: that
+## hero. It is in the fight from the start, as a rule (Fight.rules), so it steps in
+## through the hooks of FightRule. null for the abilities of cards being played.
+var owner: FightHero
 
 
 ## The ability for a card, or null if it has none. An ability that does not exist yet
@@ -36,6 +43,16 @@ static func create(for_card: Card) -> CardAbility:
 
 func value(key: String, default: Variant) -> Variant:
 	return values.get(key, default)
+
+
+## Whether play is by the hero this ability is for (owner).
+func is_mine(play: CardPlay) -> bool:
+	return play != null and owner != null and play.hero == owner
+
+
+## For messages: the title of its card.
+func title() -> Dictionary:
+	return card.title if card != null else {}
 
 
 ## Why the card cannot be played now, as the id of a message (see Messages), or "" if it

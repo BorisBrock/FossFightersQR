@@ -18,12 +18,18 @@ class Hero:
 	var hero_class := ""
 	## -1 until the player has chosen a seat.
 	var seat := -1
+	## The QR codes of the character and class card shown for them, which say their
+	## level. Empty if they were chosen without one, which is the first level.
+	var race_card := ""
+	var class_card := ""
 
 	func copy_from(other: Hero) -> void:
 		name = other.name
 		race = other.race
 		hero_class = other.hero_class
 		seat = other.seat
+		race_card = other.race_card
+		class_card = other.class_card
 
 
 ## What the group calls itself. Empty until they have chosen one.
@@ -63,7 +69,8 @@ static func load_file(path := SAVE_PATH) -> Party:
 func save() -> bool:
 	var entries := []
 	for hero in heroes:
-		entries.append({ "name": hero.name, "race": hero.race, "hero_class": hero.hero_class, "seat": hero.seat })
+		entries.append({ "name": hero.name, "race": hero.race, "hero_class": hero.hero_class, "seat": hero.seat,
+			"race_card": hero.race_card, "class_card": hero.class_card })
 	# Written to the side first, so that a crash cannot leave half a file behind.
 	var temporary := _path + ".tmp"
 	var file := FileAccess.open(temporary, FileAccess.WRITE)
@@ -131,4 +138,9 @@ static func _hero_from_data(data: Variant) -> Hero:
 	hero.race = race_value
 	hero.hero_class = class_value
 	hero.seat = int(seat_value)
+	# Files from before levels were kept do not have these.
+	var race_card_value: Variant = data.get("race_card", "")
+	var class_card_value: Variant = data.get("class_card", "")
+	hero.race_card = race_card_value if race_card_value is String else ""
+	hero.class_card = class_card_value if class_card_value is String else ""
 	return hero

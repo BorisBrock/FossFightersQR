@@ -29,9 +29,14 @@ var ignore_lightning := false
 var extra_actions := 0
 ## Set by a rule to stop the card from taking effect. It still counts as played.
 var cancelled := false
-## What it did, for rules that react to it: damage to shields and to the boss.
+## Who its Heal and Draw are for. Empty for the hero who plays it, which is what most
+## cards do; an ability can choose others, such as "a hero of your choice".
+var targets: Array[FightHero] = []
+## What it did, for rules that react to it: damage to shields and to the boss, and the
+## heroes its Protection was for.
 var shield_damage := 0
 var damage := 0
+var protected: Array[FightHero] = []
 
 
 func _init(play_hero: FightHero, played_card: Card) -> void:
@@ -39,6 +44,22 @@ func _init(play_hero: FightHero, played_card: Card) -> void:
 	card = played_card
 	for symbol in card.symbols:
 		effects.append(Effect.new(symbol.type, symbol.strength, symbol.damage_type))
+
+
+## Who its Heal and Draw are for, see targets.
+func receivers() -> Array[FightHero]:
+	if targets.is_empty():
+		return [hero]
+	return targets
+
+
+func has_effect(type: String) -> bool:
+	return effects.any(func(effect: Effect) -> bool: return effect.type == type)
+
+
+## Adds an effect, such as a Lightning a rule gives the card.
+func add_effect(type: String, strength: int, damage_type := "") -> void:
+	effects.append(Effect.new(type, strength, damage_type))
 
 
 func strength_of(type: String) -> int:

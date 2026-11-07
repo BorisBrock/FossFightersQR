@@ -29,11 +29,17 @@ var ability := ""
 var ability_values := {}
 ## How often each hero can use this card in a fight, such as a potion. 0 for no limit.
 var uses_per_fight := 0
+## What kind of card it is, for rules that care, such as "totem" or "form".
+var tags: Array[String] = []
 
 
 ## Items stay with their hero and can be used again in the same round.
 func is_item() -> bool:
 	return deck == "items"
+
+
+func has_symbol(type: String) -> bool:
+	return symbols.any(func(symbol: Symbol) -> bool: return symbol.type == type)
 
 
 ## Returns the card for parsed JSON data, or null if a field is missing or has the wrong
@@ -54,6 +60,7 @@ static func from_data(data: Variant) -> Card:
 	var ability_value: Variant = data.get("ability", "")
 	var ability_values_value: Variant = data.get("ability_values", {})
 	var uses_value: Variant = data.get("uses_per_fight", 0)
+	var tags_value: Variant = data.get("tags", [])
 	if not qr_value is String or qr_value.is_empty() or not deck_value is String:
 		return null
 	if not _is_integer(level_value) or not _is_text(title_value) or not _is_text(effect_value):
@@ -61,6 +68,8 @@ static func from_data(data: Variant) -> Card:
 	if not symbols_value is Array or not race_value is String or not hero_class_value is String:
 		return null
 	if not ability_value is String or not ability_values_value is Dictionary or not _is_integer(uses_value):
+		return null
+	if not tags_value is Array or tags_value.any(func(tag: Variant) -> bool: return not tag is String):
 		return null
 	card.qr = qr_value
 	card.deck = deck_value
@@ -72,6 +81,7 @@ static func from_data(data: Variant) -> Card:
 	card.ability = ability_value
 	card.ability_values = ability_values_value
 	card.uses_per_fight = int(uses_value)
+	card.tags.assign(tags_value)
 	for entry: Variant in symbols_value:
 		if not entry is Dictionary or not entry.get("type") is String or not _is_integer(entry.get("strength")):
 			return null

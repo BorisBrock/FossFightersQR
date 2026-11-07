@@ -118,7 +118,9 @@ signal _read
 signal _answered(value: Variant)
 
 
-func _init(fight_boss: Boss, fight_difficulty: String, party_heroes: Array[Party.Hero] = []) -> void:
+## cards is where the heroes' character and class cards are looked up, for what their
+## levels give them (see _add_traits). Without, the heroes have none.
+func _init(fight_boss: Boss, fight_difficulty: String, party_heroes: Array[Party.Hero] = [], cards: CardDatabase = null) -> void:
 	boss = fight_boss
 	difficulty = fight_difficulty
 	max_health = boss.max_health(difficulty)
@@ -129,6 +131,8 @@ func _init(fight_boss: Boss, fight_difficulty: String, party_heroes: Array[Party
 	for party_hero: Party.Hero in sorted:
 		heroes.append(FightHero.new(party_hero))
 	stats = FightStats.new(heroes, max_health)
+	if cards != null:
+		_add_traits(cards)
 
 
 ## Runs the fight, until it is won, lost or abandoned.
@@ -183,6 +187,9 @@ func scan(card: Card) -> String:
 	var play := CardPlay.new(hero, card)
 	play.ignore_lightning = request.settings.get("ignore_lightning", false)
 	var problem := _why_not(play)
+	var only: Callable = request.settings.get("only", Callable())
+	if problem.is_empty() and only.is_valid() and not only.call(card):
+		problem = "notice_not_allowed_now"
 	if problem.is_empty():
 		_answered.emit(play)
 	else:
@@ -237,11 +244,54 @@ func choose_from(options: Array[String], prompt: String, values := {}, can_skip 
 	return -1 if answer == null else answer
 
 
+## Asks the players a question with yes and no. Returns true for yes.
+func confirm(prompt: String, values := {}) -> bool:
+	return await choose_from(["option_yes", "option_no"], prompt, values) == 0
+
+
+## hero loses amount health, from play or something else (null). The players are told,
+## as the heroes' health is on the table.
+func hurt_hero(hero: FightHero, amount: int, play: CardPlay = null) -> void:
+	if amount <= 0 or over:
+		return
+	tell("health_loss", { "player": hero.name, "amount": amount })
+	await _each_rule("hero_hurt", [hero, amount, play])
+
+
+## The boss is about to use its @-ability id, of this strength, against target (null for
+## everyone or nobody). Returns whether it may: cards can prevent it, and then the players
+## are told by what.
+func boss_ability(id: String, strength: int, target: FightHero = null) -> bool:
+	if over:
+		return false
+	var ability := BossAbility.new()
+	ability.id = id
+	ability.strength = strength
+	ability.target = target
+	await _each_rule("boss_ability_used", [ability])
+	if ability.prevented:
+		tell("boss_ability_prevented", { "boss": boss.title, "card": ability.prevented_by })
+		await until_read()
+	return not ability.prevented and not over
+
+
+## The attack against from now threatens to instead, with its effects. from is no
+## longer threatened. What instead was threatened with is gone.
+func redirect_attack(from: FightHero, to: FightHero) -> void:
+	to.threat = from.threat
+	to.threat_effects = from.threat_effects.duplicate()
+	from.threat = 0
+	from.threat_effects.clear()
+	hero_changed.emit(from)
+	hero_changed.emit(to)
+
+
 ## Lets hero play cards: count actions, plus those Lightning gives. A card played this
 ## way costs no turn, so abilities use it for cards played "right now".
 ## settings: "prompt" (a message id, with {player}), "can_skip" (the hero may decline,
-## which ends it), "ignore_lightning", and "limited" (what can be played is limited, such
-## as to the top card of the draw pile, which the screen shows).
+## which ends it), "ignore_lightning", "limited" (what can be played is limited, such
+## as to the top card of the draw pile, which the screen shows), and "only" (a Callable
+## taking a Card, false for cards that cannot be played now).
 ## Returns the cards played.
 func play_actions(hero: FightHero, count: int, settings := {}) -> Array[CardPlay]:
 	var plays: Array[CardPlay] = []
@@ -359,6 +409,15 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if absorbed > 0:
 		shields[kind] -= absorbed
 		shields_changed.emit(shields)
+		var ignored := false
+		for rule in rules.duplicate():
+			ignored = ignored or rule.ignores_shield_effect(self, kind, play)
+		if not ignored:
+			await boss.shield_hit(self, kind, absorbed, play)
+		if shields[kind] == 0:
+			await _each_rule("shield_broken", [kind, play])
+		if over:
+			return 0
 	var dealt := 0
 	if amount > absorbed:
 		dealt = amount - absorbed
@@ -419,6 +478,7 @@ func strike(hero: FightHero) -> void:
 		values.tokens = token_text(hero.threat_effects)
 		tell("boss_hits_with_tokens", values)
 	hero_changed.emit(hero)
+	await _each_rule("hero_hurt", [hero, hero.threat, null])
 
 
 func set_shields(values: Dictionary) -> void:
@@ -646,12 +706,18 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 	var hero := play.hero
 	match effect.type:
 		"attack":
-			if not effect.damage_type in attacked:
+			var opened := not effect.damage_type in attacked
+			if opened:
 				attacked.append(effect.damage_type)
 			stats.power_played(hero, effect.damage_type, effect.strength)
 			await deal_damage(effect.strength, effect.damage_type, play)
+			if opened:
+				await _each_rule("attack_type_opened", [effect.damage_type, play])
 		"support":
-			if effect.damage_type in attacked:
+			var allowed := effect.damage_type in attacked
+			for rule in rules.duplicate():
+				allowed = allowed or rule.support_without_attack(self, effect.damage_type, play)
+			if allowed:
 				stats.power_played(hero, effect.damage_type, effect.strength)
 				await deal_damage(effect.strength, effect.damage_type, play)
 			else:
@@ -666,17 +732,26 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 				var before := target.threat
 				protect(target, amount)
 				stats.protected(hero, before - target.threat)
+				if not target in play.protected:
+					play.protected.append(target)
+				await _each_rule("hero_protected", [target, before, play])
 		"heal":
-			stats.healed(hero, effect.strength)
-			tell("heal", { "player": hero.name, "amount": effect.strength })
+			for receiver in play.receivers():
+				stats.healed(hero, effect.strength)
+				tell("heal", { "player": receiver.name, "amount": effect.strength })
 		"lightning":
 			if not play.ignore_lightning:
 				give_actions(play, effect.strength)
 				notice.emit("notice_lightning", { "player": hero.name })
 		"draw":
-			tell("draw_cards", { "player": hero.name, "count": effect.strength })
+			var receivers := play.receivers()
+			if receivers.size() > 1 and receivers.size() == heroes.size():
+				tell("draw_cards_everyone", { "count": effect.strength })
+			else:
+				for receiver in receivers:
+					tell("draw_cards", { "player": receiver.name, "count": effect.strength })
 		"health_loss":
-			tell("health_loss", { "player": hero.name, "amount": effect.strength })
+			await hurt_hero(hero, effect.strength, play)
 		"direct_damage":
 			await deal_damage(effect.strength, DIRECT, play)
 		"special":
@@ -700,6 +775,21 @@ func _why_not(play: CardPlay) -> String:
 	if ability != null:
 		return ability.can_play(self, play)
 	return ""
+
+
+## What the heroes' levels give them: the ability of their character and class card,
+## which stays in the fight as a rule, for its hero (CardAbility.owner).
+func _add_traits(cards: CardDatabase) -> void:
+	for fight_hero in heroes:
+		for qr: String in [fight_hero.hero.race_card, fight_hero.hero.class_card]:
+			var card := cards.find(qr) if not qr.is_empty() else null
+			# Only a card of the hero's own race or class, should the party file say otherwise.
+			if card == null or (card.race != fight_hero.hero.race and card.hero_class != fight_hero.hero.hero_class):
+				continue
+			var ability := CardAbility.create(card)
+			if ability != null:
+				ability.owner = fight_hero
+				rules.append(ability)
 
 
 func _phase(new_phase: Phase) -> void:

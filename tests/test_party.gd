@@ -3,7 +3,7 @@ extends SceneTree
 ## Run with: godot --headless -s tests/test_party.gd
 
 const PATH := "user://test_party.json"
-const EXPECTED_CHECKS := 18
+const EXPECTED_CHECKS := 20
 
 var _failures := 0
 var _checks_run := 0
@@ -25,6 +25,7 @@ func _check_round_trip() -> void:
 	var party := Party.new(PATH)
 	party.heroes.append(_hero("Brogan", "dwarf", "thief", 3))
 	party.heroes.append(_hero("Grüße", "elf", "druid", 6))
+	party.heroes[1].race_card = "/QAAAA=="
 	_check(party.save(), "saves")
 	_check(not FileAccess.file_exists(PATH + ".tmp"), "leaves no temporary file")
 	var loaded := Party.load_file(PATH)
@@ -32,6 +33,7 @@ func _check_round_trip() -> void:
 	var hero := loaded.hero_at(6)
 	_check(hero != null and hero.name == "Grüße" and hero.race == "elf" and hero.hero_class == "druid", "keeps what they chose")
 	_check(typeof(hero.seat) == TYPE_INT and loaded.hero_at(0) == null, "seat is a whole number and other seats are free")
+	_check(hero.race_card == "/QAAAA==" and hero.class_card.is_empty() and loaded.hero_at(3).race_card.is_empty(), "keeps the level cards they showed")
 	_check(loaded.party_name.is_empty(), "a party starts without a name")
 	party.party_name = "Furious Four"
 	party.save()
@@ -43,6 +45,8 @@ func _check_damaged_files() -> void:
 	_check(Party.load_file(PATH).heroes.is_empty(), "damaged file gives an empty party")
 	_write(JSON.stringify({ "version": 99, "heroes": [] }))
 	_check(Party.load_file(PATH).heroes.is_empty(), "another version gives an empty party")
+	_write(JSON.stringify({ "version": 1, "heroes": [{ "name": "Old", "race": "elf", "hero_class": "druid", "seat": 2 }] }))
+	_check(Party.load_file(PATH).heroes[0].race_card.is_empty(), "a file from before level cards still loads")
 	var good := { "name": "A", "race": "dwarf", "hero_class": "thief", "seat": 0 }
 	var bad_ones: Array = [
 		"text",

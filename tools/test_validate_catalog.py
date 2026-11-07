@@ -38,7 +38,27 @@ class FindProblems(unittest.TestCase):
         self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "direct_damage", "strength": 2, "damage_type": "magic"}]}))), 1)
 
     def test_special_symbol(self):
-        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}]})), [])
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}], "ability": "free_play"})), [])
+
+    def test_special_symbol_needs_an_ability(self):
+        self.assertIn("no ability", find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}]}))[0])
+
+    def test_attack_of_strength_0_needs_an_ability(self):
+        card = {**CARD, "symbols": [{"type": "attack", "strength": 0, "damage_type": "melee"}]}
+        self.assertEqual(len(find_problems(catalog(card))), 1)
+        self.assertEqual(find_problems(catalog({**card, "ability": "attack_by_round"})), [])
+
+    def test_level_card_with_an_effect_needs_an_ability(self):
+        card = {"qr": "L", "deck": "characters", "race": "elf", "level": 5, "effect": {"de": "Etwas."}}
+        self.assertEqual(len(find_problems(catalog(card))), 1)
+        self.assertEqual(find_problems(catalog({**card, "ability": "free_supports"})), [])
+
+    def test_ability_needs_a_script(self):
+        self.assertIn("has no script", find_problems(catalog({**CARD, "ability": "does_not_exist"}))[0])
+
+    def test_tags(self):
+        self.assertEqual(find_problems(catalog({**CARD, "tags": ["totem"]})), [])
+        self.assertEqual(len(find_problems(catalog({**CARD, "tags": ["Totem"]}))), 1)
 
     def test_other_symbols_have_no_damage_type(self):
         self.assertEqual(len(find_problems(catalog({**CARD, "symbols": [{"type": "heal", "strength": 1, "damage_type": "melee"}]}))), 1)

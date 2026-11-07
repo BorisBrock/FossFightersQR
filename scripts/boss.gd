@@ -91,6 +91,9 @@ func attack_range(difficulty: String) -> Vector2i:
 # Only the boss has these, as they are what it does in its phases. The defaults are what a
 # boss without special rules does. Each may wait for the players, as all hooks may (see
 # FightRule). The hooks every rule has are in FightRule.
+#
+# Its @-abilities are its own code too: before using one, a boss asks
+# `if await fight.boss_ability("id", strength, target):`, as cards can prevent them.
 
 ## Phase 1: decides the attack against each hero, through fight.threaten(). By default
 ## each hero gets a random attack from attack_range().
@@ -108,5 +111,12 @@ func raise_shields(fight: Fight) -> void:
 
 ## Phase 4: strikes one hero. By default with what is left of its planned attack.
 func attack_hero(fight: Fight, hero: FightHero) -> void:
-	fight.strike(hero)
+	await fight.strike(hero)
+
+
+## Its shield of kind absorbed amount damage from play (or null). What a shield does
+## besides, such as hurting whoever hits it, goes here. Not called when a rule lets play
+## ignore it (FightRule.ignores_shield_effect). By default a shield only absorbs.
+func shield_hit(_fight: Fight, _kind: String, _amount: int, _play: CardPlay) -> void:
+	pass
 #endregion

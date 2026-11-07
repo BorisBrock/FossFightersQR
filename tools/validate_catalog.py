@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Checks a card catalog against cards/cards.schema.json, plus what the schema cannot express: unique QR codes
-and unique JSON keys.
+"""Checks a card catalog against cards/cards.schema.json, plus what the schema cannot express: unique QR codes,
+unique JSON keys, and that every card whose symbols cannot say what it does has an ability that exists.
 
     python tools/validate_catalog.py [file]       # default: cards/cards.json
 """
@@ -13,6 +13,7 @@ from pathlib import Path
 import jsonschema
 
 CARDS_DIR = Path(__file__).resolve().parent.parent / "cards"
+ABILITIES_DIR = CARDS_DIR.parent / "scripts" / "abilities"
 SCHEMA = json.loads((CARDS_DIR / "cards.schema.json").read_text(encoding="utf-8"))
 
 
@@ -37,6 +38,27 @@ def find_problems(text):
     if isinstance(document, dict) and isinstance(document.get("cards"), list):
         codes = Counter(card["qr"] for card in document["cards"] if isinstance(card, dict) and isinstance(card.get("qr"), str))
         problems += [f"QR code used by two cards: {qr}" for qr, count in codes.items() if count > 1]
+        for card in document["cards"]:
+            if isinstance(card, dict):
+                problems += _ability_problems(card)
+    return problems
+
+
+def _ability_problems(card):
+    """A card that does more than its symbols say needs an ability, or the fight silently does too little."""
+    name = card.get("qr", "?")
+    symbols = [s for s in card.get("symbols", []) if isinstance(s, dict)]
+    ability = card.get("ability")
+    problems = []
+    if not ability:
+        if any(s.get("type") == "special" for s in symbols):
+            problems.append(f"{name}: has the special symbol, but no ability")
+        if any(s.get("type") in ("attack", "support") and s.get("strength") == 0 for s in symbols):
+            problems.append(f"{name}: has an attack or support of strength 0, but no ability to set it")
+        if (card.get("race") or card.get("hero_class")) and card.get("effect"):
+            problems.append(f"{name}: is a character or class card with an effect, but has no ability")
+    elif isinstance(ability, str) and not (ABILITIES_DIR / f"{ability}.gd").is_file():
+        problems.append(f"{name}: ability '{ability}' has no script scripts/abilities/{ability}.gd")
     return problems
 
 

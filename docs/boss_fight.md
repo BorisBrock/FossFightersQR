@@ -3,9 +3,9 @@
 The game itself: `boss_fight.tscn`, `scripts/boss_fight.gd`. It starts from *Fight!* on the boss overview, with the boss
 and difficulty from `Encounter`.
 
-*Status: the rules of the base game are built (see [How a fight goes](#how-a-fight-goes)), with a few card abilities as
-examples. The catalog has no playing cards yet, so a fight can only be played with cards from the tests, or by
-passing.*
+*Status: the rules of the base game are built (see [How a fight goes](#how-a-fight-goes)), with the abilities of the
+cards in the catalog and of the heroes' levels (see [Cards](cards.md#abilities)). The boss's @-abilities can be
+prevented by cards, but none of the dummy bosses has one yet.*
 
 ## What is on screen
 
@@ -98,8 +98,16 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
   `await fight.choose_hero(...)`, and the fight waits with it. A rule can join the fight for a while
   (`Fight.add_rule()`, for the round or for good). **When something new needs to step in at a moment that has no hook
   yet, add the hook to `FightRule`** with a default that does nothing, and call it from `Fight`.
-- For rules, `Fight` offers what they need: `tell()`, `choose_hero()`, `choose_from()`, `play_actions()` (a hero plays
-  cards right now, without using a turn), `deal_damage()`, `threaten()`, `protect()`, `strike()`, `set_shields()`.
+- For rules, `Fight` offers what they need: `tell()`, `choose_hero()`, `choose_from()`, `confirm()` (yes or no, for
+  what only the table knows, such as a hero's health), `play_actions()` and `take_action()` (a hero plays cards right
+  now, without using a turn; `"only"` limits which), `deal_damage()`, `hurt_hero()`, `threaten()`, `protect()`,
+  `redirect_attack()`, `strike()`, `set_shields()`, `boss_ability()`.
+- The hooks of `FightRule`: the fight's moments (`round_started`, `attacks_planned`, `action_phase_started`, …), turns
+  and cards (`turn_started`, `card_playing`, `card_played`, `attack_type_opened`, `hero_protected`), the boss and the
+  heroes (`shield_broken`, `hero_hurt`, `boss_ability_used`) and values rules can change (`damage_taken`, `protection`,
+  `support_without_attack`, `ignores_shield_effect`).
+- `CardPlay` says what a card does and did: its `effects`, who its Heal and Draw are for (`targets`), and afterwards
+  its `damage`, `shield_damage` and the heroes it `protected`.
 - Card abilities are described in [Cards](cards.md#abilities).
 - `Fight.tell(id, values)` shows a message to the players, from the rules or a boss's hooks. The text is in
   `messages/`, see [Messages](messages.md).
