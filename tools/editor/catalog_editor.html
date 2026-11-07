@@ -227,6 +227,18 @@ const NO_STRENGTH = ["special", "remove_from_game"];  // their strength is not u
 const DAMAGE_SYMBOLS = ["attack", "support"];
 const DAMAGE_TYPES = ["melee", "ranged", "magic"];
 
+// The symbols an effect text spells out, such as "Magie-Angriff 3", "Schutz 2" or "Führe 1 weitere Aktion aus"
+// (lightning), in the order of the text.
+// Tolerates OCR slips: a missing or spaced hyphen ("Nahkampf- Angriff" from a line break), a dropped r or umlaut.
+const EFFECT_DAMAGE_TYPES = { magie: "magic", nahkampf: "melee", fernkampf: "ranged" };
+const EFFECT_SYMBOL_RE = /\b(?:(Magie|Nahkampf|Fernkampf)\s*-?\s*(Angr?iff|Verst[äa]rkung)|(Schutz))\s+(\d+)(?![\d-])|F[üu]hre\s+(\d+)\s+weitere\s+Aktion(?:en)?\s+aus/giu;
+function effectSymbols(text) {
+  return [...(text ?? "").matchAll(EFFECT_SYMBOL_RE)].map(([, word, kind, protection, strength, actions]) => actions
+    ? { type: "lightning", strength: +actions }
+    : protection ? { type: "protection", strength: +strength }
+    : { type: /^angr?iff$/i.test(kind) ? "attack" : "support", strength: +strength, damage_type: EFFECT_DAMAGE_TYPES[word.toLowerCase()] });
+}
+
 // One line per field keeps the file readable and its diffs small.
 function serializeCatalog(cards) {
   const oneLine = value => JSON.stringify(value, null, 1).replace(/\n\s*/g, " ");
@@ -398,6 +410,7 @@ if (typeof document !== "undefined") (() => {
     type.onchange = type.oninput = update; update();
     const rm = el("button", "danger", "✕"); rm.type = "button"; rm.onclick = () => row.remove();
     row.append(type, kind, str, rm); $("symbols").append(row);
+    return row;
   }
   $("addSym").onclick = () => symbolRow();
 
@@ -718,8 +731,22 @@ if (typeof document !== "undefined") (() => {
   function fillResult(result) {
     reading = result; boxes = { ...result.areas }; drawn.clear(); showBoxes();
     $("f_title_de").value = result.title; $("f_eff_de").value = result.effect;
+    autoSymbols();
     $("reviewHint").hidden = false; $("reviewHint").textContent = reviewHint(result);
   }
+  // Symbols found in the effect text are added in front of the others and follow the text while it is corrected,
+  // until they are changed by hand.
+  function autoSymbols() {
+    for (const r of [...$("symbols").children]) if (r.dataset.auto) r.remove();
+    const first = $("symbols").firstChild;
+    for (const s of effectSymbols($("f_eff_de").value)) {
+      const row = symbolRow(s); row.dataset.auto = "1";
+      row.addEventListener("input", () => delete row.dataset.auto);
+      row.addEventListener("change", () => delete row.dataset.auto);
+      $("symbols").insertBefore(row, first);
+    }
+  }
+  $("f_eff_de").addEventListener("input", () => { if (scanMode) autoSymbols(); });
   $("resetBoxes").onclick = () => { cardBoxes = {}; delete localStorage.cardBoxes; drawn.clear(); $("reread").click(); };
   $("reread").onclick = async () => {
     if (!cam?.blob) return;

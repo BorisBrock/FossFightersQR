@@ -819,6 +819,171 @@
       "level": 1,
       "title": { "de": "Machete" },
       "ability": "not_here"
+    },
+    {
+      "qr": "LQAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Blinky" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 3." }
+    },
+    {
+      "qr": "LgAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Ahnenstein" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 4." }
+    },
+    {
+      "qr": "RAAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Ritualdolch" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "SgAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Energiesog" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "magic" }, { "type": "heal", "strength": 2 } ],
+      "effect": { "de": "Magie-Angriff 2. Ein Held deiner Wahl erhält 2 Lebenspunkte." },
+      "ability": "for_chosen_hero"
+    },
+    {
+      "qr": "NgAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Sausekraut" },
+      "symbols": [ { "type": "heal", "strength": 3 }, { "type": "lightning", "strength": 2 } ],
+      "effect": { "de": "Du erhältst 3 Lebenspunkte. Führe 2 weitere Aktionen aus." }
+    },
+    {
+      "qr": "MAAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Schmuckdolch" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 2." }
+    },
+    {
+      "qr": "LwAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Beulenmacher" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 3." }
+    },
+    {
+      "qr": "NQAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Improvisieren" },
+      "effect": { "de": "Ein Held deiner Wahl spielt nacheinander die obersten 2 Karten seines Nachziehstapels aus." },
+      "ability": "play_top_cards",
+      "ability_values": { "cards": 2 }
+    },
+    {
+      "qr": "NAAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Zauberzwille" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "attack", "strength": 2, "damage_type": "magic" } ],
+      "effect": { "de": "Fernkampf-Angriff 2. Magie-Angriff 2." }
+    },
+    {
+      "qr": "MQAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Pssst-Mäntelchen" },
+      "symbols": [ { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Schutz 3." }
+    },
+    {
+      "qr": "MwAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Kieselfreunde" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 4." }
+    },
+    {
+      "qr": "MgAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Glücksbrosche" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "SQAAAA==",
+      "deck": "halfling",
+      "level": 1,
+      "title": { "de": "Deja-Vu" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Spiele 1 Karte aus deinem Ablagestapel oder die oberste Karte von deinem Nachziehstapel. Entferne die gespielte Karte für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "play_discard_or_top"
+    },
+    {
+      "qr": "SAAAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Arkane Überladung" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "magic" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Magie-Angriff 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "QQAAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Feuerball" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 4." }
+    },
+    {
+      "qr": "QwAAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Magie-Explosion" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 4." }
+    },
+    {
+      "qr": "WQEAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Meteoritenschauer" },
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "melee" }, { "type": "attack", "strength": 0, "damage_type": "ranged" }, { "type": "attack", "strength": 0, "damage_type": "magic" }, { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Der Schaden dieser Karte wird zufällig bestimmt. Nahkampf-Angriff 1-3. Fernkampf-Angriff 1-3. Magie-Angriff 1-3. Du verlierst 2 Lebenspunkte." },
+      "ability": "random_strength",
+      "ability_values": { "type": "attack", "min": 1, "max": 3 }
+    },
+    {
+      "qr": "AQEAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Dämonischer Pakt" },
+      "symbols": [ { "type": "protection", "strength": 5 }, { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Schutz 5. Du verlierst 2 Lebenspunkte." }
+    },
+    {
+      "qr": "RQAAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Flammenschild" },
+      "symbols": [ { "type": "support", "strength": 2, "damage_type": "magic" }, { "type": "protection", "strength": 2 } ],
+      "effect": { "de": "Magie-Verstärkung 2. Schutz 2." }
+    },
+    {
+      "qr": "RwAAAA==",
+      "deck": "magician",
+      "level": 1,
+      "title": { "de": "Obsidiansplitter" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 3." }
     }
   ]
 }

@@ -94,7 +94,7 @@ serves many cards.
 | `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog |
 | `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
 | `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
@@ -112,10 +112,12 @@ serves many cards.
 | `remove_curse` | Tells the players to discard an active curse of a hero. | | Fluchbrecher |
 | `use_item` | The hero uses an item at once. | | Lianenschlange |
 | `card_to_pile` | Tells the hero to put `count` other hand cards on their draw pile first. | `count` (1) | Pestbote |
-| `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe |
+| `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe, Improvisieren |
 | `only_for` | Only a hero of `race` or `hero_class` can use the card, for items (other cards go by their deck). | `race`, `hero_class` | Opas Glasauge |
 | `not_here` | The card is not used in the app and is refused with a note, such as the items for one boss of the board game. | | Fackel, Machete |
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
+| `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
+| `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions

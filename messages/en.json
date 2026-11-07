@@ -232,6 +232,12 @@
 	"searched_card_removed": {
 		"body": "[player]{player}[/player] shuffles their draw pile and puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
 	},
+	"prompt_discard_or_top": {
+		"body": "[player]{player}[/player], show a card from your [b]discard pile[/b] or the [b]top card of your draw pile[/b] :card:."
+	},
+	"played_card_removed": {
+		"body": "[player]{player}[/player] puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
+	},
 	"toxin_ready": {
 		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison token[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] more at the end of the round."
 	},

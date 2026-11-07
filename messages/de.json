@@ -232,6 +232,12 @@
 	"searched_card_removed": {
 		"body": "[player]{player}[/player] mischt den Nachziehstapel und legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
 	},
+	"prompt_discard_or_top": {
+		"body": "[player]{player}[/player], zeig eine Karte aus deinem [b]Ablagestapel[/b] oder die [b]oberste Karte deines Nachziehstapels[/b] :card:."
+	},
+	"played_card_removed": {
+		"body": "[player]{player}[/player] legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
+	},
 	"toxin_ready": {
 		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] mehr."
 	},

@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 218
+const EXPECTED_CHECKS := 223
 
 var _failures := 0
 var _checks_run := 0
@@ -708,6 +708,31 @@ func _check_items() -> void:
 	_check(_asks_card_of(fight, 3), "Glücksbringer: its lightning ignored")
 	# Medizintasche: the hero removes 2 tokens.
 	_check(fight.scan(catalog.find("BAEAAA==")) == "" and _told[-1] == "remove_tokens" and _values[-1].count == 2 and _values[-1].player == "Borin", "Medizintasche: remove 2 tokens")
+	fight.abandon()
+
+	# Deja-Vu: a card from the discard pile or the top of the draw pile, then out of the game.
+	fight = _started(TestBoss.new())
+	_check(fight.scan(catalog.find("SQAAAA==")) == "" and _asks_card_of(fight, 1) and fight.request.prompt == "prompt_discard_or_top", "Deja-Vu: which card?")
+	fight.scan(_card("AGAIN", [["attack", 2, "ranged"], ["lightning", 1]], "halfling"))
+	_check(fight.health == 28 and "AGAIN" in fight.removed and _told[-1] == "played_card_removed", "Deja-Vu: it is played, then out of the game")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Deja-Vu: its Lightning still counts")
+	# Improvisieren: a hero of the players' choice plays their top 2 cards.
+	_check(fight.scan(catalog.find("NQAAAA==")) == "" and fight.request.kind == Fight.Request.Kind.HERO and fight.request.values.get("count") == 2, "Improvisieren: who plays their top 2 cards?")
+	fight.abandon()
+	# Meteoritenschauer: each attack rolled from 1 to 3.
+	fight = _started(TestBoss.new())
+	var rolls := {}
+	var kept := true
+	var ability := CardAbility.create(catalog.find("WQEAAA=="))
+	for i in 30:
+		var meteors := CardPlay.new(fight.hero_at(1), ability.card)
+		ability.before_effects(fight, meteors)
+		for effect in meteors.effects:
+			if effect.type == "attack":
+				rolls[effect.strength] = true
+		kept = kept and meteors.effects[3].strength == 2
+	_check(rolls.keys().all(func(n: int) -> bool: return n >= 1 and n <= 3) and rolls.size() == 3 and kept, "Meteoritenschauer: attacks of 1 to 3, the health loss kept")
 	fight.abandon()
 
 
