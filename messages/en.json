@@ -280,5 +280,41 @@
 	},
 	"example_reminder": {
 		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1[/damage] :health: at the end of each round."
+	},
+	"prompt_lower_shield": {
+		"body": "[player]{player}[/player], choose the shield that goes down by [damage]{amount}[/damage]."
+	},
+	"option_shield_melee": {
+		"body": "Melee"
+	},
+	"option_shield_ranged": {
+		"body": "Ranged"
+	},
+	"option_shield_magic": {
+		"body": "Magic"
+	},
+	"shield_lowered": {
+		"body": "The {kind} shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage]."
+	},
+	"no_shield_to_lower": {
+		"body": "[boss]{boss}[/boss] has no shield left: [b]{card}[/b] of [player]{player}[/player] does nothing."
+	},
+	"prompt_poison_on_attack_who": {
+		"body": "[b]Tap the hero[/b]: whenever a boss attack of [damage]{threshold}[/damage] or more strikes them, the boss gets [poison]{poison} poison[/poison] :poison:."
+	},
+	"poison_on_attack_ready": {
+		"body": "[b]{card}[/b]: until the end of the fight, the boss gets [poison]{poison} poison[/poison] :poison: whenever it attacks [player]{player}[/player] with [damage]{threshold}[/damage] or more."
+	},
+	"poison_on_attack": {
+		"body": "[b]{card}[/b] strikes back: [boss]{boss}[/boss] attacks [player]{player}[/player] and gets [poison]{poison} poison[/poison] :poison:."
+	},
+	"attacks_weakened_next_round": {
+		"body": "[b]{card}[/b] of [player]{player}[/player]: next round, every attack of the boss is [heal]{amount}[/heal] lower."
+	},
+	"attacks_weakened": {
+		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect: every attack of the boss is [heal]{amount}[/heal] lower."
+	},
+	"remove_tokens_everyone": {
+		"body": "Each hero removes up to [heal]{count}[/heal] of their tokens."
 	}
 }

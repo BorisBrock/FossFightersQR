@@ -108,7 +108,7 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
   `redirect_attack()`, `strike()`, `set_shields()`, `boss_ability()`.
 - The hooks of `FightRule`: the fight's moments (`round_started`, `attacks_planned`, `action_phase_started`, …), turns
   and cards (`turn_started`, `card_playing`, `card_played`, `attack_type_opened`, `hero_protected`), the boss and the
-  heroes (`shield_broken`, `hero_hurt`, `boss_ability_used`) and values rules can change (`damage_taken`, `protection`,
+  heroes (`shield_broken`, `hero_struck`, `hero_hurt`, `boss_ability_used`) and values rules can change (`damage_taken`, `protection`,
   `support_without_attack`, `ignores_shield_effect`).
 - `CardPlay` says what a card does and did: its `effects`, who its Heal and Draw are for (`targets`), and afterwards
   its `damage`, `shield_damage` and the heroes it `protected`.

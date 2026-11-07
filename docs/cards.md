@@ -88,13 +88,13 @@ serves many cards.
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table. | `count` (2), `choose` (false: the hero who plays it) | Gardehelm, Borax’ Kriegshammer, Medizintasche |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | Heiltrank |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
 | `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune |
 | `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
 | `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
@@ -105,7 +105,7 @@ serves many cards.
 | `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
 | `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
 | `bonus_per_symbol` | The card's effects of `symbol` are stronger for each card with that symbol the hero played this round. | `symbol` (support), `bonus` (2) | Geisterwolf, Zeitschnitter |
-| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe |
+| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe, Astrale Linse, Kettenblitz |
 | `delayed_attack` | The card's attacks only take effect at the start of the hero's first turn next round. | | Bombling |
 | `threat_hurts_boss` | The boss loses what is left of its attack against the heroes the card protected. | | Schleimiger Helm |
 | `halve_attack` | The attack against a hero of the players' choice is halved, rounded down, and loses its extra effect. | | Kultistenkette |
@@ -118,6 +118,10 @@ serves many cards.
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 | `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
 | `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer |
+| `lower_shield` | A shield of the players' choice goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7) | Explosivkristall |
+| `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
+| `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
+| `weaken_next_round` | Next round, every attack of the boss is `amount` lower. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `amount` (3), `chosen_hero` (false) | Magische Eruption |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions

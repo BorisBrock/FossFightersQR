@@ -280,5 +280,41 @@
 	},
 	"example_reminder": {
 		"body": "[i]Denkt daran:[/i] Vergiftete Helden verlieren am Ende jeder Runde [damage]1[/damage] :health:."
+	},
+	"prompt_lower_shield": {
+		"body": "[player]{player}[/player], wähle den Schild, der um [damage]{amount}[/damage] sinkt."
+	},
+	"option_shield_melee": {
+		"body": "Nahkampf"
+	},
+	"option_shield_ranged": {
+		"body": "Fernkampf"
+	},
+	"option_shield_magic": {
+		"body": "Magie"
+	},
+	"shield_lowered": {
+		"body": "Der {kind}-Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage]."
+	},
+	"no_shield_to_lower": {
+		"body": "[boss]{boss}[/boss] hat keinen Schild mehr: [b]{card}[/b] von [player]{player}[/player] bewirkt nichts."
+	},
+	"prompt_poison_on_attack_who": {
+		"body": "[b]Tippt den Helden an[/b]: Trifft ihn eine Boss-Attacke von [damage]{threshold}[/damage] oder mehr, erhält der Boss [poison]{poison} Gift[/poison] :poison:."
+	},
+	"poison_on_attack_ready": {
+		"body": "[b]{card}[/b]: Bis zum Ende des Kampfes erhält der Boss [poison]{poison} Gift[/poison] :poison:, wenn er [player]{player}[/player] mit [damage]{threshold}[/damage] oder mehr angreift."
+	},
+	"poison_on_attack": {
+		"body": "[b]{card}[/b] wirkt: [boss]{boss}[/boss] greift [player]{player}[/player] an und erhält [poison]{poison} Gift[/poison] :poison:."
+	},
+	"attacks_weakened_next_round": {
+		"body": "[b]{card}[/b] von [player]{player}[/player]: In der nächsten Runde sinken alle Angriffe des Bosses um [heal]{amount}[/heal]."
+	},
+	"attacks_weakened": {
+		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt: Alle Angriffe des Bosses sinken um [heal]{amount}[/heal]."
+	},
+	"remove_tokens_everyone": {
+		"body": "Jeder Held entfernt bis zu [heal]{count}[/heal] eigene Marker."
 	}
 }

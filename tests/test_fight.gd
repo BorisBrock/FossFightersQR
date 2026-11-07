@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 223
+const EXPECTED_CHECKS := 241
 
 var _failures := 0
 var _checks_run := 0
@@ -63,6 +63,7 @@ func _initialize() -> void:
 	_check_catalog_abilities()
 	_check_loot_cards()
 	_check_more_loot_cards()
+	_check_magic_loot_cards()
 	_check_items()
 	_check_boss_poison()
 	_check_combos()
@@ -538,6 +539,113 @@ func _check_more_loot_cards() -> void:
 	_check(_told[-1] == "draw_cards" and _values[-1].player == "Sonja" and _values[-1].count == 3, "Anspornen: the chosen hero draws 3")
 	_ready(fight)
 	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "and acts at once")
+	fight.abandon()
+
+
+## The magic loot cards, from the catalog.
+func _check_magic_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Explosivkristall: a shield of the players' choice goes down by 7, without its effect,
+	# and nothing reaches the boss.
+	var boss := TestBoss.new()
+	var fight := _started(boss)
+	fight.scan(catalog.find("OgEAAA=="))
+	_check(fight.request.kind == Fight.Request.Kind.OPTION and fight.request.options == ["option_shield_melee", "option_shield_magic"], "Explosivkristall: which shield?")
+	fight.choose_option(0)
+	_check(fight.shields.melee == 0 and fight.shields.magic == 1 and fight.health == 30 and not "shield_hit melee" in boss.calls and _told[-1] == "shield_lowered", "Explosivkristall: the shield is down, without its effect or damage")
+	fight.abandon()
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("OgEAAA=="))
+	_check(_told[-1] == "no_shield_to_lower" and fight.shields.values().all(func(n: int) -> bool: return n == 0), "Explosivkristall: without shields, nothing happens")
+	fight.abandon()
+
+	# Kristallorb: breaking the shield costs the boss 3 more health.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("zgEAAA=="))
+	_check(fight.shields.magic == 0 and fight.health == 25 and _told.has("shield_breaker"), "Kristallorb: magic attack 3 breaks the shield, the boss loses 3 more")
+	fight.abandon()
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("zgEAAA=="))
+	_check(fight.health == 27 and not _told.has("shield_breaker"), "Kristallorb: no shield broken, no more damage")
+	fight.abandon()
+
+	# Himmelsrune: a hero of the players' choice draws 1.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("DwEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.health == 27 and _told.has("draw_cards") and _values[_told.find("draw_cards")].player == "Borin", "Himmelsrune: magic attack 4, the chosen hero draws 1")
+	fight.abandon()
+
+	# Kettenblitz: the next magic attack is 3 stronger.
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("JQEAAA=="))
+	fight.scan(_card("BOLT", [["attack", 1, "magic"]], "dwarf"))
+	_check(fight.health == 22, "Kettenblitz: 4, and the next magic attack 3 stronger")
+	fight.abandon()
+
+	# Astrale Linse: an extra action, and the next card with a magic attack takes effect twice.
+	fight = _started(boss)
+	fight.scan(catalog.find("PAEAAA=="))
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Astrale Linse: 1 more action")
+	fight.scan(_card("BOLT", [["attack", 2, "magic"]], "halfling"))
+	_check(fight.health == 26 and _told.has("card_repeated"), "Astrale Linse: the magic attack takes effect twice")
+	fight.abandon()
+
+	# Elixier der Sorglosigkeit: 1 token from a hero of choice, then 1 from each hero.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("EQEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(_told.slice(-2) == ["remove_tokens", "remove_tokens_everyone"] and _values[-2].player == "Sonja" and _values[-2].count == 1 and _values[-1].count == 1, "Elixier der Sorglosigkeit: 1 token from Sonja, then 1 from everyone")
+	fight.abandon()
+
+	# Krone des Prinzen: the boss gets 1 poison when its attack of 4 or more strikes the
+	# chosen hero; the card is then out of the game.
+	boss = TestBoss.new()
+	boss.threats = { 1: 3, 3: 4, 5: 6 }
+	fight = _started(boss)
+	fight.scan(catalog.find("yAEAAA=="))
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_check("yAEAAA==" in fight.removed and _told[-1] == "poison_on_attack_ready", "Krone des Prinzen: for Borin, then out of the game")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Krone des Prinzen: 1 more action")
+	_pass_until(fight, "phase_status")
+	_check(fight.poison == 1 and _told.count("poison_on_attack") == 1 and _values[_told.find("poison_on_attack")].player == "Borin", "Krone des Prinzen: attack of 4 on Borin, the boss gets 1 poison")
+	fight.abandon()
+	boss = TestBoss.new()
+	boss.threats = { 3: 5 }
+	fight = _started(boss)
+	fight.scan(catalog.find("yAEAAA=="))
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	fight.scan(_card("GUARD", [["protection", 2]], "halfling"))
+	fight.choose(fight.hero_at(3))
+	_pass_until(fight, "phase_status")
+	_check(fight.poison == 0 and not _told.has("poison_on_attack"), "Krone des Prinzen: lowered to 3, no poison")
+	fight.abandon()
+
+	# Magische Eruption: the chosen hero draws 2, and next round every attack is 3 lower.
+	boss = TestBoss.new()
+	boss.threats = { 1: 3, 3: 5, 5: 2 }
+	fight = _started(boss)
+	fight.scan(catalog.find("MwEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_ready(fight)
+	_check(_told.has("draw_cards") and _values[_told.find("draw_cards")].player == "Sonja" and _values[_told.find("draw_cards")].count == 2 and _told[-1] == "attacks_weakened_next_round", "Magische Eruption: Sonja draws 2")
+	_check(fight.hero_at(3).threat == 5, "Magische Eruption: not this round")
+	_pass_until(fight, "attacks_weakened")
+	_check(fight.round_number == 2 and fight.hero_at(1).threat == 0 and fight.hero_at(3).threat == 2 and fight.hero_at(5).threat == 0 and fight.hero_at(5).threat_effects.is_empty(), "Magische Eruption: next round, every attack 3 lower")
+	_pass_until(fight, "phase_planning")
+	_ready(fight)
+	_check(fight.round_number == 3 and fight.hero_at(3).threat == 5, "Magische Eruption: only that round")
 	fight.abandon()
 
 

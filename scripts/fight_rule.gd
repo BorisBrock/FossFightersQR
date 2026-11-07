@@ -91,6 +91,12 @@ func shield_broken(_fight: Fight, _kind: String, _play: CardPlay) -> void:
 	pass
 
 
+## The boss's attack struck hero with damage, what was left of it after everything that
+## lowered it (Fight.strike). Before hero_hurt.
+func hero_struck(_fight: Fight, _hero: FightHero, _damage: int) -> void:
+	pass
+
+
 ## hero lost amount health, from the boss's attack or a card (play, or null). The app
 ## does not count the heroes' health, so this only says that it happened.
 func hero_hurt(_fight: Fight, _hero: FightHero, _amount: int, _play: CardPlay) -> void:

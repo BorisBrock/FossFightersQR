@@ -469,6 +469,25 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	return dealt
 
 
+## Lowers the boss's shield of kind by up to amount, from play or something else (null),
+## without setting off what the shield does besides absorbing (Boss.shield_hit). What is
+## more than the shield has is lost: it does not reach the boss's health. A shield brought
+## to 0 is broken (FightRule.shield_broken). Returns how much it went down.
+func lower_shield(kind: String, amount: int, play: CardPlay = null) -> int:
+	var lowered := mini(maxi(0, amount), shields.get(kind, 0))
+	if over or lowered <= 0:
+		return 0
+	shields[kind] -= lowered
+	shields_changed.emit(shields)
+	if play != null:
+		play.shield_damage += lowered
+	stats.damage_dealt(0, lowered, play)
+	boss_hit.emit(kind, lowered, 0)
+	if shields[kind] == 0:
+		await _each_rule("shield_broken", [kind, play])
+	return lowered
+
+
 ## The boss gets amount poison tokens, from play or something else (null).
 func poison_boss(amount: int, play: CardPlay = null) -> void:
 	if amount <= 0 or over:
@@ -525,6 +544,7 @@ func strike(hero: FightHero) -> void:
 		values.tokens = token_text(hero.threat_effects)
 		tell("boss_hits_with_tokens", values)
 	hero_changed.emit(hero)
+	await _each_rule("hero_struck", [hero, hero.threat])
 	await _each_rule("hero_hurt", [hero, hero.threat, null])
 
 

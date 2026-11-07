@@ -984,6 +984,101 @@
       "title": { "de": "Obsidiansplitter" },
       "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" } ],
       "effect": { "de": "Fernkampf-Angriff 3." }
+    },
+    {
+      "qr": "HAEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Hypernova" },
+      "symbols": [ { "type": "support", "strength": 7, "damage_type": "magic" }, { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Magie-Verstärkung 7. Du verlierst 2 Lebenspunkte." }
+    },
+    {
+      "qr": "OgEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Explosivkristall" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Senke einen Boss-Schild deiner Wahl um 7. Dies löst den Effekt des Boss-Schildes nicht aus." },
+      "ability": "lower_shield",
+      "ability_values": { "amount": 7 }
+    },
+    {
+      "qr": "PAEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Astrale Linse" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Hat die nächste gespielte Karte einen Magie-Angriff, wird sie wiederholt. Führe 1 weitere Aktion aus." },
+      "ability": "next_card",
+      "ability_values": { "symbol": "attack", "damage_type": "magic", "then": "repeat" }
+    },
+    {
+      "qr": "DwEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Himmelsrune" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "magic" }, { "type": "draw", "strength": 1 } ],
+      "effect": { "de": "Magie-Angriff 4. Ein Held deiner Wahl zieht 1 Karte." },
+      "ability": "for_chosen_hero"
+    },
+    {
+      "qr": "zgEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Kristallorb" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Magie-Angriff 3. Zerstörst du mit diesem Angriff den Boss-Schild, verliert der Boss sofort 3 Leben." },
+      "ability": "shield_break_damage",
+      "ability_values": { "damage": 3 }
+    },
+    {
+      "qr": "yAEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Krone des Prinzen" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Wähle einen Helden. Bis zum Ende des Bosskampfes erhält der Boss jedes Mal 1 Gift, wenn er diesen Helden mit einer Boss-Attacke von 4 oder mehr angreift. Führe 1 weitere Aktion aus. Entferne diese Karte für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "poison_on_attack",
+      "ability_values": { "threshold": 4, "poison": 1, "remove_card": true }
+    },
+    {
+      "qr": "LgEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Astralschild" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" }, { "type": "protection", "strength": 4 } ],
+      "effect": { "de": "Magie-Verstärkung 4. Schutz 4." }
+    },
+    {
+      "qr": "JQEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Kettenblitz" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Magie-Angriff 4. Hat die nächste gespielte Karte einen Magie-Angriff, wird dieser um 3 erhöht." },
+      "ability": "next_card",
+      "ability_values": { "symbol": "attack", "damage_type": "magic", "then": "boost", "bonus": 3 }
+    },
+    {
+      "qr": "MwEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Magische Eruption" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "draw", "strength": 2 } ],
+      "effect": { "de": "Senke alle Boss-Attacken in der nächsten Runde um 3. Ein Held deiner Wahl darf 2 Karten ziehen." },
+      "ability": "weaken_next_round",
+      "ability_values": { "amount": 3, "chosen_hero": true }
+    },
+    {
+      "qr": "EQEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Elixier der Sorglosigkeit" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Entferne 1 Statusmarke von einem Helden deiner Wahl. Entferne je 1 Statusmarke von jedem Helden." },
+      "ability": "remove_tokens",
+      "ability_values": { "count": 1, "choose": true, "every_hero": 1 }
     }
   ]
 }
