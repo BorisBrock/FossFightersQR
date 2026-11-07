@@ -59,9 +59,13 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+    def end_headers(self):
+        # Nothing is cached, the page neither, or the browser may keep running an old editor after it changed.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
 
     def _error(self, status, message):
         self._send(status, {"error": message})
@@ -103,9 +107,14 @@ class Handler(SimpleHTTPRequestHandler):
             return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "too large")
         if path == "/api/catalog":
             try:
-                from validate_catalog import find_problems
+                from validate_catalog import fill_defaults, find_problems
 
-                problems = find_problems(data.decode("utf-8"))
+                # Here too, not only in the editor, so that a page from before a change still saves.
+                text, filled = fill_defaults(data.decode("utf-8"))
+                for change in filled:
+                    print(f"filled in {change}", flush=True)
+                data = text.encode("utf-8")
+                problems = find_problems(text)
             except ImportError as e:
                 return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"missing Python package: {e.name}")
             except UnicodeDecodeError as e:
@@ -148,13 +157,17 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._send(HTTPStatus.OK, {"qr": qr})
             # a card with its QR side up has no text to read
             query = parse_qs(urlsplit(self.path).query)
-            boxes = {k: _box(query.get(k)) for k in ("title", "effect")}
-            title, effect, effect_ok = ("", "", False) if qr else read_front(image, self.lang, boxes["title"], boxes["effect"])
+            # title/effect: boxes drawn on this photo; card_title/card_effect: boxes on the card, kept from earlier photos
+            photo_boxes = {k: _box(query.get(k)) for k in ("title", "effect")}
+            card_boxes = {k: _box(query.get("card_" + k)) for k in ("title", "effect")}
+            reading = None if qr else read_front(image, self.lang, photo_boxes, card_boxes)
         except ImportError as e:
             return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"missing Python package: {e.name}")
         except Exception as e:  # pytesseract raises TesseractNotFoundError and friends
             return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"OCR failed: {e}")
-        self._send(HTTPStatus.OK, {"title": title, "effect": effect, "effect_ok": effect_ok, "qr": qr})
+        if reading is None:
+            return self._send(HTTPStatus.OK, {"title": "", "effect": "", "effect_ok": False, "qr": qr})
+        self._send(HTTPStatus.OK, {**reading._asdict(), "qr": qr})
 
 
 def main():

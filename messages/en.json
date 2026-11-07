@@ -135,6 +135,9 @@
 	"notice_used_up": {
 		"body": "[player]{player}[/player] has used this up in this fight."
 	},
+	"notice_removed": {
+		"body": "This card is out of the game for the rest of the fight."
+	},
 	"notice_lightning": {
 		"body": ":lightning: Lightning! [player]{player}[/player] takes another action."
 	},
@@ -143,6 +146,12 @@
 	},
 	"option_skip": {
 		"body": "Skip"
+	},
+	"take_from_pile": {
+		"body": "[player]{player}[/player] takes [b]{count}[/b] :card: of their choice from their draw pile."
+	},
+	"card_removed": {
+		"body": "[player]{player}[/player], put this card back in the box: it is out of the game for the rest of the fight."
 	},
 	"draw_cards_everyone": {
 		"body": "Every hero draws [heal]{count}[/heal] :card:."

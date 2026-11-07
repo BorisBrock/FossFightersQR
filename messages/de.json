@@ -135,6 +135,9 @@
 	"notice_used_up": {
 		"body": "[player]{player}[/player] hat das in diesem Kampf schon aufgebraucht."
 	},
+	"notice_removed": {
+		"body": "Diese Karte ist für den Rest des Kampfes aus dem Spiel."
+	},
 	"notice_lightning": {
 		"body": ":lightning: Blitz! [player]{player}[/player] hat noch eine Aktion."
 	},
@@ -143,6 +146,12 @@
 	},
 	"option_skip": {
 		"body": "Auslassen"
+	},
+	"take_from_pile": {
+		"body": "[player]{player}[/player] nimmt [b]{count}[/b] :card: nach Wahl aus dem Nachziehstapel."
+	},
+	"card_removed": {
+		"body": "[player]{player}[/player], lege diese Karte zurück in die Schachtel: Sie ist für den Rest des Kampfes aus dem Spiel."
 	},
 	"draw_cards_everyone": {
 		"body": "Jeder Held zieht [heal]{count}[/heal] :card:."

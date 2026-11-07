@@ -6,7 +6,7 @@ extends RefCounted
 
 ## One thing a card does, from one of its symbols.
 class Effect:
-	## attack, support, protection, heal, lightning or draw.
+	## A symbol type, such as attack or draw (see docs/cards.md).
 	var type: String
 	var strength: int
 	## melee, ranged or magic for attacks and supports, otherwise empty.

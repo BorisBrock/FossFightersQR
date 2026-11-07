@@ -5,10 +5,14 @@ fixed areas of the card: the title band at the top and the text panel in the low
 cards is light on a darker background, which tesseract reads badly as it is, so every area is turned into
 clean black text on white first: the brightest colour channel separates the cream text from the coloured
 title bands, a top-hat filter removes the shading of the text panel, and blobs touching the edge of the area
-(the band's torn paper edge, ornaments) are dropped. If no card is found, the photo is taken to be the card."""
+(the band's torn paper edge, ornaments) are dropped. If no card is found, the photo is taken to be the card.
+
+Boxes the user has drawn are passed on as fractions of the card (not of the photo) for the following cards, so
+they stay right when the card lies elsewhere in the photo, e.g. after the camera was moved."""
 
 import re
 from concurrent.futures import ThreadPoolExecutor
+from typing import NamedTuple
 
 import cv2
 import numpy as np
@@ -78,35 +82,69 @@ def _read(crop, lang, psm, scale, background_kernel=0):
     return group_lines(words, 0), clear
 
 
-def read_front(image, lang, title_box=None, effect_box=None):
-    """(title, effect, effect_ok) from a photo of the card front. The boxes are (x0, y0, x1, y1) fractions of
-    the photo drawn by the user; without one the area of the found card is read. effect_ok is False when the
-    effect came out too unclear to be worth keeping (only judged without a box: a box drawn by the user is
-    trusted, and a card may simply have no effect)."""
+class Reading(NamedTuple):
+    title: str
+    effect: str
+    effect_ok: bool
+    areas: dict  # "title"/"effect": the area that was read, (x0, y0, x1, y1) fractions of the photo
+    to_card: list | None  # 3x3 matrix (row by row) from photo fractions to card fractions, None without a card
+
+
+def _bounds(points):
+    (x0, y0), (x1, y1) = np.clip(points.min(axis=0), 0, 1), np.clip(points.max(axis=0), 0, 1)
+    return tuple(round(float(v), 4) for v in (x0, y0, x1, y1))
+
+
+def read_front(image, lang, photo_boxes=None, card_boxes=None):
+    """Reads title and effect from a photo of the card front. Boxes are (x0, y0, x1, y1) by "title"/"effect":
+    photo_boxes are fractions of this photo (drawn by the user on it), card_boxes fractions of the card (boxes
+    drawn on an earlier photo, which stay right wherever the card lies in the photo). Without a box the card's
+    title band and text panel are read. effect_ok is False when the effect came out too unclear to be worth
+    keeping (only judged without a box: a box from the user is trusted, and a card may simply have no effect)."""
+    photo_boxes, card_boxes = photo_boxes or {}, card_boxes or {}
+    h, w = image.shape[:2]
     corners = find_card(image)
     if corners is not None:
         card = straighten(image, corners, CARD_WIDTH)
         card_width = (np.linalg.norm(corners[1] - corners[0]) + np.linalg.norm(corners[2] - corners[3])) / 2
+        ch = card.shape[0]
+        unit = np.float32([[0, 0], [1, 0], [1, 1], [0, 1]])
+        to_card = cv2.getPerspectiveTransform(np.float32(corners / [w, h]), unit)
+        to_photo = np.linalg.inv(to_card)
     else:
-        card = cv2.resize(image, (CARD_WIDTH, round(image.shape[0] * CARD_WIDTH / image.shape[1])))
-        card_width = image.shape[1]
+        card = cv2.resize(image, (CARD_WIDTH, round(h * CARD_WIDTH / w)))
+        card_width = w
+        to_card = to_photo = None
+        card_boxes = {}  # without the card the photo is taken to be the card, a box on a real card would be off
 
-    def area(box, default):
-        if not box:
-            return _crop(card, default)
-        # a box drawn by the user is cut from the photo, and scaled as if it was cut from the straightened card
-        s = CARD_WIDTH / card_width
-        return cv2.resize(_crop(image, box), None, fx=s, fy=s, interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_CUBIC)
+    areas = {}
+
+    def area(key, default):
+        if photo_boxes.get(key):
+            # cut from the photo, and scaled as if it was cut from the straightened card
+            areas[key] = photo_boxes[key]
+            s = CARD_WIDTH / card_width
+            return cv2.resize(_crop(image, photo_boxes[key]), None, fx=s, fy=s,
+                              interpolation=cv2.INTER_AREA if s < 1 else cv2.INTER_CUBIC)
+        box = card_boxes.get(key) or default
+        x0, y0, x1, y1 = box
+        if to_photo is None:
+            areas[key] = tuple(box)
+        else:
+            quad = np.float32([[[x0, y0], [x1, y0], [x1, y1], [x0, y1]]])
+            areas[key] = _bounds(cv2.perspectiveTransform(quad, to_photo)[0])
+        return _crop(card, box)
 
     with ThreadPoolExecutor(2) as pool:  # tesseract runs as separate processes
-        title_job = pool.submit(_read, area(title_box, TITLE_AREA), lang, 7, TITLE_SCALE)
-        effect_job = pool.submit(_read, area(effect_box, EFFECT_AREA), lang, 6, EFFECT_SCALE, EFFECT_BACKGROUND_KERNEL)
+        title_job = pool.submit(_read, area("title", TITLE_AREA), lang, 7, TITLE_SCALE)
+        effect_job = pool.submit(_read, area("effect", EFFECT_AREA), lang, 6, EFFECT_SCALE, EFFECT_BACKGROUND_KERNEL)
         title_lines, _ = title_job.result()
         effect_lines, clear = effect_job.result()
     # decoration next to the title comes out as stray characters
     title = clean(re.sub(r"^[\W_]+|[\W_]+$", "", " ".join(l.text for l in title_lines)))
     effect = join_paragraphs(effect_lines)
-    if effect_box:
-        return title, effect, bool(effect)
+    matrix = None if to_card is None else [round(float(v), 6) for v in to_card.flatten()]
+    if photo_boxes.get("effect") or card_boxes.get("effect"):
+        return Reading(title, effect, bool(effect), areas, matrix)
     ok = bool(effect) and clear
-    return title, effect if ok else "", ok
+    return Reading(title, effect if ok else "", ok, areas, matrix)

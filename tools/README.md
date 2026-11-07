@@ -27,7 +27,9 @@ runs the German OCR. It only listens on localhost and rejects requests from othe
 The server finds the card in the photo by its edges and straightens it, so the card may be a little off the frame
 or tilted, but all four edges have to be in the photo, against a background that is lighter or darker than the
 card's border. The title band and the text panel are then read at their fixed places on the card
-(`tools/ocr/ocr.py`). Boxes drawn on the photo in step 3 replace that for the following cards until *Reset boxes*.
+(`tools/ocr/ocr.py`); step 3 shows the areas that were read as boxes on the photo. A box drawn on the photo is
+read with *Read again* and used for the following cards until *Reset boxes*. It is remembered relative to the card,
+not to the photo, so it still fits after the camera or the card has moved.
 Light the card from the front and avoid glare. If the effect text is unclear it is left empty rather than filled
 with junk; type it from the photo. Small icons inside the effect text are not recognised.
 Scanned cards only get German texts. The game shows German where a translation is missing.

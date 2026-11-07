@@ -503,6 +503,149 @@
       "title": { "de": "Klingenblitz" },
       "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
       "effect": { "de": "Magie-Angriff 3." }
+    },
+    {
+      "qr": "NAEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Arkanfalter" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" }, { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Magie-Angriff 3.\nDieser Angriff löst den Effekt des Boss-Schildes nicht aus. Führe 1 weitere Aktion aus." },
+      "ability": "todo"
+    },
+    {
+      "qr": "1AEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Magmahorn" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Durchsuche deinen Nachziehstapel nach 1 Karte und spiele sie. Mische danach deinen Nachziehstapel. Entferne die herausgesuchte Karte für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "awEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Toxikum" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Der Boss verliert ab sofort für jedes Giftsymbol jeweils 1 Leben mehr. Entferne Toxikum für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "2QEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Geisterwolf" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Magie-Verstärkung 4. Für jede Verstärkung, die du in dieser Runde bereits gespielt hast, ist diese Verstärkung um 2 erhöht." },
+      "ability": "todo"
+    },
+    {
+      "qr": "JwEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Lichtpfeile" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Fernkampf-Angriff 4. Hat die nächste gespielte Karte einen Fernkampf-Angriff, bekommt sie 1 Blitz." },
+      "ability": "todo"
+    },
+    {
+      "qr": "1gEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Bombling" },
+      "symbols": [ { "type": "attack", "strength": 7, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 7. Dieser Angriff wird erst zu Beginn deines ersten Zuges in der nächsten Runde ausgeführt." },
+      "ability": "todo"
+    },
+    {
+      "qr": "2AEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Schleimiger Helm" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 4. Der Boss verliert Leben in Höhe der beim geschützten Helden verbleibenden Boss-Attacke." },
+      "ability": "todo"
+    },
+    {
+      "qr": "0wEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Kultistenkette" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Die Boss-Attacke gegen einen Helden deiner Wahl wird halbiert (und abgerundet). Entferne den Zusatzeffekt der Boss- Attacke beim ausgewählten Helden." },
+      "ability": "todo"
+    },
+    {
+      "qr": "CAEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Fluchbrecher" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Lege 1 aktiven Fluch aus der Auslage eines Helden auf den Fluch-Ablagestapel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "ywEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Lianenschlange" },
+      "symbols": [ { "type": "poison", "strength": 1 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Der Boss erhält 1 Gift. Nutze 1 Gegenstand deiner Wahl." },
+      "ability": "todo"
+    },
+    {
+      "qr": "aAEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Pestbote" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "poison", "strength": 2 } ],
+      "effect": { "de": "Du darfst diese Karte nur ausspielen, wenn du zusätzlich eine andere Handkarte auf deinen Nachziehstapel legst. Der Boss erhält 2 Gift." },
+      "ability": "todo"
+    },
+    {
+      "qr": "GwEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Wunderlampe" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl spielt die obersten 3 Karten seines Nachziehstapels aus. Entferne die Wunderlampe für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "HgEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Amulett der Zeit" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Die zuletzt gespielte Karte mit einem Angriff wird wiederholt." },
+      "ability": "todo"
+    },
+    {
+      "qr": "HQEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Borax’ Kriegshammer" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 4. Ein Held deiner Wahl darf 1 seiner Statusmarken entfernen." },
+      "ability": "todo"
+    },
+    {
+      "qr": "LQEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Lava-Axt" },
+      "symbols": [ { "type": "attack", "strength": 6, "damage_type": "melee" }, { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Nahkampf-Angriff 6. Du verlierst 2 Lebenspunkte." }
+    },
+    {
+      "qr": "OQEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Stachelbola" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Hat die nächste gespielte Karte einen Fernkampf-Angriff, wird sie wiederholt. Führe 1 weitere Aktion aus." },
+      "ability": "todo"
     }
   ]
 }

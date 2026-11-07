@@ -151,7 +151,7 @@
         <span>Draw box for:</span>
         <label><input type="radio" name="boxTarget" value="title" checked> Title</label>
         <label><input type="radio" name="boxTarget" value="effect"> Effect</label>
-        <button type="button" id="resetBoxes" title="Back to the default positions">Reset boxes</button>
+        <button type="button" id="resetBoxes" title="Forget the drawn boxes and read the card's own title and text areas again">Reset boxes</button>
         <button type="button" id="reread" title="Read the text again from the boxes">Read again</button>
       </div>
       <div id="photoBox">
@@ -220,7 +220,10 @@ const DECKS = [
   "loot", "items",
 ];
 for (const id of ["deck", "f_deck"]) document.getElementById(id).append(...DECKS.map(d => new Option(d)));
-const SYMBOL_TYPES = ["attack", "support", "protection", "heal", "lightning", "draw", "poison", "health_loss", "direct_damage", "special"];
+// A card with the special symbol needs an ability; until it is written, it gets this one (scripts/abilities/todo.gd).
+const PLACEHOLDER_ABILITY = "todo";
+const SYMBOL_TYPES = ["attack", "support", "protection", "heal", "lightning", "draw", "poison", "health_loss", "direct_damage", "take_from_pile", "remove_from_game", "special"];
+const NO_STRENGTH = ["special", "remove_from_game"];  // their strength is not used
 const DAMAGE_SYMBOLS = ["attack", "support"];
 const DAMAGE_TYPES = ["melee", "ranged", "magic"];
 
@@ -296,6 +299,10 @@ if (typeof document !== "undefined") (() => {
     }
   };
   async function save(as) {  // resolves to true when saved
+    for (const c of cards) {  // also for cards scanned or loaded without them
+      for (const s of c.symbols ?? []) if (NO_STRENGTH.includes(s.type)) s.strength = 0;
+      if (!c.ability && c.symbols?.some(s => s.type === "special")) c.ability = PLACEHOLDER_ABILITY;
+    }
     const invalid = cards.filter(c => validateCard(c, cards).length).length;
     if (invalid && serverMode) { alert(`${invalid} card(s) have problems, see the top of the page. Fix them to save.`); return false; }
     if (invalid && !confirm(`${invalid} card(s) have problems and the game would not load them. Save anyway?`)) return false;
@@ -382,9 +389,13 @@ if (typeof document !== "undefined") (() => {
     const row = el("div", "sym");
     const type = el("select"); for (const t of SYMBOL_TYPES) type.append(new Option(t, t, false, t === s.type));
     const kind = el("select"); for (const k of DAMAGE_TYPES) kind.append(new Option(k, k, false, k === s.damage_type));
-    const showKind = () => kind.hidden = !DAMAGE_SYMBOLS.includes(type.value);
-    type.onchange = showKind; showKind();
     const str = el("input"); str.type = "number"; str.min = 0; str.value = s.strength;
+    const update = () => {
+      kind.hidden = !DAMAGE_SYMBOLS.includes(type.value);
+      str.disabled = NO_STRENGTH.includes(type.value);  // always 0
+      if (str.disabled) str.value = 0;
+    };
+    type.onchange = type.oninput = update; update();
     const rm = el("button", "danger", "✕"); rm.type = "button"; rm.onclick = () => row.remove();
     row.append(type, kind, str, rm); $("symbols").append(row);
   }
@@ -452,7 +463,8 @@ if (typeof document !== "undefined") (() => {
     };
     const level = $("f_level").value.trim();
     const symbols = [...$("symbols").children].map(r => {
-      const s = { type: r.children[0].value, strength: parseInt(r.children[2].value || "0", 10) };
+      const type = r.children[0].value;
+      const s = { type, strength: NO_STRENGTH.includes(type) ? 0 : parseInt(r.children[2].value || "0", 10) };
       if (DAMAGE_SYMBOLS.includes(s.type)) s.damage_type = r.children[1].value;
       return s;
     });
@@ -464,7 +476,9 @@ if (typeof document !== "undefined") (() => {
     };
     if (level) draft.level = parseInt(level, 10); else delete draft.level;
     const ability = $("f_ability").value.trim(), abilityValues = $("f_ability_values").value.trim(), uses = $("f_uses").value.trim();
-    if (ability) draft.ability = ability; else delete draft.ability;
+    if (ability) draft.ability = ability;
+    else if (symbols.some(s => s.type === "special")) draft.ability = PLACEHOLDER_ABILITY;  // to be written later
+    else delete draft.ability;
     if (uses) draft.uses_per_fight = parseInt(uses, 10); else delete draft.uses_per_fight;
     const tags = [...new Set($("f_tags").value.split(",").map(t => t.trim()).filter(t => t))];
     if (tags.length) draft.tags = tags; else delete draft.tags;
@@ -629,18 +643,38 @@ if (typeof document !== "undefined") (() => {
     } finally { c.busy = false; }
   }
   // the edit form, filled with what was scanned
-  // Where the title and the effect are on the card photo (x0, y0, x1, y1 as fractions). Without boxes drawn by
-  // the user the server finds the card itself and reads its title band and text panel; the default boxes only
-  // show roughly where that is for a card that fills the guide frame. Boxes the user has drawn are remembered and
-  // used for every following card, since the cards share one layout.
-  const DEFAULT_BOXES = { title: [0.13, 0.02, 0.87, 0.11], effect: [0.18, 0.63, 0.82, 0.88] };
-  let boxes = { ...DEFAULT_BOXES }, boxesCustom = false;
-  // "boxes2": boxes saved under "boxes" were drawn on the narrower photo of the guide frame alone
-  delete localStorage.boxes;
-  try { const saved = JSON.parse(localStorage.boxes2); if (saved?.title && saved?.effect) { boxes = saved; boxesCustom = true; } } catch {}
-  const boxQuery = () => boxesCustom ? `?title=${boxes.title}&effect=${boxes.effect}` : "";
+  // Where the title and the effect are read (x0, y0, x1, y1 as fractions). The server finds the card in the photo
+  // and reads its title band and text panel; the boxes show the areas it read. A box the user draws on the photo
+  // is read with "Read again" and remembered for the following cards as a fraction of the card, not of the photo,
+  // so it still fits when the card lies elsewhere in the next photo (e.g. after the camera was moved).
+  let boxes = {}, reading = null;  // boxes on the current photo, and the server's last result for it
+  const drawn = new Set();  // keys of the boxes the user drew on the current photo
+  // "boxes"/"boxes2" were fractions of the photo and went wrong as soon as the camera or the card moved
+  delete localStorage.boxes; delete localStorage.boxes2;
+  let cardBoxes = {};
+  try { cardBoxes = JSON.parse(localStorage.cardBoxes) || {}; } catch {}
+  function boxQuery(photoBoxes = {}) {
+    const params = [];
+    for (const k of ["title", "effect"]) {
+      if (photoBoxes[k]) params.push(`${k}=${photoBoxes[k]}`);
+      else if (cardBoxes[k]) params.push(`card_${k}=${cardBoxes[k]}`);
+    }
+    return params.length ? "?" + params.join("&") : "";
+  }
+  // a box on the photo as a box on the card, by the photo-to-card matrix the server found
+  function toCard([x0, y0, x1, y1], m) {
+    const pts = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([x, y]) => {
+      const d = m[6] * x + m[7] * y + m[8];
+      return [(m[0] * x + m[1] * y + m[2]) / d, (m[3] * x + m[4] * y + m[5]) / d];
+    });
+    const r = v => Math.round(Math.min(1, Math.max(0, v)) * 10000) / 10000;
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    return [r(Math.min(...xs)), r(Math.min(...ys)), r(Math.max(...xs)), r(Math.max(...ys))];
+  }
   function showBoxes() {
     for (const [k, id] of [["title", "boxTitle"], ["effect", "boxEffect"]]) {
+      $(id).hidden = !boxes[k];
+      if (!boxes[k]) continue;
       const [x0, y0, x1, y1] = boxes[k], st = $(id).style;
       st.left = x0 * 100 + "%"; st.top = y0 * 100 + "%"; st.width = (x1 - x0) * 100 + "%"; st.height = (y1 - y0) * 100 + "%";
     }
@@ -649,7 +683,7 @@ if (typeof document !== "undefined") (() => {
   $("photoBox").onpointerdown = e => {
     const r = $("photoBox").getBoundingClientRect();
     drag = { r, x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, target: document.querySelector("input[name=boxTarget]:checked").value };
-    drag.before = [...boxes[drag.target]];
+    drag.before = boxes[drag.target];
     $("photoBox").setPointerCapture(e.pointerId);
   };
   $("photoBox").onpointermove = e => {
@@ -661,8 +695,12 @@ if (typeof document !== "undefined") (() => {
   $("photoBox").onpointerup = () => {
     if (!drag) return;
     const b = boxes[drag.target];
-    if (b[2] - b[0] < 0.03 || b[3] - b[1] < 0.01) boxes[drag.target] = drag.before;  // a click, not a box
-    else { boxes[drag.target] = b.map(v => Math.round(v * 1000) / 1000); boxesCustom = true; localStorage.boxes2 = JSON.stringify(boxes); }
+    if (!b || b[2] - b[0] < 0.03 || b[3] - b[1] < 0.01) boxes[drag.target] = drag.before;  // a click, not a box
+    else {
+      boxes[drag.target] = b.map(v => Math.round(v * 1000) / 1000); drawn.add(drag.target);
+      // without a card found in this photo the box can only be used for this photo
+      if (reading?.to_card) { cardBoxes[drag.target] = toCard(boxes[drag.target], reading.to_card); localStorage.cardBoxes = JSON.stringify(cardBoxes); }
+    }
     drag = null; showBoxes();
   };
   function reviewHint(result) {
@@ -674,18 +712,20 @@ if (typeof document !== "undefined") (() => {
   function review(qr, result, blob) {
     edit(null, { scan: true });
     $("f_qr").value = qr;
-    $("photo").src = URL.createObjectURL(blob); showBoxes();
+    $("photo").src = URL.createObjectURL(blob);
     fillResult(result);
   }
   function fillResult(result) {
+    reading = result; boxes = { ...result.areas }; drawn.clear(); showBoxes();
     $("f_title_de").value = result.title; $("f_eff_de").value = result.effect;
     $("reviewHint").hidden = false; $("reviewHint").textContent = reviewHint(result);
   }
-  $("resetBoxes").onclick = () => { boxes = structuredClone(DEFAULT_BOXES); boxesCustom = false; delete localStorage.boxes2; showBoxes(); };
+  $("resetBoxes").onclick = () => { cardBoxes = {}; delete localStorage.cardBoxes; drawn.clear(); $("reread").click(); };
   $("reread").onclick = async () => {
     if (!cam?.blob) return;
     $("reread").disabled = true;
-    try { fillResult(await api("/api/ocr" + boxQuery(), cam.blob)); }
+    const photoBoxes = Object.fromEntries([...drawn].map(k => [k, boxes[k]]));
+    try { fillResult(await api("/api/ocr" + boxQuery(photoBoxes), cam.blob)); }
     catch (e) { $("formErr").textContent = "Reading failed: " + e.message; }
     $("reread").disabled = false;
   };

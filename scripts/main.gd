@@ -16,6 +16,8 @@ const TEXT := {
 	"unknown_card": { "de": "Unbekannte Karte", "en": "Unknown card" },
 	"level": { "de": "Stufe %d", "en": "Level %d" },
 }
+## Symbols whose strength is not used, so it is not shown.
+const NO_STRENGTH := ["special", "remove_from_game"]
 const SYMBOLS := {
 	"attack": { "de": "Angriff", "en": "Attack" },
 	"support": { "de": "Unterstützung", "en": "Support" },
@@ -26,6 +28,8 @@ const SYMBOLS := {
 	"poison": { "de": "Gift", "en": "Poison" },
 	"health_loss": { "de": "Lebensverlust", "en": "Health loss" },
 	"direct_damage": { "de": "Direkter Schaden", "en": "Direct damage" },
+	"take_from_pile": { "de": "Karte aus Nachziehstapel wählen", "en": "Take card from draw pile" },
+	"remove_from_game": { "de": "Aus dem Spiel nehmen", "en": "Remove from game" },
 	"special": { "de": "Spezialeffekt *", "en": "Special effect *" },
 }
 
@@ -149,7 +153,7 @@ func _show_card(qr: String) -> void:
 		var symbols := PackedStringArray()
 		for symbol: Card.Symbol in card.symbols:
 			var symbol_name: String = CardDatabase.localized(SYMBOLS[symbol.type], locale) if SYMBOLS.has(symbol.type) else symbol.type.capitalize()
-			symbols.append(symbol_name if symbol.type == "special" else "%s %d" % [symbol_name, symbol.strength])
+			symbols.append(symbol_name if symbol.type in NO_STRENGTH else "%s %d" % [symbol_name, symbol.strength])
 		lines.append(" · ".join(symbols))
 	if not card.effect.is_empty():
 		lines.append(CardDatabase.localized(card.effect, locale))

@@ -97,6 +97,9 @@ var health := 0
 var max_health := 0
 ## The boss's shields, by damage type.
 var shields := {}
+## The cards out of the game for the rest of the fight (remove_from_game), by QR code.
+## They cannot be played again, by any hero.
+var removed: Array[String] = []
 ## The damage types attacked this round, which Supports need.
 var attacked: Array[String] = []
 ## Who starts this round's action phase.
@@ -754,6 +757,13 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 			await hurt_hero(hero, effect.strength, play)
 		"direct_damage":
 			await deal_damage(effect.strength, DIRECT, play)
+		"take_from_pile":
+			for receiver in play.receivers():
+				tell("take_from_pile", { "player": receiver.name, "count": effect.strength })
+		"remove_from_game":
+			if not play.card.qr in removed:
+				removed.append(play.card.qr)
+			tell("card_removed", { "player": hero.name })
 		"special":
 			pass  # Only marks the card: what it does is its ability.
 		_:
@@ -764,6 +774,8 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 func _why_not(play: CardPlay) -> String:
 	var card := play.card
 	var hero := play.hero
+	if card.qr in removed:
+		return "notice_removed"
 	if card.qr in hero.played:
 		return "notice_played_already"
 	var deck_owner := card.deck in HeroOptions.RACES or card.deck in HeroOptions.CLASSES

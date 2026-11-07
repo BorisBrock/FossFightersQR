@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 136
+const EXPECTED_CHECKS := 139
 
 var _failures := 0
 var _checks_run := 0
@@ -199,6 +199,15 @@ func _check_cards() -> void:
 	fight = _started(TestBoss.new())
 	var told_before := _told.size()
 	_check(fight.scan(_card("WISH", [["special", 0]], "halfling")) == "" and _told.size() == told_before, "the special mark does nothing by itself")
+	fight.abandon()
+	fight = _started(TestBoss.new())
+	var horn := _card("MAGMA", [["take_from_pile", 1], ["remove_from_game", 0]], "items")
+	fight.scan(horn)
+	_check(_told[-1] == "take_from_pile" and _values[-1].count == 1, "a card taken from the draw pile is told")
+	_ready(fight)
+	_check(_told[-1] == "card_removed", "and so is a card put away")
+	_ready(fight)
+	_check(fight.request != null and fight.scan(horn) == "notice_removed", "a card out of the game cannot be played again")
 	fight.abandon()
 
 

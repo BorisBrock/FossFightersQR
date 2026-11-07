@@ -40,10 +40,14 @@ To fill the file from physical cards, see [tools/README.md](../tools/README.md).
 What the fight reads from a card (see [The boss fight](boss_fight.md#how-a-fight-goes) for what each does):
 
 - **`symbols`:** what is printed on the card, each with a `type` (`attack`, `support`, `protection`, `heal`,
-  `lightning`, `draw`, `poison`, `health_loss`, `direct_damage`, `special`) and a `strength`. Attacks and supports also
+  `lightning`, `draw`, `poison`, `health_loss`, `direct_damage`, `take_from_pile`, `remove_from_game`, `special`) and a
+  `strength`. Attacks and supports also
   have a `damage_type`: `melee`, `ranged` or `magic`. They take effect in their order on the card. `health_loss` is the
   red heart: the hero who plays the card loses that much health. `direct_damage` is the broken heart: that much damage
-  goes straight to the boss's health, past its shields. `poison` (the boss gets that many poison tokens) is only
+  goes straight to the boss's health, past its shields. `take_from_pile` (a deck with two arrows): the player takes that
+  many cards of their choice from their draw pile, unlike `draw`, which takes the top ones. `remove_from_game` (a card
+  ripped in half): the players are told to put the card away, and it cannot be played again in the fight, by anyone;
+  give it strength `0`. `poison` (the boss gets that many poison tokens) is only
   recorded so far: the fight does not apply it yet and ignores it with a warning. `special` is the `*`: it only marks a
   card with a special effect, which its `ability` does; give it strength `0`. An attack whose strength the text
   decides, such as *Krawumm*'s, has strength `0`, and its ability sets it.
@@ -64,9 +68,12 @@ A card without symbols or ability, such as *Pass*, uses up an action and does no
   from `ability_values` (`if_healthy` with `{ "draw": 2 }` or `{ "heal": 3 }`). An effect that only one card has gets
   a script of its own (`knightly_aid`). There is no rules language in the JSON: the card texts vary too much for one.
 
-**Checks**, so that no card does less than it says without anyone noticing: `tools/validate_catalog.py` refuses a card
-with the `special` symbol, an attack or support of strength `0`, or a character or class card with an effect, that has
-no ability, and an ability without its script. `tests/test_fight.gd` checks that every ability in the catalog loads.
+**Checks**, so that no card does less than it says without anyone noticing: `tools/validate_catalog.py` refuses an
+attack or support of strength `0`, or a character or class card with an effect, that has no ability, and an ability
+without its script. A card with the `special` symbol but no ability is not refused: the editor, and `tools/server.py`
+when saving, give it the placeholder `todo` (`scripts/abilities/todo.gd`), which does nothing and warns when the card
+is played, so that it can be recorded now and its ability written later. Search the catalog for `"todo"` to find
+them. `tests/test_fight.gd` checks that every ability in the catalog loads.
 
 ### Abilities
 

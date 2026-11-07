@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from validate_catalog import CARDS_DIR, find_problems
+from validate_catalog import CARDS_DIR, fill_defaults, find_problems, serialize
 
 
 def catalog(*cards):
@@ -40,8 +40,11 @@ class FindProblems(unittest.TestCase):
     def test_special_symbol(self):
         self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}], "ability": "free_play"})), [])
 
-    def test_special_symbol_needs_an_ability(self):
-        self.assertIn("no ability", find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}]}))[0])
+    def test_special_symbol_with_the_placeholder_ability(self):
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}], "ability": "todo"})), [])
+
+    def test_special_symbol_without_an_ability_is_no_problem(self):
+        self.assertEqual(find_problems(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}]})), [])
 
     def test_attack_of_strength_0_needs_an_ability(self):
         card = {**CARD, "symbols": [{"type": "attack", "strength": 0, "damage_type": "melee"}]}
@@ -101,6 +104,31 @@ class FindProblems(unittest.TestCase):
 
     def test_rejects_another_schema_version(self):
         self.assertTrue(find_problems(json.dumps({"schema_version": 1, "cards": []})))
+
+
+class FillDefaults(unittest.TestCase):
+    def test_gives_a_special_card_the_placeholder_and_strength_0(self):
+        text, filled = fill_defaults(catalog({**CARD, "symbols": [{"type": "special", "strength": 1}]}))
+        self.assertEqual(len(filled), 2)
+        card = json.loads(text)["cards"][0]
+        self.assertEqual((card["ability"], card["symbols"][0]["strength"]), ("todo", 0))
+        self.assertEqual(find_problems(text), [])
+
+    def test_keeps_an_ability(self):
+        text, _ = fill_defaults(catalog({**CARD, "symbols": [{"type": "special", "strength": 0}], "ability": "free_play"}))
+        self.assertEqual(json.loads(text)["cards"][0]["ability"], "free_play")
+
+    def test_leaves_the_text_alone_when_nothing_is_missing(self):
+        text = catalog(CARD)
+        self.assertEqual(fill_defaults(text), (text, []))
+
+    def test_skips_a_broken_card_but_fills_the_others(self):
+        text, _ = fill_defaults(catalog({**CARD, "symbols": None}, {**CARD, "qr": "B", "symbols": [{"type": "special", "strength": 0}]}))
+        self.assertEqual(json.loads(text)["cards"][1]["ability"], "todo")
+
+    def test_writes_the_catalog_as_the_editor_does(self):
+        text = (CARDS_DIR / "cards.json").read_text(encoding="utf-8")
+        self.assertEqual(serialize(json.loads(text)), text)
 
 
 if __name__ == "__main__":
