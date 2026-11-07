@@ -539,8 +539,8 @@
       "title": { "de": "Geisterwolf" },
       "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
       "effect": { "de": "Magie-Verstärkung 4. Für jede Verstärkung, die du in dieser Runde bereits gespielt hast, ist diese Verstärkung um 2 erhöht." },
-      "ability": "support_per_support",
-      "ability_values": { "bonus": 2 }
+      "ability": "bonus_per_symbol",
+      "ability_values": { "symbol": "support", "bonus": 2 }
     },
     {
       "qr": "JwEAAA==",
@@ -654,6 +654,111 @@
       "effect": { "de": "Hat die nächste gespielte Karte einen Fernkampf-Angriff, wird sie wiederholt. Führe 1 weitere Aktion aus." },
       "ability": "next_card",
       "ability_values": { "damage_type": "ranged", "then": "repeat" }
+    },
+    {
+      "qr": "BwEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Arkanes Monokel" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" }, { "type": "support", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 3. Magie-Verstärkung 3." }
+    },
+    {
+      "qr": "1QEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Zeitschnitter" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 2. Für jeden Angriff, den du in dieser Runde bereits gespielt hast, ist dieser Angriff um 2 erhöht." },
+      "ability": "bonus_per_symbol",
+      "ability_values": { "symbol": "attack", "bonus": 2 }
+    },
+    {
+      "qr": "MQEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Harlekinpeitsche" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "melee" }, { "type": "support", "strength": 3, "damage_type": "ranged" }, { "type": "support", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 3. Fernkampf-Verstärkung 3. Magie-Verstärkung 3." }
+    },
+    {
+      "qr": "JgEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Schwelende Keule" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 4. Hat die nächste gespielte Karte einen Schutz-Effekt, wird dieser um 3 erhöht." },
+      "ability": "next_card",
+      "ability_values": { "symbol": "protection", "then": "boost", "bonus": 3 }
+    },
+    {
+      "qr": "GgEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Ornithopter" },
+      "symbols": [ { "type": "direct_damage", "strength": 3 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Der Boss verliert sofort 3 Leben. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "FgEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Arkane Klinge" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" }, { "type": "support", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 4. Magie-Verstärkung 3." }
+    },
+    {
+      "qr": "CgEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Geweihte Schulterplatten" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 4. Entfernt den Zusatzeffekt der gesenkten Boss-Attacke." },
+      "ability": "clear_attack_effects"
+    },
+    {
+      "qr": "EgEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Todsicherer Pfeil" },
+      "symbols": [ { "type": "support", "strength": 5, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 5." }
+    },
+    {
+      "qr": "zAEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Drachenschuppe" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 4. Wird als Nächstes eine Karte mit einem Magie-Angriff gespielt, ist der Angriff um 2 erhöht." },
+      "ability": "next_card",
+      "ability_values": { "damage_type": "magic", "then": "boost", "bonus": 2 }
+    },
+    {
+      "qr": "DgEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Anspornen" },
+      "symbols": [ { "type": "draw", "strength": 3 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl zieht 3 Karten. Dieser Held darf sofort 1 Aktion ausführen." },
+      "ability": "for_chosen_hero",
+      "ability_values": { "action": true }
+    },
+    {
+      "qr": "DAEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Wurfschild des Gladiators" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" }, { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Fernkampf-Verstärkung 3. Schutz 3." }
+    },
+    {
+      "qr": "CwEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Klinge des Windes" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Nahkampf-Angriff 3. Führe 1 weitere Aktion aus." }
     }
   ]
 }

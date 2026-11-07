@@ -94,9 +94,9 @@ serves many cards.
 | `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen |
 | `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
-| `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe |
+| `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
 | `raven_curse` | The card lies by the hero; the players may discard it to prevent an @-ability against them. | | Fluch des Raben |
 | `anti_boss` | Prevents the boss's next @-ability up to `strength`. | `strength` (5) | Anti-Boss-3000 |
@@ -104,8 +104,8 @@ serves many cards.
 | `ignore_shield_effects` | The card's attacks do not set off what the boss's shields do besides absorbing. | | Arkanfalter |
 | `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
 | `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
-| `support_per_support` | The card's Supports are stronger for each card with a Support the hero played this round. | `bonus` (2) | Geisterwolf |
-| `next_card` | The next card played, by anyone, gets a Lightning or takes effect twice, if it has an attack of `damage_type`. | `damage_type` (ranged), `then` (`lightning` or `repeat`) | Lichtpfeile, Stachelbola |
+| `bonus_per_symbol` | The card's effects of `symbol` are stronger for each card with that symbol the hero played this round. | `symbol` (support), `bonus` (2) | Geisterwolf, Zeitschnitter |
+| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe |
 | `delayed_attack` | The card's attacks only take effect at the start of the hero's first turn next round. | | Bombling |
 | `threat_hurts_boss` | The boss loses what is left of its attack against the heroes the card protected. | | Schleimiger Helm |
 | `halve_attack` | The attack against a hero of the players' choice is halved, rounded down, and loses its extra effect. | | Kultistenkette |

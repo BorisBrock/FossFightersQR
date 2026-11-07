@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 197
+const EXPECTED_CHECKS := 205
 
 var _failures := 0
 var _checks_run := 0
@@ -62,6 +62,7 @@ func _initialize() -> void:
 	_check_more_traits()
 	_check_catalog_abilities()
 	_check_loot_cards()
+	_check_more_loot_cards()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -484,6 +485,58 @@ func _check_more_traits() -> void:
 	_check(_asks_card_of(fight, 1) and fight.request.prompt == "prompt_top_card_or_item", "the Troll Chieftain's first hit in a turn plays the top card")
 	fight.scan(_card("B2", [["attack", 1, "ranged"]], "halfling"))
 	_check(_asks_card_of(fight, 3), "but only the first")
+	fight.abandon()
+
+
+## More loot cards with an ability, from the catalog.
+func _check_more_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Zeitschnitter: 2 more for each attack the hero played this round.
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	var fight := _started(boss)
+	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "halfling"))
+	fight.scan(catalog.find("1QEAAA=="))
+	_check(fight.health == 25 and _asks_card_of(fight, 3), "Zeitschnitter: 2, and 2 more for the attack before")
+	fight.abandon()
+
+	# Drachenschuppe: the next card with a magic attack hits 2 harder, only that one.
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("zAEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 0 and _asks_card_of(fight, 3), "Drachenschuppe: protection 4")
+	fight.scan(_card("BOLT", [["attack", 1, "magic"]], "dwarf"))
+	_check(fight.health == 27, "and the next magic attack is 2 stronger")
+	fight.scan(_card("BOLT2", [["attack", 1, "magic"]], "dryad"))
+	_check(fight.health == 26, "but not the one after")
+	fight.abandon()
+
+	# Schwelende Keule: the next card's Protection is 3 stronger.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("JgEAAA=="))
+	fight.scan(_card("GUARD", [["protection", 1]], "dwarf"))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 0, "Schwelende Keule: the next Protection is 3 stronger")
+	fight.abandon()
+
+	# Geweihte Schulterplatten: the protected attack loses its poison.
+	boss = TestBoss.new()
+	boss.threats = { 5: 6 }
+	fight = _started(boss)
+	fight.scan(catalog.find("CgEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 2 and fight.hero_at(5).threat_effects.is_empty() and _told[-1] == "attack_effects_removed", "Geweihte Schulterplatten: protection 4, and the attack loses its poison")
+	fight.abandon()
+
+	# Anspornen: a hero of the players' choice draws 3 and acts at once.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("DgEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "draw_cards" and _values[-1].player == "Sonja" and _values[-1].count == 3, "Anspornen: the chosen hero draws 3")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "and acts at once")
 	fight.abandon()
 
 
