@@ -759,6 +759,66 @@
       "title": { "de": "Klinge des Windes" },
       "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "lightning", "strength": 1 } ],
       "effect": { "de": "Nahkampf-Angriff 3. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "TQEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Heiltrank" },
+      "ability": "heal_hero",
+      "ability_values": { "amount": 8 },
+      "uses_per_fight": 1
+    },
+    {
+      "qr": "mQAAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Rucksack" },
+      "symbols": [ { "type": "draw", "strength": 3 } ]
+    },
+    {
+      "qr": "BAEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Medizintasche" },
+      "ability": "remove_tokens",
+      "ability_values": { "count": 2 }
+    },
+    {
+      "qr": "mAAAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Trinkschlauch" },
+      "symbols": [ { "type": "heal", "strength": 3 } ]
+    },
+    {
+      "qr": "BQEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Glücksbringer" },
+      "ability": "lucky_charm"
+    },
+    {
+      "qr": "fAEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Opas Glasauge" },
+      "ability": "only_for",
+      "ability_values": { "race": "troll" }
+    },
+    {
+      "qr": "wQEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Fackel" },
+      "ability": "not_here"
+    },
+    {
+      "qr": "xwEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Machete" },
+      "ability": "not_here"
     }
   ]
 }

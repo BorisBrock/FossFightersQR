@@ -87,9 +87,9 @@ serves many cards.
 |---------|------|--------|-------|
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | |
-| `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table. | `count` (2), `choose` (false: the hero who plays it) | Gardehelm, Borax’ Kriegshammer |
-| `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | |
+| `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table. | `count` (2), `choose` (false: the hero who plays it) | Gardehelm, Borax’ Kriegshammer, Medizintasche |
+| `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | Heiltrank |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
 | `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
@@ -113,6 +113,8 @@ serves many cards.
 | `use_item` | The hero uses an item at once. | | Lianenschlange |
 | `card_to_pile` | Tells the hero to put `count` other hand cards on their draw pile first. | `count` (1) | Pestbote |
 | `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe |
+| `only_for` | Only a hero of `race` or `hero_class` can use the card, for items (other cards go by their deck). | `race`, `hero_class` | Opas Glasauge |
+| `not_here` | The card is not used in the app and is refused with a note, such as the items for one boss of the board game. | | Fackel, Machete |
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its

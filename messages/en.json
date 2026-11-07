@@ -211,6 +211,9 @@
 	"notice_still_in_play": {
 		"body": "This card still lies next to the hero card of [player]{player}[/player]."
 	},
+	"notice_not_here": {
+		"body": "This item cannot be used here."
+	},
 	"notice_not_allowed_now": {
 		"body": "[player]{player}[/player] cannot play this card now."
 	},

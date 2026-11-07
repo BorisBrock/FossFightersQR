@@ -211,6 +211,9 @@
 	"notice_still_in_play": {
 		"body": "Diese Karte liegt noch neben der Heldenkarte von [player]{player}[/player]."
 	},
+	"notice_not_here": {
+		"body": "Dieser Gegenstand kann hier nicht genutzt werden."
+	},
 	"notice_not_allowed_now": {
 		"body": "Diese Karte kann [player]{player}[/player] jetzt nicht spielen."
 	},

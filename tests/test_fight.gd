@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 205
+const EXPECTED_CHECKS := 218
 
 var _failures := 0
 var _checks_run := 0
@@ -63,6 +63,7 @@ func _initialize() -> void:
 	_check_catalog_abilities()
 	_check_loot_cards()
 	_check_more_loot_cards()
+	_check_items()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -668,6 +669,45 @@ func _check_loot_cards() -> void:
 	_check(_values[-1].poison == 3 and _values[-1].damage == 6, "at the end of the round, Toxikum doubles what the poison costs")
 	_ready(fight)
 	_check(fight.health == 19, "past the shields")
+	fight.abandon()
+
+
+## The items from the catalog.
+func _check_items() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var potion := catalog.find("TQEAAA==")
+	var fight := _started(TestBoss.new())
+	# Heiltrank: a hero of the players' choice heals 8, once per hero and fight.
+	_check(fight.scan(potion) == "" and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "Heiltrank: who heals?")
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "heal" and _values[-1].player == "Sonja" and _values[-1].amount == 8, "Heiltrank: the chosen hero heals 8")
+	_ready(fight)
+	_check(_asks_card_of(fight, 3) and fight.scan(potion) == "", "Heiltrank: every hero has their own")
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	fight.pass_action()
+	_check(_asks_card_of(fight, 1) and fight.scan(potion) == "notice_used_up", "Heiltrank: used once per fight")
+	# Rucksack: the hero draws 3.
+	_check(fight.scan(catalog.find("mQAAAA==")) == "" and _told[-1] == "draw_cards" and _values[-1].count == 3 and _values[-1].player == "Rosie", "Rucksack: draw 3")
+	_ready(fight)
+	# Opas Glasauge: only for the troll.
+	var eye := catalog.find("fAEAAA==")
+	_check(_asks_card_of(fight, 3) and fight.scan(eye) == "notice_not_your_card", "Opas Glasauge: not for the dwarf")
+	fight.hero_at(3).hero.race = "troll"
+	_check(fight.scan(eye) == "", "Opas Glasauge: for the troll")
+	_ready(fight)
+	# Fackel and Machete: not used in the app.
+	_check(_asks_card_of(fight, 5) and fight.scan(catalog.find("wQEAAA==")) == "notice_not_here" and _notices[-1] == "notice_not_here", "Fackel: cannot be used here")
+	_check(fight.scan(catalog.find("xwEAAA==")) == "notice_not_here" and _asks_card_of(fight, 5), "Machete: cannot be used here, and costs no action")
+	# Trinkschlauch: the hero heals 3.
+	_check(fight.scan(catalog.find("mAAAAA==")) == "" and _told[-1] == "heal" and _values[-1].player == "Sonja" and _values[-1].amount == 3, "Trinkschlauch: heal 3")
+	_ready(fight)
+	# Glücksbringer: the top card, without its lightning.
+	_check(_asks_card_of(fight, 1) and fight.scan(catalog.find("BQEAAA==")) == "" and fight.request.prompt == "prompt_lucky_charm", "Glücksbringer: play the top card")
+	fight.scan(_card("TOP", [["lightning", 1]], "halfling"))
+	_check(_asks_card_of(fight, 3), "Glücksbringer: its lightning ignored")
+	# Medizintasche: the hero removes 2 tokens.
+	_check(fight.scan(catalog.find("BAEAAA==")) == "" and _told[-1] == "remove_tokens" and _values[-1].count == 2 and _values[-1].player == "Borin", "Medizintasche: remove 2 tokens")
 	fight.abandon()
 
 
