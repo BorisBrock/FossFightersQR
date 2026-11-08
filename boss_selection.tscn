@@ -6,7 +6,7 @@
 [ext_resource type="Shader" path="res://assets/onboarding/shaders/table.gdshader" id="4_table_shader"]
 [ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="5_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="6_settings"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/seat.wav" id="7_select"]
+[ext_resource type="AudioStream" path="res://assets/sounds/seat.ogg" id="7_select"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("4_table_shader")

@@ -3,6 +3,11 @@
 All sound effects play on the **SFX** bus, so the volume in the [settings](settings.md) applies to them. The music has
 a bus of its own.
 
+The sounds are mono Ogg Vorbis (`.ogg`, quality 5), which Godot plays as is. To add a sound from elsewhere, convert
+it like this:
+
+    ffmpeg -i in.wav -ac 1 -c:a libvorbis -q:a 5 assets/sounds/<name>.ogg
+
 ## The fight's sound effects
 
 They are makeshift: synthesized by `tools/make_sounds.py` (standard library only, seeded, so the files come out the
@@ -48,6 +53,6 @@ Some [messages](messages.md) have a sound of their own instead of the message bo
 
 ## Other sounds
 
-- `assets/pling.wav`: a card was read by the camera, everywhere cards are scanned.
-- `assets/onboarding/sounds/`: `reveal` (a message, and the onboarding's reveals), `seat` (a hero takes a seat, a boss
+- `assets/sounds/card_scanned.ogg`: a card was read by the camera, everywhere cards are scanned.
+- `assets/sounds/` (made by `art/make_onboarding_sounds.py`): `reveal` (a message, and the onboarding's reveals), `seat` (a hero takes a seat, a boss
   is chosen, the volume preview), `fanfare` (the party is complete, the boss overview, a won fight's game over screen).

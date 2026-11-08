@@ -4,13 +4,15 @@ They are synthesized, so they can be remade or tuned at any time:
 
     .venv/bin/python tools/make_sounds.py
 
-Only the standard library is used. Randomness is seeded, so the files come out the same
+Only the standard library and ffmpeg (for the Ogg Vorbis files) are used. Randomness is seeded, so the files come out the same
 every time. See docs/sounds.md for which event plays which sound.
 """
 
+import io
 import math
 import random
 import struct
+import subprocess
 import wave
 from pathlib import Path
 
@@ -111,12 +113,18 @@ def save(name, samples, peak=0.8):
     top = max(abs(v) for v in samples) or 1.0
     frames = b"".join(struct.pack("<h", int(v / top * peak * 32767)) for v in samples)
     OUT.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(OUT / f"{name}.wav"), "wb") as file:
+    wav = io.BytesIO()
+    with wave.open(wav, "wb") as file:
         file.setnchannels(1)
         file.setsampwidth(2)
         file.setframerate(RATE)
         file.writeframes(frames)
-    print(f"{name}.wav  {len(samples) / RATE:.2f} s")
+    # Mono Ogg Vorbis: a fraction of the WAV's size, and played by Godot as is.
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", "-", "-c:a", "libvorbis", "-q:a", "5", str(OUT / f"{name}.ogg")],
+        input=wav.getvalue(), check=True,
+    )
+    print(f"{name}.ogg  {len(samples) / RATE:.2f} s")
 # endregion
 
 

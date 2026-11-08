@@ -4,7 +4,7 @@
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
 [ext_resource type="Shader" path="res://assets/fight/background.gdshader" id="3_background"]
 [ext_resource type="Shader" path="res://assets/onboarding/shaders/rays.gdshader" id="4_rays"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="5_fanfare"]
+[ext_resource type="AudioStream" path="res://assets/sounds/fanfare.ogg" id="5_fanfare"]
 
 [sub_resource type="ShaderMaterial" id="background_material"]
 shader = ExtResource("3_background")

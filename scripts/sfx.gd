@@ -1,6 +1,6 @@
 class_name Sfx
 extends Node
-## Short sound effects by name, from assets/sounds/<name>.wav, on the SFX bus, so the
+## Short sound effects by name, from assets/sounds/<name>.ogg, on the SFX bus, so the
 ## settings' volume applies. The sounds are made by tools/make_sounds.py; which event
 ## plays which is in docs/sounds.md.
 ##
@@ -43,4 +43,4 @@ func play(sound: String, pitch := 1.0) -> void:
 
 ## The stream of a sound, for players of their own, such as the message box's.
 static func stream(sound: String) -> AudioStream:
-	return load(FOLDER + sound + ".wav")
+	return load(FOLDER + sound + ".ogg")

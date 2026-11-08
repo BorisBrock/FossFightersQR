@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="2_scanner"]
 [ext_resource type="Script" path="res://scripts/placeholder_scene.gd" id="3_placeholder"]
-[ext_resource type="AudioStream" path="res://assets/pling.wav" id="5_pling"]
+[ext_resource type="AudioStream" path="res://assets/sounds/card_scanned.ogg" id="5_pling"]
 
 [ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="6_icon"]
 [ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="7_settings_icon"]

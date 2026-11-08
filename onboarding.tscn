@@ -12,14 +12,14 @@
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/dice.svg" id="10_dice"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/pen.svg" id="11_pen"]
 [ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="12_switch"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/reveal.wav" id="13_reveal"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/seat.wav" id="14_seat"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/fanfare.wav" id="15_fanfare"]
+[ext_resource type="AudioStream" path="res://assets/sounds/reveal.ogg" id="13_reveal"]
+[ext_resource type="AudioStream" path="res://assets/sounds/seat.ogg" id="14_seat"]
+[ext_resource type="AudioStream" path="res://assets/sounds/fanfare.ogg" id="15_fanfare"]
 [ext_resource type="Script" path="res://scripts/splash.gd" id="16_splash"]
 [ext_resource type="Texture2D" path="res://assets/splash.png" id="17_splash"]
 [ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="18_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="19_settings"]
-[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/pling.wav" id="20_pling"]
+[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/sounds/card_scanned.ogg" id="20_pling"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("7_table_shader")

@@ -15,7 +15,7 @@
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="12_scanner"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="13_regular"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="14_bold"]
-[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/pling.wav" id="16_pling"]
+[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/sounds/card_scanned.ogg" id="16_pling"]
 
 [sub_resource type="ShaderMaterial" id="background_material"]
 shader = ExtResource("3_background")

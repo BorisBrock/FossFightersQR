@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/settings_dialog.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
-[ext_resource type="AudioStream" path="res://assets/onboarding/sounds/seat.wav" id="3_preview"]
+[ext_resource type="AudioStream" path="res://assets/sounds/seat.ogg" id="3_preview"]
 
 [node name="SettingsDialog" type="CanvasLayer"]
 layer = 10

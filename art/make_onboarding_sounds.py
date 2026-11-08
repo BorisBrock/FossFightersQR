@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Synthesizes the onboarding sound effects into assets/onboarding/sounds/. Needs only the standard library."""
+"""Synthesizes the onboarding sound effects into assets/sounds/. Needs the standard library and ffmpeg."""
+import io
 import math
 import random
 import struct
+import subprocess
 import wave
 from pathlib import Path
 
 RATE = 22050
-OUT = Path(__file__).resolve().parent.parent / "assets" / "onboarding" / "sounds"
+OUT = Path(__file__).resolve().parent.parent / "assets" / "sounds"
 
 
 def bell(t, freq):
@@ -34,7 +36,8 @@ def mix(length, notes):
 def save(name, samples):
     peak = max(abs(s) for s in samples)
     fade = int(0.01 * RATE)
-    with wave.open(str(OUT / name), "wb") as out:
+    wav = io.BytesIO()
+    with wave.open(wav, "wb") as out:
         out.setnchannels(1)
         out.setsampwidth(2)
         out.setframerate(RATE)
@@ -43,6 +46,11 @@ def save(name, samples):
             sample *= 0.8 / peak * min((len(samples) - i) / fade, 1.0)
             frames += struct.pack("<h", int(sample * 32767))
         out.writeframes(frames)
+    # Mono Ogg Vorbis: a fraction of the WAV's size, and played by Godot as is.
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", "-", "-c:a", "libvorbis", "-q:a", "5", str(OUT / name)],
+        input=wav.getvalue(), check=True,
+    )
 
 
 def reveal():
@@ -68,6 +76,6 @@ def fanfare():
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    save("reveal.wav", reveal())
-    save("seat.wav", seat())
-    save("fanfare.wav", fanfare())
+    save("reveal.ogg", reveal())
+    save("seat.ogg", seat())
+    save("fanfare.ogg", fanfare())
