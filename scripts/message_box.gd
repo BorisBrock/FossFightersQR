@@ -13,6 +13,10 @@ extends Control
 ## animation when the message shows (shown) and closes it with finish().
 ##
 ## Messages show in the top half of the screen, clear of the heroes at the bottom.
+##
+## Above the body is the heading (Messages.heading): the message's title, or else the name
+## of what it comes from, such as the card or class that heals, under a small line naming
+## the hero (the kicker), and an ornament.
 
 ## A message was confirmed. The next one, if any, follows.
 signal confirmed(id: String)
@@ -63,7 +67,9 @@ var _default_sound: AudioStream
 @onready var _dim: Control = $Dim
 @onready var _margin: Control = $Margin
 @onready var _panel: Control = $Margin/Panel
-@onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Title
+@onready var _header: Control = $Margin/Panel/Margin/Layout/Header
+@onready var _kicker: RichTextLabel = $Margin/Panel/Margin/Layout/Header/Kicker
+@onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Header/Title
 @onready var _body: RichTextLabel = $Margin/Panel/Margin/Layout/Body
 @onready var _confirm: BaseButton = $Margin/Panel/Margin/Layout/Confirm
 @onready var _countdown: Control = $Margin/Panel/Margin/Layout/Confirm/Countdown
@@ -203,11 +209,16 @@ func _show_first() -> void:
 ## starts running down.
 func _on_ready_to_confirm() -> void:
 	_confirm.disabled = false
+	if _confirm.is_visible_in_tree():
+		_confirm.pivot_offset = _confirm.size / 2.0
+		var pulse := create_tween()
+		pulse.tween_property(_confirm, "scale", Vector2(1.08, 1.08), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		pulse.tween_property(_confirm, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if not Messages.is_auto(current()) or Messages.is_animated(current()):
 		return
 	var text := _body.get_parsed_text()
-	if _title.visible:
-		text = _title.get_parsed_text() + " " + text
+	if _header.visible:
+		text = _kicker.get_parsed_text() + " " + _title.get_parsed_text() + " " + text
 	var seconds := auto_seconds(text.replace("\n", " "))
 	if seconds > 0.0:
 		_countdown_total = seconds
@@ -225,9 +236,11 @@ func _refresh_text() -> void:
 	var locale := TranslationServer.get_locale()
 	var text := Messages.render(queue[0][0], queue[0][1], locale, _symbol_size(_body))
 	# The title is larger, and so are its symbols.
-	var title := Messages.to_bbcode(Messages.find(queue[0][0], locale).get("title", ""), queue[0][1], locale, _symbol_size(_title))
-	_title.text = "[center]%s[/center]" % title
-	_title.visible = not text.title.is_empty()
+	var heading := Messages.heading(queue[0][0], queue[0][1], locale, _symbol_size(_title))
+	_title.text = "[center]%s[/center]" % heading.title
+	_kicker.text = "[center]%s[/center]" % heading.kicker
+	_kicker.visible = not heading.kicker.is_empty()
+	_header.visible = not heading.title.is_empty()
 	_body.text = "[center]%s[/center]" % text.body
 	var animated := Messages.is_animated(queue[0][0])
 	_confirm.visible = not animated

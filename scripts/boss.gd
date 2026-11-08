@@ -87,6 +87,11 @@ func attack_range(difficulty: String) -> Vector2i:
 	return Vector2i(maxi(0, attack_min + bonus), maxi(0, attack_max + bonus))
 
 
+## What the boss tells comes with its name, such as its armour weakening an attack.
+func message_source() -> Dictionary:
+	return { "title": title }
+
+
 #region The boss's own hooks
 # Only the boss has these, as they are what it does in its phases. The defaults are what a
 # boss without special rules does. Each may wait for the players, as all hooks may (see

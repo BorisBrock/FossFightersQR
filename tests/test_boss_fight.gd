@@ -148,7 +148,7 @@ func _check_messages() -> void:
 	box.all_confirmed.connect(func() -> void: all_confirmed[0] = true)
 	_check(box.current() == "boss_taunt" and not box.visible, "the boss speaks, but not over its name")
 	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.5).timeout
-	_check(box.visible and layout.get_node("Title").text == "[center]Old Mirefang[/center]", "then its words show")
+	_check(box.visible and layout.get_node("Header/Title").text == "[center]Old Mirefang[/center]", "then its words show")
 	_check(layout.get_node("Body").get_parsed_text().contains("hundred years"), "in its own words")
 	screen.fight.tell("example_magic_potion", { "health": 10 })
 	screen.show_message("example_reminder")
@@ -168,7 +168,7 @@ func _check_messages() -> void:
 
 	confirm.pressed.emit()
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
-	_check(not layout.get_node("Title").visible and box.visible, "a message without a title shows only its body")
+	_check(not layout.get_node("Header").visible and box.visible, "a message without a title shows only its body")
 	confirm.pressed.emit()
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	_check(confirmed == ["boss_taunt", "example_magic_potion", "example_reminder"] and all_confirmed[0], "each message is confirmed in turn")

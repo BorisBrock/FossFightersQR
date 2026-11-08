@@ -32,7 +32,8 @@ func _init() -> void:
 
 
 ## Its strongest attack each round is a venomous bite, which poisons. With a tie, the
-## players choose who is bitten.
+## players choose who is bitten. The poison icon on that hero's attack shows it; nothing
+## is told.
 func plan_attacks(fight: Fight) -> void:
 	super(fight)
 	var strongest := 0
@@ -44,4 +45,3 @@ func plan_attacks(fight: Fight) -> void:
 	var bitten := await fight.choose_hero(candidates, "prompt_tied_target", { "boss": title })
 	if bitten != null:
 		fight.threaten(bitten, bitten.threat, { "poison": 1 })
-		fight.tell("mirefang_bite", { "boss": title, "player": bitten.name })

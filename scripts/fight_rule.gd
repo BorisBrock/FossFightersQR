@@ -13,6 +13,18 @@ extends RefCounted
 ## waits for it. A hook that changes a value returns it, and the fight passes the result
 ## on to the next rule.
 
+## Where this rule comes from, such as the card whose lasting effect it is, as
+## Fight.source() gives it. The fight fills it in for a rule added while a card is played
+## or another rule acts (Fight.add_rule), so that what it tells has the same title.
+var origin := {}
+
+
+## Where what this rule tells the players comes from, for the title of its messages:
+## { "title": its name, "hero": the hero's name } (both optional, see Fight.source()).
+func message_source() -> Dictionary:
+	return origin
+
+
 ## What the screen shows of this rule while it is in the fight, or null for nothing (see
 ## FightBuff). A rule whose buff changes, such as a count going down, says so with
 ## Fight.buffs_changed.

@@ -70,6 +70,26 @@ static func render(id: String, values := {}, locale := TranslationServer.get_loc
 	}
 
 
+## The heading of a message, as BBCode: { "title": …, "kicker": … }, each "" if it has
+## none. The kicker is the small line above the title that says where the message comes
+## from, from values.source (see Fight.source()): { "title": …, "hero": … }.
+## - A message with a title of its own keeps it, and the kicker names the source, such as
+##   the boss whose armour weakens an attack, with its hero, if any.
+## - A message without one, such as a heal, takes the source's name as its title, such as
+##   the card or class that heals, and the kicker names its hero.
+static func heading(id: String, values := {}, locale := TranslationServer.get_locale(), symbol_size := 32) -> Dictionary:
+	var title := to_bbcode(find(id, locale).get("title", ""), values, locale, symbol_size)
+	var source: Variant = values.get("source", {})
+	if not source is Dictionary:
+		source = {}
+	var hero := _escape(_text_of(source.get("hero", ""), locale))
+	var from := _escape(_text_of(source.get("title", ""), locale))
+	if title.is_empty():
+		return { "title": from, "kicker": hero if not from.is_empty() else "" }
+	var names := PackedStringArray([hero, from])
+	return { "title": title, "kicker": " · ".join(Array(names).filter(func(name: String) -> bool: return not name.is_empty())) }
+
+
 ## The message as written in its file, in the language of locale or the fallback:
 ## { "body": … } and maybe "title". Empty if no language has it.
 static func find(id: String, locale := TranslationServer.get_locale()) -> Dictionary:

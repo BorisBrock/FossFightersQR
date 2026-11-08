@@ -6,8 +6,14 @@ check mark below it. Tapping the check mark confirms that the players have read 
 
 ## How it looks
 
-- An optional **title** in the title font, and a **body**, both centred on a dark panel, **in the top half of the
-  screen**, clear of the heroes at the bottom. The fight is dimmed behind it.
+- A **heading** and a **body**, both centred on a dark panel with a gold frame and corner ornaments, **in the top half
+  of the screen**, clear of the heroes at the bottom. The fight is dimmed behind it.
+- **The heading says where a message comes from**, so that the players know what it is about. It is the message's
+  title in the title font, under a small line (the *kicker*) and above an ornament. A message without a title of its
+  own, such as a heal, takes the name of what it comes from: the card being played, a hero's class or character card
+  (*Rosie* above *Himmelspaladin*), a card's lasting effect, or the boss. A message with its own title keeps it, and
+  the kicker names the source (*Iron Colossus* above *Iron Armour*). A message of the fight itself, such as the
+  phases, has only its own title, or no heading at all.
 - The round, the boss's health, *end the fight* and the settings stay in view and can still be used.
 - The check mark closes a message. Taps for 0.4 s after a message appears do not count, so that a double tap
   does not close the next message unread.
@@ -105,8 +111,14 @@ same format: what the fight asks for (`prompt_…`), notes that come and go (`no
 From the rules in `Fight`, or from a boss's hooks, which get the fight:
 
 ```gdscript
-fight.tell("mirefang_bite", { "boss": fight.boss.title, "player": hero.name })
+fight.tell("example_venomous_bite", { "boss": fight.boss.title, "player": hero.name, "damage": 3, "poison": 1 })
 ```
+
+What the message comes from is added by the fight as `values.source`: `{ "title": …, "hero": … }`, from
+`Fight.source()`. That is the card being played (`Fight.play_card`) or the rule whose hook is running
+(`FightRule.message_source()`: a card ability with an `owner` gives its card and hero, the boss its name, and a rule
+added during a card or another rule takes theirs, `FightRule.origin`). Pass `source` yourself only to override it.
+`Messages.heading()` turns it into the heading.
 
 Values are shown as they are, never read as formatting, so a hero called `[b]Bo` stays `[b]Bo`. A value can also be
 `{ "de": …, "en": … }`, as the boss's title is, which is shown in the language on screen. A placeholder without a value

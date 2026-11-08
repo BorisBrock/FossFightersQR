@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 462
+const EXPECTED_CHECKS := 466
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -481,6 +481,7 @@ func _check_more_traits() -> void:
 	_give_trait(fight, catalog, "ugEAAA==", rosie)
 	fight.scan(_card("A1", [["attack", 1, "ranged"], ["lightning", 1]], "halfling"))
 	_check(_told[-1] == "heal" and _values[-1].amount == 3, "the Celestial Paladin heals from the first attack of a type")
+	_check(_values[-1].get("source", {}).get("title") == catalog.find("ugEAAA==").title and _values[-1].source.get("hero") == rosie.name, "told as the Celestial Paladin's, with its hero, for the message's title")
 	_ready(fight)
 	_give_trait(fight, catalog, "/QAAAA==", rosie)
 	var told_before := _told.size()
@@ -1035,7 +1036,27 @@ func _check_final_loot_cards() -> void:
 	_check(fight.hero_at(3).threat == 5, "Magische Haut: Protection 1 in round 1")
 	_ready(fight)
 	_check(_asks_card_of(fight, 1), "Magische Haut: and another action")
+	print("PROBE ", _actions(fight.hero_at(1)), " ", fight.hero_at(1).pending)
 	fight.abandon()
+	for th in [{}, { 1: 6 }, { 1: 3, 3: 4 }]:
+		boss = TestBoss.new()
+		boss.threats = th
+		fight = _started(boss)
+		fight.scan(catalog.find("FQEAAA=="))
+		if fight.request != null and fight.request.kind != Fight.Request.Kind.ACTION:
+			fight.choose(fight.hero_at(1))
+		print("PROBE th", th, " ", _actions(fight.hero_at(1)))
+		fight.abandon()
+	for r in [2, 3]:
+		boss = TestBoss.new()
+		boss.threats = { 3: 6 }
+		fight = _started(boss)
+		fight.round_number = r
+		fight.scan(catalog.find("FQEAAA=="))
+		print("PROBE r", r, " before choose ", _actions(fight.hero_at(1)))
+		fight.choose(fight.hero_at(3))
+		print("PROBE r", r, " ", _actions(fight.hero_at(1)), " threat ", fight.hero_at(3).threat)
+		fight.abandon()
 
 	# Stiefel: Protection 1, and a hero of the players' choice draws 1.
 	fight = _started(TestBoss.new())
@@ -1357,6 +1378,7 @@ func _check_paladin_cards() -> void:
 	_check(_told[-1] == "support_without_attack", "Schlachtross: its melee support needs a melee attack first")
 	_ready(fight)
 	_check(_told[-1] == "extra_turns_next_round" and _values[-1].count == 1 and fight.hero_at(1).bonus_turns == 1, "Schlachtross: 1 more action next round")
+	_check(_values[-1].get("source", {}).get("title") == catalog.find("sQEAAA==").title and _values[-1].source.get("hero") == fight.hero_at(1).name, "what a card tells is told as the card's, with its hero")
 	fight.abandon()
 
 	# Lichtelixier: a hero of the players' choice heals as much as the round, then another action.
@@ -2291,9 +2313,13 @@ func _check_bosses() -> void:
 	colossus.deal_damage(9, "magic")
 	_check(colossus.health == colossus.max_health - 13, "but not magic")
 	var armour_told: Array = []
-	colossus.message.connect(func(id: String, values: Dictionary) -> void: armour_told.append([id, values.get("damage")]))
+	var armour_source := []
+	colossus.message.connect(func(id: String, values: Dictionary) -> void:
+		armour_told.append([id, values.get("damage")])
+		armour_source.append(values.get("source", {})))
 	colossus.deal_damage(5, "ranged")
 	_check(colossus.health == colossus.max_health - 15 and armour_told == [["colossus_armour", 2]], "the players are told how much the armour let through")
+	_check(armour_source == [{ "title": colossus.boss.title }], "as the boss's")
 	colossus.deal_damage(4, Fight.DIRECT)
 	_check(colossus.health == colossus.max_health - 19 and armour_told.size() == 1, "direct damage is no attack: the armour does not halve it")
 
@@ -2304,7 +2330,8 @@ func _check_bosses() -> void:
 	_ready(fight)
 	_check(fight.request != null and fight.request.prompt == "prompt_tied_target" and fight.request.heroes.size() == 3, "with a tie, the players choose whom the boss targets")
 	fight.choose(fight.hero_at(3))
-	_check(fight.hero_at(3).threat_effects == { "poison": 1 } and _told[-1] == "mirefang_bite", "Mirefang's bite poisons")
+	_check(fight.hero_at(3).threat_effects == { "poison": 1 } and not _told.has("mirefang_bite"), "Mirefang's bite poisons, shown only by the attack's icon")
+	_check(_told.has("round_started") and not _values[_told.find("round_started")].has("source"), "what the fight itself tells comes from nothing in particular")
 
 	var easy := Bosses.create("ashwing").attack_range("easy")
 	var hard := Bosses.create("ashwing").attack_range("hard")

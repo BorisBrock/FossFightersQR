@@ -80,11 +80,6 @@
 	"remove_tokens": {
 		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Marker."
 	},
-	"mirefang_bite": {
-		"title": "Giftiger Biss",
-		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:.",
-		"auto": true
-	},
 	"colossus_armour": {
 		"title": "Eisenpanzer",
 		"body": "Die Panzerung des Bosses schwächt euren Angriff. Er macht nur [damage]{damage} Schaden[/damage] :damage:."

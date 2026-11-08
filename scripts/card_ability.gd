@@ -55,6 +55,16 @@ func title() -> Dictionary:
 	return card.title if card != null else {}
 
 
+## A hero's trait tells as their character or class card, with their name. The ability
+## of a card being played tells as that card, see Fight.play_card().
+func message_source() -> Dictionary:
+	if owner != null and card != null:
+		return { "title": card.title, "hero": owner.name }
+	if not origin.is_empty() or card == null:
+		return origin
+	return { "title": card.title }
+
+
 ## Why the card cannot be played now, as the id of a message (see Messages), or "" if it
 ## can. The players see it briefly and the card is not played.
 func can_play(_fight: Fight, _play: CardPlay) -> String:

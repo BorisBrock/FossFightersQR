@@ -2,7 +2,7 @@ extends SceneTree
 ## The message files in messages/ and how a message is turned into text for the screen.
 ## Run with: godot --headless -s tests/test_messages.gd
 
-const EXPECTED_CHECKS := 29
+const EXPECTED_CHECKS := 33
 const BAD_PATH := "user://test_messages_bad.json"
 ## Tags a message may use besides Messages.STYLES. Each has to be closed again.
 const BBCODE_TAGS := ["b", "i", "u", "s", "color", "font_size", "bgcolor", "outline_color", "outline_size"]
@@ -98,6 +98,11 @@ func _check_render() -> void:
 	_check(Messages.is_auto("boss_taunt") and not Messages.is_auto("round_end_status") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
 	_check(Messages.render("example_reminder", {}, "en").title == "", "a message may have no title")
 	_check(Messages.has("round_started") and not Messages.has("no_such_message"), "knows which messages there are")
+	var card := { "title": { "de": "Himmelspaladin", "en": "Celestial Paladin" }, "hero": "[b]Rosie" }
+	_check(Messages.heading("example_reminder", {}, "en") == { "title": "", "kicker": "" }, "a message without a title or source has no heading")
+	_check(Messages.heading("example_reminder", { "source": card }, "de") == { "title": "Himmelspaladin", "kicker": "[lb]b]Rosie" }, "one without a title takes the name of its source, its hero above, as they are")
+	_check(Messages.heading("colossus_armour", { "source": { "title": { "en": "Iron Colossus" } } }, "en") == { "title": "Iron Armour", "kicker": "Iron Colossus" }, "one with a title keeps it, its source above")
+	_check(Messages.heading("colossus_armour", { "source": card }, "en").kicker == "[lb]b]Rosie · Celestial Paladin", "with its hero")
 
 
 func _check_bad_file() -> void:

@@ -136,6 +136,8 @@ var _round_rules: Array[FightRule] = []
 var _unread := 0
 ## The boss's hits in this attack phase, as [hero, damage, effects], told together.
 var _hits: Array[Array] = []
+## Where what happens now comes from, innermost last, see source().
+var _sources: Array[Dictionary] = []
 
 signal _read
 signal _answered(value: Variant)
@@ -223,12 +225,24 @@ func scan(card: Card, code := "") -> String:
 
 
 #region For rules
-## Shows the players a message, which they confirm before the fight goes on.
+## Shows the players a message, which they confirm before the fight goes on. It comes
+## with where it comes from, as values.source (see source()), unless values has one.
 func tell(id: String, values := {}) -> void:
 	if over:
 		return
 	_unread += 1
+	if not values.has("source") and not source().is_empty():
+		values = values.duplicate()
+		values.source = source()
 	message.emit(id, values)
+
+
+## Where what happens now comes from, so that the players know what a message is about:
+## the card being played, the rule acting, such as a hero's class or a card's lasting
+## effect, or the boss. { "title": its name, as text or { "de": …, "en": … }, "hero": the
+## name of the hero it is for } (each only if known), or empty for the fight itself.
+func source() -> Dictionary:
+	return _sources.back() if not _sources.is_empty() else {}
 
 
 ## Waits until the players have read every message so far.
@@ -401,7 +415,14 @@ func _unreserve(hero: FightHero, count: int) -> void:
 
 ## Plays a card: the rules see it, then its ability and symbols take effect.
 ## A replay (CardPlay.replay) is not counted as played, and keeps the ability it has.
+## What it tells comes from the card (source()).
 func play_card(play: CardPlay) -> void:
+	_sources.push_back({ "title": play.card.title, "hero": play.hero.name })
+	await _play_card(play)
+	_sources.pop_back()
+
+
+func _play_card(play: CardPlay) -> void:
 	var hero := play.hero
 	play.round_number = round_number
 	if not play.replay:
@@ -459,9 +480,9 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 		shields_changed.emit(shields)
 		var ignored := false
 		for rule in rules.duplicate():
-			ignored = ignored or rule.ignores_shield_effect(self, kind, play)
+			ignored = ignored or _rule_value(rule, "ignores_shield_effect", [kind, play])
 		if not ignored:
-			await boss.shield_hit(self, kind, absorbed, play)
+			await _rule_hook(boss, "shield_hit", [kind, absorbed, play])
 		if shields[kind] == 0:
 			await _each_rule("shield_broken", [kind, play])
 		if over:
@@ -470,7 +491,7 @@ func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if amount > absorbed:
 		dealt = amount - absorbed
 		for rule in rules.duplicate():
-			dealt = rule.damage_taken(self, dealt, kind, play)
+			dealt = _rule_value(rule, "damage_taken", [dealt, kind, play])
 		dealt = clampi(dealt, 0, health)
 	if play != null:
 		play.shield_damage += absorbed
@@ -571,6 +592,8 @@ func add_rule(rule: FightRule, for_round := false) -> void:
 	rules.append(rule)
 	if for_round:
 		_round_rules.append(rule)
+	if rule.origin.is_empty():
+		rule.origin = source()
 	if rule.buff() != null:
 		buffs_changed.emit()
 
@@ -690,7 +713,7 @@ func _play_round() -> void:
 		return
 
 	await _phase(Phase.PLANNING)
-	await boss.plan_attacks(self)
+	await _rule_hook(boss, "plan_attacks")
 	await _each_rule("attacks_planned")
 	await until_read()
 	if over:
@@ -701,7 +724,7 @@ func _play_round() -> void:
 		return
 
 	await _phase(Phase.SHIELD)
-	await boss.raise_shields(self)
+	await _rule_hook(boss, "raise_shields")
 	await _each_rule("shields_raised")
 	await until_read()
 	if over:
@@ -727,7 +750,7 @@ func _play_round() -> void:
 		if hero.threat > 0:
 			hit = true
 		stats.attack_resolved(hero, hero.threat)
-		await boss.attack_hero(self, hero)
+		await _rule_hook(boss, "attack_hero", [hero])
 		if over:
 			return
 	if not hit:
@@ -807,7 +830,7 @@ func _poison_tick() -> void:
 		return
 	var damage := poison
 	for rule in rules.duplicate():
-		damage = rule.poison_damage(self, damage)
+		damage = _rule_value(rule, "poison_damage", [damage])
 	if damage <= 0:
 		return
 	tell("boss_poison", { "boss": boss.title, "poison": poison, "damage": damage })
@@ -870,7 +893,7 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 		"support":
 			var allowed := effect.damage_type in attacked
 			for rule in rules.duplicate():
-				allowed = allowed or rule.support_without_attack(self, effect.damage_type, play)
+				allowed = allowed or _rule_value(rule, "support_without_attack", [effect.damage_type, play])
 			if allowed:
 				stats.power_played(hero, effect.damage_type, effect.strength)
 				await deal_damage(effect.strength, effect.damage_type, play)
@@ -882,7 +905,7 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 			if target != null:
 				var amount := effect.strength
 				for rule in rules.duplicate():
-					amount = rule.protection(self, amount, target, play)
+					amount = _rule_value(rule, "protection", [amount, target, play])
 				var before := target.threat
 				protect(target, amount)
 				stats.protected(hero, before - target.threat)
@@ -983,7 +1006,28 @@ func _each_rule(hook: String, arguments := []) -> void:
 	for rule in rules.duplicate():
 		if over:
 			return
-		await rule.callv(hook, [self] + arguments)
+		await _rule_hook(rule, hook, arguments)
+
+
+## Calls a hook of rule that may wait for the players. What it tells comes from the rule.
+func _rule_hook(rule: FightRule, hook: String, arguments := []) -> void:
+	_sources.push_back(_source_of(rule))
+	await rule.callv(hook, [self] + arguments)
+	_sources.pop_back()
+
+
+## What rule tells comes from it, or, if it does not say, from what it acts within.
+func _source_of(rule: FightRule) -> Dictionary:
+	var own := rule.message_source()
+	return own if not own.is_empty() else source()
+
+
+## Calls a hook of rule that returns a value at once, such as damage_taken.
+func _rule_value(rule: FightRule, hook: String, arguments: Array) -> Variant:
+	_sources.push_back(_source_of(rule))
+	var result: Variant = rule.callv(hook, [self] + arguments)
+	_sources.pop_back()
+	return result
 
 
 func _finish(victory: bool) -> void:

@@ -80,11 +80,6 @@
 	"remove_tokens": {
 		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own tokens."
 	},
-	"mirefang_bite": {
-		"title": "Venomous Bite",
-		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:.",
-		"auto": true
-	},
 	"colossus_armour": {
 		"title": "Iron Armour",
 		"body": "The boss's armour weakens your attack. It deals only [damage]{damage} damage[/damage] :damage:."
