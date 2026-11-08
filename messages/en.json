@@ -373,5 +373,17 @@
 	},
 	"prompt_play_drawn": {
 		"body": "[player]{player}[/player], show one of the [b]cards you just drew[/b] :card:."
+	},
+	"tear_placed": {
+		"body": "[player]{player}[/player] places [b]{card}[/b] next to their hero card. When a hero would lose health, from anything, you may discard it to prevent that: keep track of it on the table."
+	},
+	"draw_and_return_everyone": {
+		"body": "Each hero draws [b]{draw}[/b] :card:, then puts [b]{back}[/b] of their hand cards face down on their draw pile."
+	},
+	"next_cards_boosted": {
+		"body": "On the next [b]{cards}[/b] :card: played, by anyone, every attack and support is [heal]{bonus}[/heal] higher."
+	},
+	"random_token": {
+		"body": "Chosen at random: [player]{player}[/player] takes a status token, [poison]{tokens}[/poison]."
 	}
 }

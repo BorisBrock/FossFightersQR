@@ -1387,6 +1387,97 @@
       "effect": { "de": "Schutz 3. Schutz 3. Du musst dir 1 Statusmarke deiner Wahl aus dem Vorrat nehmen." },
       "ability": "take_token",
       "ability_values": { "count": 1 }
+    },
+    {
+      "qr": "XwEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Träne des Mitleids" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Lege die Karte dauerhaft neben deine Heldenkarte. Würde ein Held Lebenspunkte verlieren, darfst du diese Karte ablegen, um es zu verhindern." },
+      "ability": "prevent_health_loss"
+    },
+    {
+      "qr": "IAEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Trommel der Ahnen" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Entferne 2 Statusmarken von jedem Helden." },
+      "ability": "remove_tokens",
+      "ability_values": { "count": 0, "every_hero": 2 }
+    },
+    {
+      "qr": "FwEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Perfektes Zusammenspiel" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Jeder Held zieht 2 Karten. Jeder Held legt 1 seiner Handkarten verdeckt auf seinen Nachziehstapel.\nFühre 1 weitere Aktion aus." },
+      "ability": "draw_and_return",
+      "ability_values": { "draw": 2, "back": 1 }
+    },
+    {
+      "qr": "yQEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Stachelschild" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "direct_damage", "strength": 2 } ],
+      "effect": { "de": "Schutz 3. Der Boss verliert sofort 2 Leben." }
+    },
+    {
+      "qr": "DQEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Schicksalsmünze" },
+      "symbols": [ { "type": "support", "strength": 5, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 5." }
+    },
+    {
+      "qr": "0AEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Muttis Nachtisch" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Auf den nächsten 8 gespielten Karten sind alle Angriffe und Verstärkungen um 1 erhöht.\nEin zufälliger Held erhält 1 Giftmarke." },
+      "ability": "boost_next_cards",
+      "ability_values": { "cards": 8, "bonus": 1, "random_token": "poison" }
+    },
+    {
+      "qr": "MAEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Gaias Köcher" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" }, { "type": "poison", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff 4. Der Boss erhält 1 Gift." }
+    },
+    {
+      "qr": "NgEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Vampirischer Sog" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "magic" }, { "type": "heal", "strength": 4 } ],
+      "effect": { "de": "Magie-Angriff 4. Ein Held deiner Wahl erhält 4 Lebenspunkte." },
+      "ability": "for_chosen_hero"
+    },
+    {
+      "qr": "FAEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Pyro-Falle" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Senke einen Boss-Schild deiner Wahl um 4. Dies löst den Effekt des Boss-Schildes nicht aus." },
+      "ability": "lower_shield",
+      "ability_values": { "amount": 4 }
+    },
+    {
+      "qr": "MgEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Donnerspeer" },
+      "symbols": [ { "type": "attack", "strength": 8, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Fernkampf-Angriff 8. Entferne den Donnerspeer für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "remove_card"
     }
   ]
 }

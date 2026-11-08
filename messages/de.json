@@ -373,5 +373,17 @@
 	},
 	"prompt_play_drawn": {
 		"body": "[player]{player}[/player], zeig eine der [b]gerade gezogenen Karten[/b] :card:."
+	},
+	"tear_placed": {
+		"body": "[player]{player}[/player] legt [b]{card}[/b] dauerhaft neben die Heldenkarte. Würde ein Held Lebenspunkte verlieren, egal wodurch, dürft ihr sie ablegen, um es zu verhindern: Behaltet das am Tisch im Blick."
+	},
+	"draw_and_return_everyone": {
+		"body": "Jeder Held zieht [b]{draw}[/b] :card: und legt dann [b]{back}[/b] seiner Handkarten verdeckt auf seinen Nachziehstapel."
+	},
+	"next_cards_boosted": {
+		"body": "Auf den nächsten [b]{cards}[/b] gespielten :card:, von wem auch immer, ist jeder Angriff und jede Verstärkung um [heal]{bonus}[/heal] erhöht."
+	},
+	"random_token": {
+		"body": "Zufällig getroffen: [player]{player}[/player] erhält eine Statusmarke, [poison]{tokens}[/poison]."
 	}
 }

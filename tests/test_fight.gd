@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 300
+const EXPECTED_CHECKS := 317
 
 var _failures := 0
 var _checks_run := 0
@@ -65,6 +65,7 @@ func _initialize() -> void:
 	_check_more_loot_cards()
 	_check_magic_loot_cards()
 	_check_new_loot_cards()
+	_check_last_loot_cards()
 	_check_items()
 	_check_dryad_forms()
 	_check_dryad_cards()
@@ -882,6 +883,92 @@ func _check_new_loot_cards() -> void:
 	_ready(fight)
 	fight.choose(fight.hero_at(3))
 	_check(fight.hero_at(5).threat == 0 and fight.hero_at(3).threat == 0 and _told[-1] == "take_token" and _values[-1].player == "Rosie" and _values[-1].count == 1, "Geisterrüstung: Sonja and Borin protected, Rosie takes a token")
+	fight.abandon()
+
+
+func _check_last_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Träne des Mitleids: lies by Rosie, the players handle it on the table.
+	var fight := _started(TestBoss.new())
+	fight.scan(catalog.find("XwEAAA=="))
+	_check(_told[-1] == "tear_placed" and _values[-1].player == "Rosie", "Träne des Mitleids: Rosie places it by her hero card")
+	fight.abandon()
+
+	# Trommel der Ahnen: 2 tokens off every hero.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("IAEAAA=="))
+	_check(_told[-1] == "remove_tokens_everyone" and _values[-1].count == 2 and not _told.has("remove_tokens"), "Trommel der Ahnen: each hero removes 2 tokens")
+	fight.abandon()
+
+	# Perfektes Zusammenspiel: each hero draws 2 and puts 1 back, then another action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("FwEAAA=="))
+	_check(_told[-1] == "draw_and_return_everyone" and _values[-1].draw == 2 and _values[-1].back == 1, "Perfektes Zusammenspiel: everyone draws 2, puts 1 back")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Perfektes Zusammenspiel: then another action")
+	fight.abandon()
+
+	# Stachelschild: protection 3 and 2 straight to the boss's health.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("yQEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 0 and fight.health == 28 and fight.shields.melee == 2, "Stachelschild: Sonja protected, the boss loses 2 past its shields")
+	fight.abandon()
+
+	# Schicksalsmünze: a melee support of 5.
+	fight = _started(TestBoss.new())
+	fight.scan(_card("HIT", [["attack", 2, "melee"], ["lightning", 1]], "halfling"))
+	_ready(fight)
+	fight.scan(catalog.find("DQEAAA=="))
+	_check(fight.health == 25, "Schicksalsmünze: melee support 5 after a melee attack")
+	fight.abandon()
+
+	# Muttis Nachtisch: the next 8 cards get +1 on attacks and supports, a random hero gets poison.
+	fight = _started(TestBoss.new())
+	var rules_before := fight.rules.size()
+	fight.scan(catalog.find("0AEAAA=="))
+	_check(_told[-1] == "next_cards_boosted" and _values[-1].cards == 8 and _values[-1].bonus == 1, "Muttis Nachtisch: the next 8 cards are boosted")
+	_ready(fight)
+	_check(_told[-1] == "random_token" and _values[-1].player in ["Rosie", "Borin", "Sonja"] and _values[-1].tokens.en == "1 poison", "Muttis Nachtisch: a random hero takes 1 poison")
+	_ready(fight)
+	var decks := { 1: "halfling", 3: "dwarf", 5: "dryad" }
+	for i in 8:
+		fight.scan(_card("ARROW%d" % i, [["attack", 1, "ranged"]], decks[fight.request.hero.seat]))
+		_ready(fight)
+		if i == 6:
+			_check(fight.health == 16 and fight.rules.size() == rules_before + 1, "Muttis Nachtisch: 7 attacks of 1 hit for 2 each")
+	_check(fight.health == 14 and fight.rules.size() == rules_before, "Muttis Nachtisch: the 8th too, and then it is over")
+	fight.abandon()
+
+	# Gaias Köcher: ranged 4 and 1 poison.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("MAEAAA=="))
+	_check(fight.health == 26 and fight.poison == 1, "Gaias Köcher: 4 damage and 1 poison")
+	fight.abandon()
+
+	# Vampirischer Sog: magic 4, and a hero of the players' choice heals 4.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("NgEAAA=="))
+	_check(fight.request.prompt == "prompt_chosen_hero", "Vampirischer Sog: who heals?")
+	fight.choose(fight.hero_at(3))
+	_check(fight.health == 27 and _told[-1] == "heal" and _values[-1].player == "Borin" and _values[-1].amount == 4, "Vampirischer Sog: 3 past the magic shield, Borin heals 4")
+	fight.abandon()
+
+	# Pyro-Falle: a shield of the players' choice goes down by 4, without its effect.
+	var boss := TestBoss.new()
+	fight = _started(boss)
+	fight.scan(catalog.find("FAEAAA=="))
+	_check(fight.request.prompt == "prompt_lower_shield" and fight.request.values.amount == 4, "Pyro-Falle: which shield?")
+	fight.choose_option(0)
+	_check(fight.shields.melee == 0 and fight.health == 30 and not boss.calls.has("shield_hit melee") and _values[-1].amount == 2, "Pyro-Falle: the melee shield breaks, nothing beyond it")
+	fight.abandon()
+
+	# Donnerspeer: ranged 8, then out of the game for everyone.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("MgEAAA=="))
+	_check(fight.health == 22 and _told[-1] == "card_removed" and "MgEAAA==" in fight.removed, "Donnerspeer: 8 damage, then out of the game")
+	_ready(fight)
+	_check(fight.scan(catalog.find("MgEAAA==")) == "notice_removed", "Donnerspeer: no hero can play it again")
 	fight.abandon()
 
 

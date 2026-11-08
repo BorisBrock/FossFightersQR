@@ -89,13 +89,13 @@ serves many cards.
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | Banner des Mutes |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | Schlachtross |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring, Trommel der Ahnen |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion; with `heroes`, that many different heroes. | `amount` (8), `heroes` (1) | Heiltrank, Drachenspeichel |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
 | `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht, Vampirischer Sog |
 | `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
 | `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
@@ -119,7 +119,7 @@ serves many cards.
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 | `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
 | `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer |
-| `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7), `all` (false) | Explosivkristall, Hammer des Zorns |
+| `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7), `all` (false) | Explosivkristall, Hammer des Zorns, Pyro-Falle |
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
 | `dryad_form` | The dryad takes a form, which she keeps until she takes another (`FightHero.form`), and her seat shows it. `thorn`: her attacks and supports +1. `blossom`: she heals 3 each time her attack or support costs the boss health. `bark`: her Protection +1. Refused while she already has that form. | `form` (`thorn`, `blossom`, `bark`) | Stachelform, Blütenform, Borkenform |
@@ -136,6 +136,10 @@ serves many cards.
 | `search_to_hand` | Tells the hero to take `count` cards of their choice from their draw pile into their hand and shuffle it. | `count` (1) | Verlorene Seele |
 | `take_token` | Tells the hero to take `count` status tokens of their choice from the supply. | `count` (1) | Geisterrüstung |
 | `draw_and_play` | A hero of the players' choice draws `draw` cards and plays `play` of them at once, then discards the rest; Lightning on them gives that hero more actions afterwards. | `draw` (5), `play` (2) | Güldis Angel |
+| `draw_and_return` | Tells each hero to draw `draw` cards, then put `back` of their hand cards face down on their draw pile. | `draw` (2), `back` (1) | Perfektes Zusammenspiel |
+| `boost_next_cards` | The next `cards` cards played, by anyone and over rounds, get `bonus` more on all attacks and supports; replays are not counted. With `random_token`, a random hero then takes one token of that kind. | `cards` (8), `bonus` (1), `random_token` | Muttis Nachtisch |
+| `remove_card` | After its other effects, the card is out of the game, as with the ripped card (`remove_from_game`), for cards that show it with `*`. | | Donnerspeer |
+| `prevent_health_loss` | Tells the players the card lies by the hero and can be discarded to prevent a hero's health loss. Heroes lose health in ways the app does not see, such as from tokens, so the players handle it on the table. | | Träne des Mitleids |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions
