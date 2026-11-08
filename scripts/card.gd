@@ -33,6 +33,11 @@ var uses_per_fight := 0
 var tags: Array[String] = []
 
 
+## Room cards are only for a few special bosses and cannot be played as a hero's card.
+func is_room() -> bool:
+	return deck == "rooms"
+
+
 ## Items stay with their hero and can be used again in the same round.
 func is_item() -> bool:
 	return deck == "items"

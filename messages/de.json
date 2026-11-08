@@ -117,7 +117,10 @@
 		"body": "[b]Tippt den Helden an[/b], den [player]{player}[/player] stärkt."
 	},
 	"notice_unknown_card": {
-		"body": "Diese Karte ist unbekannt."
+		"body": "Diese Karte ist unbekannt (QR-Code {code})."
+	},
+	"notice_cannot_play_now": {
+		"body": "Diese Karte kann jetzt nicht gespielt werden."
 	},
 	"notice_played_already": {
 		"body": "Diese Karte liegt diese Runde schon im Spielbereich."

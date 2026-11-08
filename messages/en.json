@@ -117,7 +117,10 @@
 		"body": "[b]Tap the hero[/b] that [player]{player}[/player] strengthens."
 	},
 	"notice_unknown_card": {
-		"body": "This card is unknown."
+		"body": "This card is unknown (QR code {code})."
+	},
+	"notice_cannot_play_now": {
+		"body": "This card cannot be played now."
 	},
 	"notice_played_already": {
 		"body": "This card is already in play this round."

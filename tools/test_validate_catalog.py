@@ -77,7 +77,7 @@ class FindProblems(unittest.TestCase):
 
     def test_accepts_every_deck(self):
         decks = ["classes", "characters", "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
-                 "thief", "magician", "warrior", "paladin", "shaman", "druid", "loot", "items"]
+                 "thief", "magician", "warrior", "paladin", "shaman", "druid", "loot", "items", "rooms"]
         self.assertEqual(find_problems(catalog(*({"qr": str(i), "deck": d} for i, d in enumerate(decks)))), [])
 
     def test_rejects_an_unknown_deck(self):

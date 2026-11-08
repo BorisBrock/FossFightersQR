@@ -195,12 +195,13 @@ func pass_action() -> void:
 ## A card was shown to the camera. Plays it if a card is asked for and it can be played.
 ## Returns "" if it was played, otherwise the id of a notice for why not (see Messages).
 ## Returns "ignored" for codes that are not meant for the fight, such as a class card.
-func scan(card: Card) -> String:
+## code is the value of the QR code, shown to the players if no card has it.
+func scan(card: Card, code := "") -> String:
 	if request == null or request.kind != Request.Kind.ACTION:
 		return "ignored"
 	var hero := request.hero
 	if card == null:
-		notice.emit("notice_unknown_card", { "player": hero.name })
+		notice.emit("notice_unknown_card", { "player": hero.name, "code": code })
 		return "notice_unknown_card"
 	if not card.race.is_empty() or not card.hero_class.is_empty():
 		return "ignored"
@@ -915,6 +916,8 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 func _why_not(play: CardPlay) -> String:
 	var card := play.card
 	var hero := play.hero
+	if card.is_room():
+		return "notice_cannot_play_now"
 	if card.qr in removed:
 		return "notice_removed"
 	if card.qr in hero.played:

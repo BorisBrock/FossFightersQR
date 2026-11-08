@@ -212,7 +212,7 @@ func _game_over(fade_sec: float) -> void:
 ## Plays the card with this QR code, as if it had been shown to the camera. Returns what
 ## Fight.scan() returns.
 func scan_code(code: String) -> String:
-	return fight.scan(_cards.find(code))
+	return fight.scan(_cards.find(code), code)
 
 
 ## Shows a short note in the prompt for a while, such as why a card was not played.

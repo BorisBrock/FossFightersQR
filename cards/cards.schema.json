@@ -56,7 +56,7 @@
             "classes", "characters",
             "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
             "thief", "magician", "warrior", "paladin", "shaman", "druid",
-            "loot", "items"
+            "loot", "items", "rooms"
           ]
         },
         "race": {

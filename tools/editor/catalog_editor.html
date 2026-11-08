@@ -217,7 +217,7 @@ const DECKS = [
   "classes", "characters",
   "dryad", "goblin", "halfling", "elf", "dwarf", "troll",
   "thief", "magician", "warrior", "paladin", "shaman", "druid",
-  "loot", "items",
+  "loot", "items", "rooms",
 ];
 for (const id of ["deck", "f_deck"]) document.getElementById(id).append(...DECKS.map(d => new Option(d)));
 // A card with the special symbol needs an ability; until it is written, it gets this one (scripts/abilities/todo.gd).

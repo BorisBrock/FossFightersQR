@@ -1663,6 +1663,300 @@
       "symbols": [ { "type": "lightning", "strength": 1 }, { "type": "direct_damage", "strength": 4 } ],
       "effect": { "de": "Diese Karte wechselt nach jedem Ausspielen zwischen nicht aufgezogen und aufgezogen. Nicht aufgezogen: Mische diese Karte nach dem Ausspielen zurück in deinen Nachziehstapel. Führe 1 weitere Aktion aus. Aufgezogen: Der Boss verliert 4 Leben." },
       "ability": "wind_up"
+    },
+    {
+      "qr": "wwEAAA==",
+      "deck": "rooms",
+      "level": 1,
+      "title": { "de": "Ort: Empore" },
+      "effect": { "de": "Alle deine Fernkampf-Angriffe und Fernkampf-Verstärkungen sind um 2 erhöht.\nAlle deine Nahkampf-Angriffe und Nahkampf-Verstärkungen sind um 1 verringert." }
+    },
+    {
+      "qr": "wgEAAA==",
+      "deck": "rooms",
+      "level": 1,
+      "title": { "de": "Ort: Treppe" },
+      "effect": { "de": "Alle deine Nahkampf-Angriffe und Nahkampf-Verstärkungen sind um 2 erhöht. Schutz-Effekte, die dich betreffen, sind um 2 erhöht." }
+    },
+    {
+      "qr": "xAEAAA==",
+      "deck": "rooms",
+      "level": 1,
+      "title": { "de": "Ort: Altar" },
+      "effect": { "de": "Spielst du einen Magie-Angriff oder eine Magie-Verstärkung, verlierst du 2 Lebenspunkte.\nAlle deine Magie-Angriffe und Magie-Verstärkungen erhalten 1 Blitz." }
+    },
+    {
+      "qr": "aQEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Giftexplosion" },
+      "symbols": [ { "type": "poison", "strength": 1 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Der Boss verliert pro Giftsymbol sofort 3 Leben. Danach werden alle Giftsymbole des Bosses entfernt." },
+      "ability": "todo"
+    },
+    {
+      "qr": "IQEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Helm des Windes" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 3. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "0QEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Smaragdschild" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 2. Der geschützte Held darf sofort eine Aktion ausführen." },
+      "ability": "todo"
+    },
+    {
+      "qr": "PQEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Pfeilhagel" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "ranged" }, { "type": "attack", "strength": 4, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 4. Fernkampf-Angriff 4." }
+    },
+    {
+      "qr": "ZwEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Waffengift" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Senke einen Boss-Schild deiner Wahl um 2. Wird er dadurch zerstört, erhält der Boss 2 Gift." },
+      "ability": "todo"
+    },
+    {
+      "qr": "OAEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Zwillingsklinge" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" }, { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf- Verstärkung 4. Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "FQEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Magische Haut" },
+      "symbols": [ { "type": "protection", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz: Die Höhe des Schutzes entspricht der Runde (1l in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "GQEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Stiefel" },
+      "symbols": [ { "type": "protection", "strength": 1 }, { "type": "draw", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 1. Ein Held deiner Wahl zieht 1 Karte. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "EwEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Feenkokon" },
+      "symbols": [ { "type": "heal", "strength": 3 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Alle Helden erhalten je 3 Lebenspunkte. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "agEAAA==",
+      "deck": "loot",
+      "level": 7,
+      "title": { "de": "Stab der Vergiftung" },
+      "symbols": [ { "type": "poison", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Der Boss verliert pro Giftsymbol sofort 1 Leben. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "IwAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Magischer Pfeilsturm" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 3." }
+    },
+    {
+      "qr": "IQAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Pfeilsalve" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 4." }
+    },
+    {
+      "qr": "VwEAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Gezielter Schuss" },
+      "symbols": [ { "type": "attack", "strength": 1, "damage_type": "ranged" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der aktuellen\nRunde (1 in Runde 1, 2 in Runde2, usw.). Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "KAAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Gaias Bogen" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" }, { "type": "draw", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff 4. Ein Held deiner Wahl zieht 1 Karte." }
+    },
+    {
+      "qr": "WAEAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Diadem der Unsichtbarkeit" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Spielst du als nächstes einen Angriff, erhöht sich dieser um 3. Führe 1 weitere Aktion aus." },
+      "ability": "todo"
+    },
+    {
+      "qr": "JQAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Lichtschild" },
+      "symbols": [ { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Schutz 3." }
+    },
+    {
+      "qr": "HwAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Sternenklinge" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "IgAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Sonnenfeuer" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 4." }
+    },
+    {
+      "qr": "JgAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Lyrias Ring" },
+      "symbols": [ { "type": "heal", "strength": 2 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Alle Helden erhalten je 2 Lebenspunkte. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "JAAAAA==",
+      "deck": "elf",
+      "level": 1,
+      "title": { "de": "Schutzzauber" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "WAAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Magie-Explosion" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 4." }
+    },
+    {
+      "qr": "WgAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Wyrmzahnklinge" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "XgAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Magiewirbel" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "magic" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Magie-Angriff 2. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "XQAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Pilzpulver" },
+      "symbols": [ { "type": "heal", "strength": 5 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl erhält 5 Lebenspunkte. Dieser Held darf sofort eine Aktion ausführen." },
+      "ability": "todo"
+    },
+    {
+      "qr": "VQAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Maske der Hellsicht" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schau dir die obersten 3 Karten deines Nachziehstapels an und spiele 1 davon aus. Lege die anderen 2 Karten in beliebiger Reihenfolge zurück auf oder unter deinen Nachziehstapel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "XAAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Krähenschwarm" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 4." }
+    },
+    {
+      "qr": "WQAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Wurzelwand" },
+      "symbols": [ { "type": "protection", "strength": 3 } ],
+      "effect": { "de": "Schutz 3." }
+    },
+    {
+      "qr": "VwAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Blaudornstab" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 3," }
+    },
+    {
+      "qr": "VgAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Phönix-Eule" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Spielst du als nächstes einen Angriff, heile einen Helden deiner Wahl in der Stärke des gespielten Angriffs. Führe 1 weitere Aktion aus." },
+      "ability": "todo"
+    },
+    {
+      "qr": "WwAAAA==",
+      "deck": "druid",
+      "level": 1,
+      "title": { "de": "Antidot" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Entferne 2 Statusmarken von einem Helden deiner Wahl. Führe 1 weitere Aktion aus." },
+      "ability": "todo"
+    },
+    {
+      "qr": "2gEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Voodoo-Puppe" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 3 } ],
+      "effect": { "de": "Für die restliche Runde gilt für dich: Möchtest du eine Handkarte spielen, musst du eine zufällige Handkarte spielen. Führe 3 weitere Aktionen aus." },
+      "ability": "todo"
+    },
+    {
+      "qr": "2wEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Phönixfeder" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "special", "strength": 0 }, { "type": "remove_from_game", "strength": 0 } ],
+      "effect": { "de": "Jeder Held erhält 2 Feuermarken. Ein Held deiner Wahl setzt seine Lebenspunkte auf seinen Startwert. Entferne diese Karte für den restlichen Bosskampf aus dem Spiel." },
+      "ability": "todo"
+    },
+    {
+      "qr": "3QEAAA==",
+      "deck": "items",
+      "level": 1,
+      "title": { "de": "Passen" },
+      "effect": { "de": "Scanne diese Karte, wenn du eine Aktion nicht ausführen möchtest,oder kannst. Die Aktion verfällt." }
     }
   ]
 }

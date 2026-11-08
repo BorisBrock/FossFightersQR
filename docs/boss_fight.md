@@ -82,6 +82,8 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
 - A card counts when it is newly shown. One that stays in view, or comes back within 2 s, does not count again.
 - A card already in play this round, one from another hero's race or class deck, and one used up for the fight
   (`uses_per_fight`) are refused with a note. Items (`deck: items`) and the dryad's forms (tag `form`) can be used again in the same round.
+- A code that is no card in the catalog is refused with a note that shows its value, so that a card missing from the
+  catalog can be found. Room cards (`deck: rooms`) are refused with *This card cannot be played now*.
 - Character and class cards are ignored, and so is every card while the fight is not asking for one.
 - What the symbols do: **Attack** breaks the boss's shield of its damage type first, then hurts. **Support** does the
   same, but only after an attack of its type this round. **Protection** lowers the attack against a hero the players

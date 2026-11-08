@@ -58,7 +58,8 @@ What the fight reads from a card (see [The boss fight](boss_fight.md#how-a-fight
   each round gets a Lightning). Left out for none. Cards tagged `form`, the dryad's forms, lie by her character card
   like items: they never go to the play area and can be played again in the same round (`Card.stays_on_table()`).
 - **`deck`:** cards of a race's or class's deck can only be played by the hero of that race or class. Cards of
-  `items` can be used again in the same round.
+  `items` can be used again in the same round. Cards of `rooms` are for a few special bosses and have no use in the
+  game yet: the fight refuses them with *This card cannot be played now* (`Card.is_room()`).
 
 A card without symbols or ability, such as *Pass*, uses up an action and does nothing else.
 

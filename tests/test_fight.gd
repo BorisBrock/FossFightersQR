@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 362
+const EXPECTED_CHECKS := 364
 
 var _failures := 0
 var _checks_run := 0
@@ -136,7 +136,11 @@ func _check_round() -> void:
 	_check(fight.scan(_card("SUP", [["support", 3, "magic"]], "dryad")) == "notice_played_already", "a card cannot be played twice in a round")
 	_check(_notices[-1] == "notice_played_already", "which the players are told")
 	_check(fight.scan(_card("AXE2", [], "dwarf")) == "notice_not_your_card", "nor a card of another hero's deck")
-	_check(fight.scan(null) == "notice_unknown_card", "an unknown card is not played")
+	var unknown_values := {}
+	fight.notice.connect(func(_id: String, values: Dictionary) -> void: unknown_values.merge(values), CONNECT_ONE_SHOT)
+	_check(fight.scan(null, "XYZ") == "notice_unknown_card", "an unknown card is not played")
+	_check(unknown_values.get("code") == "XYZ", "and its QR code is shown")
+	_check(fight.scan(_card("HALL", [["attack", 3, "melee"]], "rooms")) == "notice_cannot_play_now", "nor a room card")
 	fight.pass_action()
 	_check(_asks_card_of(fight, 1), "passing gives up the action")
 	for i in 4:

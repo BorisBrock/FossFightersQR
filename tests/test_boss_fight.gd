@@ -270,7 +270,7 @@ func _check_round() -> void:
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())
 	_check(not screen.get_node("Prompt/Layout/Notice").visible, "a card still in view does not count again")
 	screen._on_code_read("NOPE", PackedVector2Array(), Vector2i())
-	_check(screen.get_node("Prompt/Layout/Notice").visible, "an unknown card is pointed out")
+	_check(screen.get_node("Prompt/Layout/Notice").visible and screen.get_node("Prompt/Layout/Notice").get_parsed_text().contains("NOPE"), "an unknown card is pointed out, with its QR code")
 	var pass_button: Button = screen.get_node("Prompt/Layout/Buttons").get_child(0)
 	_check(pass_button.text == "Pass", "a hero can pass")
 	pass_button.pressed.emit()
