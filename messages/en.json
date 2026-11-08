@@ -331,5 +331,20 @@
 	},
 	"notice_form_already": {
 		"body": "[player]{player}[/player] already has this form."
+	},
+	"transfer_health": {
+		"body": "[player]{player}[/player] may give as much of their health :health: as they like to [b]exactly one[/b] other hero."
+	},
+	"card_back_to_pile": {
+		"body": "[player]{player}[/player] does not discard [b]{card}[/b], but shuffles it back into their draw pile :card:."
+	},
+	"prompt_redraw_hand_who": {
+		"body": "[b]Tap the hero[/b] who discards any number of hand cards and then draws up to their hand limit."
+	},
+	"redraw_hand": {
+		"body": "[player]{player}[/player] discards as many hand cards as they like, then draws up to their hand limit :card:."
+	},
+	"discard_random": {
+		"body": "[player]{player}[/player] discards [b]{count}[/b] random card from their hand, if they have one :card:."
 	}
 }

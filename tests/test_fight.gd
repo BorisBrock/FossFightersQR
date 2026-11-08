@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 250
+const EXPECTED_CHECKS := 263
 
 var _failures := 0
 var _checks_run := 0
@@ -66,6 +66,7 @@ func _initialize() -> void:
 	_check_magic_loot_cards()
 	_check_items()
 	_check_dryad_forms()
+	_check_dryad_cards()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -888,6 +889,72 @@ func _check_dryad_forms() -> void:
 	fight.pass_action()
 	fight.scan(_card("BLOSSOM_HIT", [["attack", 2, "ranged"], ["attack", 1, "melee"], ["direct_damage", 1]], "dryad"))
 	_check(fight.health == 25 and _told.count("heal") == 1 and _values[_told.find("heal")].amount == 3 and _values[_told.find("heal")].player == "Sonja", "Blütenform: she heals 3 each time her attack costs the boss health")
+	fight.abandon()
+
+
+## The dryad's deck: the cards with an ability, from the catalog.
+func _check_dryad_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Stachelfaust: 1 stronger each time it was played before, back into the draw pile.
+	var fist := catalog.find("mQEAAA==")
+	var fight := _dryad_starts()
+	fight.scan(fist)
+	_check(fight.health == 29, "Stachelfaust: a melee attack of 3")
+	_pass_until(fight, "card_back_to_pile")
+	_check(_told[-1] == "card_back_to_pile" and _values[-1].player == "Sonja" and fight.phase == Fight.Phase.DISCARD and _told[-2] == "phase_discard", "Stachelfaust: a reminder in the discard phase to shuffle it back into the draw pile")
+	_pass_until(fight, "phase_action")
+	_ready(fight)
+	for i in 6:
+		if _asks_card_of(fight, 5):
+			break
+		fight.pass_action()
+	var before := fight.health
+	fight.scan(fist)
+	_check(before - fight.health == 2, "Stachelfaust: 4 the second time, against the shield of 2")
+	fight.abandon()
+
+	# Rindenmaske: her next Protection heals the hero it protects.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("mAEAAA=="))
+	_check(_asks_card_of(fight, 5), "Rindenmaske: another action")
+	fight.scan(_card("MASK_GUARD", [["protection", 2], ["lightning", 1]], "dryad"))
+	fight.choose(fight.hero_at(1))
+	_check(_told[-1] == "heal" and _values[-1].player == "Rosie" and _values[-1].amount == 2 and fight.hero_at(1).threat == 1, "Rindenmaske: the protected hero heals as much as the Protection")
+	_ready(fight)
+	fight.scan(_card("MASK_GUARD2", [["protection", 2]], "dryad"))
+	fight.choose(fight.hero_at(3))
+	_check(_told.count("heal") == 1, "Rindenmaske: only for the next card")
+	fight.abandon()
+
+	# Moosumhang: the protected hero draws, not the dryad.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("mwEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 0 and _told[-1] == "draw_cards" and _values[-1].player == "Borin" and _told.count("draw_cards") == 1, "Moosumhang: the protected hero draws 1")
+	fight.abandon()
+
+	# Uralter Samen: she heals, may give health away, and acts again.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("nQEAAA=="))
+	_check(_told[-1] == "heal" and _values[-1].amount == 3 and _values[-1].player == "Sonja", "Uralter Samen: she heals 3")
+	_ready(fight)
+	_check(_told[-1] == "transfer_health" and _values[-1].player == "Sonja", "Uralter Samen: then she may give health to another hero")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5), "Uralter Samen: another action")
+	fight.abandon()
+
+	# Phönixbeere: a chosen hero swaps hand cards.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("nAEAAA=="))
+	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "Phönixbeere: for a hero of the players' choice")
+	fight.choose(fight.hero_at(1))
+	_check(_told[-1] == "redraw_hand" and _values[-1].player == "Rosie", "Phönixbeere: they discard and draw up to their hand limit")
+	fight.abandon()
+
+	# Säuremottenschwarm: a magic attack, then a random hand card goes.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("mgEAAA=="))
+	_check(fight.health == 26 and _told[-1] == "discard_random" and _values[-1].count == 1 and _values[-1].player == "Sonja", "Säuremottenschwarm: magic attack 5, then she discards 1 random card")
 	fight.abandon()
 
 

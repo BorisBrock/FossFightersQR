@@ -709,6 +709,7 @@ func _play_round() -> void:
 
 	await _phase(Phase.DISCARD)
 	tell("phase_discard")
+	await _each_rule("discard_phase_started")
 	await until_read()
 	if over:
 		return

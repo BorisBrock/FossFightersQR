@@ -50,6 +50,12 @@ func attack_phase_ended(_fight: Fight) -> void:
 	pass
 
 
+## The discard phase has begun, after its message, such as for reminders of what to do
+## with the cards in the play area.
+func discard_phase_started(_fight: Fight) -> void:
+	pass
+
+
 ## The last thing in a round, after the draw phase.
 func round_ended(_fight: Fight) -> void:
 	pass

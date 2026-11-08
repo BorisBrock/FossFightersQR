@@ -1083,7 +1083,7 @@
     {
       "qr": "vQEAAA==",
       "deck": "dryad",
-      "level": 3,
+      "level": 1,
       "title": { "de": "Stachelform" },
       "effect": { "de": "In der Stachelform sind alle deine Angriffe und Verstärkungen um 1 erhöht. Die Dryade kann als Aktion diese Form annehmen." },
       "ability": "dryad_form",
@@ -1093,9 +1093,9 @@
     {
       "qr": "vgEAAA==",
       "deck": "dryad",
-      "level": 3,
+      "level": 1,
       "title": { "de": "Blütenform" },
-      "effect": { "de": "In der Blütenform erhältst du jedes Mal 3 Lebenspunkte, wenn der Boss durch deine Angriffe oder Verstärkungen Leben verliert. Die Dryade kann als Aktion diese Form annehmen." },
+      "effect": { "de": "In der Blütenform erhältst du jedes Mal 3 Lebenspunkte, wenn der Boss durch deine Angriffe oder Verstärkungen Leben verliert." },
       "ability": "dryad_form",
       "ability_values": { "form": "blossom" },
       "tags": [ "form" ]
@@ -1103,12 +1103,100 @@
     {
       "qr": "vAEAAA==",
       "deck": "dryad",
-      "level": 3,
+      "level": 1,
       "title": { "de": "Borkenform" },
       "effect": { "de": "In der Borkenform sind alle deine Schutz-Effekte um 1 erhöht. Die Dryade kann als Aktion diese Form annehmen." },
       "ability": "dryad_form",
       "ability_values": { "form": "bark" },
       "tags": [ "form" ]
+    },
+    {
+      "qr": "nQEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Uralter Samen" },
+      "symbols": [ { "type": "heal", "strength": 3 }, { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Du erhältst 3 Lebenspunkte. Du darfst eine Anzahl an Lebenspunkten deiner Wahl auf genau einen anderen Helden übertragen. Führe 1 weitere Aktion aus." },
+      "ability": "transfer_health"
+    },
+    {
+      "qr": "mQEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Stachelfaust" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 3. Die Höhe des Angriffs steigt nach jedem Ausspielen der Karte um 1. Mische diese Karte am Ende der Aktionsphase zurück in deinen Nachziehstapel." },
+      "ability": "stronger_each_play",
+      "ability_values": { "type": "attack", "bonus": 1, "back_to_pile": true }
+    },
+    {
+      "qr": "lQEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Rankenpeitsche" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff 3. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "lgEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Gaias Zepter" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "support", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Schutz 2. Magie-Verstärkung 3." }
+    },
+    {
+      "qr": "lwEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Erzkastanien" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "support", "strength": 3, "damage_type": "ranged" } ],
+      "effect": { "de": "Schutz 2. Fernkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "mAEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Rindenmaske" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Spielst du als nächstes einen Schutz, erhält der geschützte Held Lebenspunkte in Höhe des gespielten Schutzes. Führe 1 weitere Aktion aus." },
+      "ability": "heal_on_next_protection"
+    },
+    {
+      "qr": "mwEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Moosumhang" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "draw", "strength": 1 } ],
+      "effect": { "de": "Schutz 4. Der geschützte Held darf 1 Karte ziehen." },
+      "ability": "draw_for_protected"
+    },
+    {
+      "qr": "nAEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Phönixbeere" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl wirft beliebig viele Handkarten ab. Danach zieht er bis zu seinem Handkartenlimit Karten nach." },
+      "ability": "redraw_hand"
+    },
+    {
+      "qr": "lAEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Dornenschild" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "support", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Schutz 2. Nahkampf-Verstärkung 3." }
+    },
+    {
+      "qr": "mgEAAA==",
+      "deck": "dryad",
+      "level": 1,
+      "title": { "de": "Säuremottenschwarm" },
+      "symbols": [ { "type": "attack", "strength": 5, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Magie-Angriff 5. Wirf 1 zufällige Handkarte ab (falls möglich)." },
+      "ability": "discard_random",
+      "ability_values": { "count": 1 }
     }
   ]
 }

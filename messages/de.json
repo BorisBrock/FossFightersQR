@@ -331,5 +331,20 @@
 	},
 	"notice_form_already": {
 		"body": "[player]{player}[/player] hat diese Form schon."
+	},
+	"transfer_health": {
+		"body": "[player]{player}[/player] darf beliebig viele eigene Lebenspunkte :health: an [b]genau einen[/b] anderen Helden abgeben."
+	},
+	"card_back_to_pile": {
+		"body": "[player]{player}[/player] legt [b]{card}[/b] nicht ab, sondern mischt die Karte zurück in den Nachziehstapel :card:."
+	},
+	"prompt_redraw_hand_who": {
+		"body": "[b]Tippt den Helden an[/b], der beliebig viele Handkarten abwirft und dann bis zum Handkartenlimit nachzieht."
+	},
+	"redraw_hand": {
+		"body": "[player]{player}[/player] wirft beliebig viele Handkarten ab und zieht dann bis zum Handkartenlimit nach :card:."
+	},
+	"discard_random": {
+		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte ab, falls möglich :card:."
 	}
 }

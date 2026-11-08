@@ -123,6 +123,12 @@ serves many cards.
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
 | `dryad_form` | The dryad takes a form, which she keeps until she takes another (`FightHero.form`), and her seat shows it. `thorn`: her attacks and supports +1. `blossom`: she heals 3 each time her attack or support costs the boss health. `bark`: her Protection +1. Refused while she already has that form. | `form` (`thorn`, `blossom`, `bark`) | Stachelform, Blütenform, Borkenform |
+| `transfer_health` | Tells the hero they may give as much of their health as they like to exactly one other hero. | | Uralter Samen |
+| `stronger_each_play` | The card's effects of `type` are `bonus` stronger for each time its hero played it before in the fight. With `back_to_pile`, the players are reminded in the discard phase that the hero shuffles it back into their draw pile. | `type` (attack), `bonus` (1), `back_to_pile` (false) | Stachelfaust |
+| `heal_on_next_protection` | If the hero's next card has a Protection, each hero it protects heals as much as that Protection. | | Rindenmaske |
+| `draw_for_protected` | The card's Draw is for the heroes its Protection protected, not for its hero. | | Moosumhang |
+| `redraw_hand` | A hero of the players' choice discards any number of hand cards, then draws up to their hand limit. | | Phönixbeere |
+| `discard_random` | Tells the hero to discard `count` random hand cards, if they have any. | `count` (1) | Säuremottenschwarm |
 | `weaken_next_round` | Next round, every attack of the boss is `amount` lower. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `amount` (3), `chosen_hero` (false) | Magische Eruption |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
