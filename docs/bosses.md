@@ -78,6 +78,9 @@ func attack_hero(fight: Fight, hero: FightHero) -> void:
 	await super(fight, hero)
 ```
 
+`attack_hero` strikes through `fight.strike(hero)`. The fight tells the players of all of the boss's hits together,
+once every hero is struck, and only then do the rules hear of them (`hero_struck`, `hero_hurt`).
+
 `boss_ability(id, strength, target)` returns false if a card prevented it, and then tells the players by what.
 `strength` is the number on the @; `target` is the hero it is against, or null for everyone.
 

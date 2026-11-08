@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 72
+const EXPECTED_CHECKS := 79
 
 var _failures := 0
 var _checks_run := 0
@@ -20,6 +20,7 @@ func _ready() -> void:
 	_check_fight_state()
 	await _check_screen()
 	await _check_messages()
+	await _check_countdown()
 	await _check_round()
 	await _check_give_up()
 	await _check_defeat()
@@ -175,6 +176,60 @@ func _check_messages() -> void:
 	screen.queue_free()
 
 
+## Messages that ask nothing of the players close by themselves, unless a player taps them.
+func _check_countdown() -> void:
+	var screen := await _open()
+	var box: MessageBox = screen.messages
+	var bar: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm/Countdown")
+	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "boss_taunt" and box.is_counting_down() and bar.visible and bar.scale.x < 1.0, "the boss's words, which ask nothing, run down in the check mark")
+
+	var panel: Control = box.get_node("Margin/Panel")
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = true
+	tap.position = panel.get_global_rect().get_center() - Vector2(0, panel.size.y / 2.0 - 20.0)
+	get_viewport().push_input(tap, true)
+	var release := tap.duplicate()
+	release.pressed = false
+	get_viewport().push_input(release, true)
+	await get_tree().process_frame
+	_check(box.current() == "boss_taunt" and not box.is_counting_down() and not bar.visible, "tapping the message stops it, and it waits for the check mark")
+
+	await _confirm(box)
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "round_started" and box.is_counting_down(), "the next one runs down again")
+	var dialog := Node.new()
+	dialog.add_to_group(MenuScreen.DIALOG_GROUP)
+	add_child(dialog)
+	var left := box.countdown_left()
+	await get_tree().create_timer(0.3).timeout
+	_check(is_equal_approx(box.countdown_left(), left), "not while a dialog is open, such as the settings")
+	dialog.free()
+	# Then Mirefang's bite, which asks nothing either.
+	for i in 2:
+		box._countdown_left = 0.1
+		await get_tree().create_timer(MessageBox.FADE_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
+	_check(not box.is_showing() and screen.fight.request != null, "when they have run down, they close, and the fight goes on")
+
+	screen.show_message("example_reminder")
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "example_reminder" and not box.is_counting_down(), "a message that asks something waits for the check mark")
+	await _confirm(box)
+	Settings.message_time = "off"
+	screen.show_message("boss_poison", { "boss": "Toad", "poison": 1, "damage": 1 })
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "boss_poison" and not box.is_counting_down(), "in the settings, players can have every message wait")
+	Settings.message_time = "normal"
+	var short := MessageBox.auto_seconds("Two words")
+	var long := MessageBox.auto_seconds(" ".join(PackedStringArray(range(100).map(func(i: int) -> String: return "word"))))
+	Settings.message_time = "slow"
+	var slow := MessageBox.auto_seconds("Two words")
+	Settings.message_time = "normal"
+	_check(short == MessageBox.AUTO_MIN_SEC and long == MessageBox.AUTO_MAX_SEC and slow > short, "the more there is to read, the longer, within limits, and longer for slow")
+	screen.queue_free()
+
+
 ## A round as the players see it: choosing who starts, the phases, and playing cards.
 func _check_round() -> void:
 	Encounter.boss = "ashwing"
@@ -186,9 +241,7 @@ func _check_round() -> void:
 		tokens[token.seat] = token
 	await get_tree().create_timer(screen.INTRO_SEC).timeout
 	await _confirm(box)
-	_check(box.current() == "round_started", "after the boss's words, the round begins")
-	await _confirm(box)
-	_check(box.current() == "phase_planning", "the boss plans its attacks")
+	_check(box.current() == "round_started", "after the boss's words, the round begins, and the boss plans its attacks")
 	var badge: Control = tokens[1].get_node("Badge")
 	_check(badge.visible and badge.get_node("Row/Threat/Value").text == str(screen.fight.hero_at(1).threat), "each hero sees the attack against them")
 	await _confirm(box)

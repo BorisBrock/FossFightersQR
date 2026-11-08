@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 363
+const EXPECTED_CHECKS := 362
 
 var _failures := 0
 var _checks_run := 0
@@ -95,8 +95,7 @@ func _check_round() -> void:
 	_check(fight.scan(_card("AXE", [["attack", 5, "melee"]], "dwarf")) == "ignored" and fight.health == 30, "cards are only taken when one is asked for")
 	_ready(fight)
 	_check(_told[-1] == "round_started" and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins")
-	_ready(fight)
-	_check(_told[-1] == "phase_planning" and fight.request == null, "then the boss plans its attacks")
+	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in the same message")
 	_check(fight.hero_at(1).threat == 4 and fight.hero_at(5).threat_effects == { "poison": 1 }, "against each hero")
 	_ready(fight)
 	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "knowing them, the players choose who starts")
@@ -142,17 +141,13 @@ func _check_round() -> void:
 	_check(_asks_card_of(fight, 1), "passing gives up the action")
 	for i in 4:
 		fight.pass_action()
-	_check(fight.active_hero == null and _told[-1] == "boss_hits", "after three turns each, the boss attacks")
-	_check(_told.slice(-2) == ["boss_hits", "boss_hits"] and _values[-1].damage == 2, "every hero it still threatens")
+	_check(fight.active_hero == null and _told[-1] == "boss_attacks" and _told.count("boss_attacks") == 1, "after three turns each, the boss attacks, told in one message")
+	var hits: Array = _values[-1].hits
+	_check(hits.map(func(hit: Array) -> String: return hit[1].player) == ["Rosie", "Borin"] and hits[1] == ["part_hit", { "player": "Borin", "damage": 2 }], "every hero it still threatens, one line each")
 	_ready(fight)
-	_check(_told[-1] == "phase_status", "then the players apply their status tokens")
-	_ready(fight)
-	_check(_told[-1] == "phase_discard", "then the players discard")
-	_ready(fight)
-	_check(_told[-1] == "phase_draw", "and draw")
+	_check(_told[-1] == "round_end" and fight.phase == Fight.Phase.ROUND_END, "then the players apply their status tokens, discard and draw, told in one message")
 	_ready(fight)
 	_check(_told[-1] == "round_started" and fight.round_number == 2, "and the next round begins")
-	_ready(fight)
 	_ready(fight)
 	_check(fight.request.kind == Fight.Request.Kind.HERO and fight.hero_at(1).threat > 0, "again by planning, then choosing who starts")
 	fight.choose(fight.hero_at(5))
@@ -163,9 +158,9 @@ func _check_round() -> void:
 	_ready(fight)
 	for i in 8:
 		fight.pass_action()
-	_check(_told[-1] == "boss_hits_with_tokens" and _values[-1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
+	_check(_told[-1] == "boss_attacks" and _values[-1].hits[-1][0] == "part_hit_with_tokens" and _values[-1].hits[-1][1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
 	_ready(fight)
-	_check(_told[-1] == "phase_status", "which the players apply in the status phase")
+	_check(_told[-1] == "round_end", "which the players apply at the end of the round")
 
 	# What the game over screen shows of these two rounds.
 	var stats := fight.stats
@@ -617,8 +612,9 @@ func _check_magic_loot_cards() -> void:
 	_check("yAEAAA==" in fight.removed and _told[-1] == "poison_on_attack_ready", "Krone des Prinzen: for Borin, then out of the game")
 	_ready(fight)
 	_check(_asks_card_of(fight, 1), "Krone des Prinzen: 1 more action")
-	_pass_until(fight, "phase_status")
+	_pass_until(fight, "round_end")
 	_check(fight.poison == 1 and _told.count("poison_on_attack") == 1 and _values[_told.find("poison_on_attack")].player == "Borin", "Krone des Prinzen: attack of 4 on Borin, the boss gets 1 poison")
+	_check(_told.find("poison_on_attack") == _told.find("boss_attacks") + 1, "Krone des Prinzen: told right after the boss's hits")
 	fight.abandon()
 	boss = TestBoss.new()
 	boss.threats = { 3: 5 }
@@ -629,7 +625,7 @@ func _check_magic_loot_cards() -> void:
 	_ready(fight)
 	fight.scan(_card("GUARD", [["protection", 2]], "halfling"))
 	fight.choose(fight.hero_at(3))
-	_pass_until(fight, "phase_status")
+	_pass_until(fight, "round_end")
 	_check(fight.poison == 0 and not _told.has("poison_on_attack"), "Krone des Prinzen: lowered to 3, no poison")
 	fight.abandon()
 
@@ -644,7 +640,7 @@ func _check_magic_loot_cards() -> void:
 	_check(fight.hero_at(3).threat == 5, "Magische Eruption: not this round")
 	_pass_until(fight, "attacks_weakened")
 	_check(fight.round_number == 2 and fight.hero_at(1).threat == 0 and fight.hero_at(3).threat == 2 and fight.hero_at(5).threat == 0 and fight.hero_at(5).threat_effects.is_empty(), "Magische Eruption: next round, every attack 3 lower")
-	_pass_until(fight, "phase_planning")
+	_pass_until(fight, "round_started")
 	_ready(fight)
 	_check(fight.round_number == 3 and fight.hero_at(3).threat == 5, "Magische Eruption: only that round")
 	fight.abandon()
@@ -1086,8 +1082,8 @@ func _check_dryad_cards() -> void:
 	var fight := _dryad_starts()
 	fight.scan(fist)
 	_check(fight.health == 29, "Stachelfaust: a melee attack of 3")
-	_pass_until(fight, "card_back_to_pile")
-	_check(_told[-1] == "card_back_to_pile" and _values[-1].player == "Sonja" and fight.phase == Fight.Phase.DISCARD and _told[-2] == "phase_discard", "Stachelfaust: a reminder in the discard phase to shuffle it back into the draw pile")
+	_pass_until(fight, "round_end")
+	_check(_told[-2] == "card_back_to_pile" and _values[-2].player == "Sonja" and fight.phase == Fight.Phase.ROUND_END, "Stachelfaust: a reminder at the end of the round, before the players discard, to shuffle it back into the draw pile")
 	_pass_until(fight, "phase_action")
 	_ready(fight)
 	for i in 6:
@@ -1344,7 +1340,7 @@ func _check_battle_robot() -> void:
 	fight.choose(fight.hero_at(3))
 	_ready(fight)
 	_check(fight.health == 29 and _told.slice(-2) == ["card_removed", "robot_built"], "Astraler Robo-Schrauber: still, its three symbols build the robot at once")
-	_pass_until(fight, "phase_status")
+	_pass_until(fight, "round_end")
 	_check(fight.buffs(rosie)[0].bar == 5, "the boss's attack of 3 on the goblin costs the robot 3 health")
 	fight.abandon()
 
@@ -1493,7 +1489,7 @@ func _check_boss_poison() -> void:
 	var fight := _started(TestBoss.new())
 	var changes: Array[int] = []
 	fight.poison_changed.connect(func(poison: int) -> void: changes.append(poison))
-	_pass_until(fight, "phase_draw")
+	_pass_until(fight, "round_end")
 	_ready(fight)
 	_check(not _told.has("boss_poison") and fight.round_number == 2, "without poison, nothing happens at the end of a round")
 	for i in 3:
@@ -1580,7 +1576,7 @@ func _check_combos() -> void:
 	_ready(fight)
 	fight.scan(catalog.find("HgEAAA=="))
 	_check(_told[-1] == "attack_delayed" and fight.health == 30, "Amulett der Zeit repeats Bombling: it waits too")
-	_pass_until(fight, "phase_draw")
+	_pass_until(fight, "round_end")
 	for i in 4:
 		_ready(fight)
 	fight.choose(fight.hero_at(1))

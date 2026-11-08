@@ -1,18 +1,16 @@
 {
 	"boss_taunt": {
 		"title": "{boss}",
-		"body": "[i]»{taunt}«[/i]"
+		"body": "[i]»{taunt}«[/i]",
+		"auto": true
 	},
 	"round_started": {
 		"title": "Round {round}",
-		"body": "A new round begins. Look at the boss and plan your moves together."
-	},
-	"phase_planning": {
-		"title": "Phase 1 · Planning",
 		"body": [
-			"[boss]{boss}[/boss] is planning its attacks.",
-			"The attack against each of you is shown at your seat :damage:."
-		]
+			"[boss]{boss}[/boss] plans its attacks: the attack against each of you is shown at your seat :damage:.",
+			"Look at them and plan your moves together."
+		],
+		"auto": true
 	},
 	"phase_action": {
 		"title": "Phase 3 · Actions",
@@ -23,45 +21,36 @@
 			"Show your card to the camera when it is your turn."
 		]
 	},
-	"boss_hits": {
-		"title": "Phase 4 · Attack",
-		"body": "[boss]{boss}[/boss] hits [player]{player}[/player] for [damage]{damage} damage[/damage] :damage:."
-	},
-	"boss_hits_with_tokens": {
+	"boss_attacks": {
 		"title": "Phase 4 · Attack",
 		"body": [
-			"[boss]{boss}[/boss] hits [player]{player}[/player] for [damage]{damage} damage[/damage] :damage:.",
-			"[player]{player}[/player] also takes [poison]{tokens}[/poison]."
+			"[boss]{boss}[/boss] attacks:",
+			"{hits}"
 		]
+	},
+	"part_hit": {
+		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :damage:"
+	},
+	"part_hit_with_tokens": {
+		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :damage: and [poison]{tokens}[/poison]"
 	},
 	"phase_attack_blocked": {
 		"title": "Phase 4 · Attack",
-		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round."
+		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round.",
+		"auto": true
 	},
-	"phase_status": {
-		"title": "Phase 5 · Status",
+	"round_end": {
+		"title": "End of the Round",
 		"body": [
-			"Poison :poison:: lose [damage]1 health[/damage] :health: per poison token.",
-			"Fire :fire:: draw [b]1[/b] :card: per fire token. For each card: remove it for the rest of the fight, [i]or[/i] discard it and lose [damage]2 health[/damage] :health:."
-		]
-	},
-	"phase_discard": {
-		"title": "Phase 6 · Discard",
-		"body": [
-			"Move the cards from your play area to your discard pile.",
-			"Discard down to your hand limit. You may discard more."
-		]
-	},
-	"phase_draw": {
-		"title": "Phase 7 · Draw",
-		"body": [
-			"Draw up to your hand limit :card:.",
-			"Paralysis :paralysis:: your hand limit is [damage]1 lower[/damage] per paralysis token."
+			"[b]Status:[/b] poison :poison:: lose [damage]1[/damage] :health: per token. Fire :fire:: draw [b]1[/b] :card: per token, remove each for the fight [i]or[/i] discard it and lose [damage]2[/damage] :health:.",
+			"[b]Discard:[/b] your play area to your discard pile, then down to your hand limit, or more.",
+			"[b]Draw:[/b] up to your hand limit :card:, [damage]1 fewer[/damage] per paralysis :paralysis:."
 		]
 	},
 	"support_without_attack": {
 		"title": "No effect",
-		"body": "A support only works after a [b]{kind}[/b] attack this round. [player]{player}[/player]'s support does nothing."
+		"body": "A support only works after a [b]{kind}[/b] attack this round. [player]{player}[/player]'s support does nothing.",
+		"auto": true
 	},
 	"heal": {
 		"body": "[player]{player}[/player] heals [heal]{amount} health[/heal] :health:, but not above their starting health."
@@ -73,20 +62,24 @@
 		"body": "[player]{player}[/player] draws [b]{count}[/b] :card:."
 	},
 	"extra_turns_now": {
-		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] this round."
+		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] this round.",
+		"auto": true
 	},
 	"extra_turns_next_round": {
-		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] next round."
+		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] next round.",
+		"auto": true
 	},
 	"empowered": {
-		"body": "Until the end of the round, every {kind} of [player]{player}[/player] gets [heal]+{bonus}[/heal]."
+		"body": "Until the end of the round, every {kind} of [player]{player}[/player] gets [heal]+{bonus}[/heal].",
+		"auto": true
 	},
 	"remove_tokens": {
 		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own tokens."
 	},
 	"mirefang_bite": {
 		"title": "Venomous Bite",
-		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:."
+		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:.",
+		"auto": true
 	},
 	"victory": {
 		"title": "Victory!",
@@ -157,29 +150,35 @@
 		"body": "Every hero draws [heal]{count}[/heal] :card:."
 	},
 	"attack_effects_removed": {
-		"body": "The attack against [player]{player}[/player] loses its extra effect."
+		"body": "The attack against [player]{player}[/player] loses its extra effect.",
+		"auto": true
 	},
 	"attack_cancelled": {
-		"body": "The attack against [player]{player}[/player] is gone."
+		"body": "The attack against [player]{player}[/player] is gone.",
+		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :damage: now hits [player]{player}[/player]."
+		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :damage: now hits [player]{player}[/player].",
+		"auto": true
 	},
 	"ward_placed": {
 		"body": "[player]{player}[/player] places [b]{card}[/b] next to their hero card. It can prevent one of the boss's @-abilities against [player]{player}[/player]."
 	},
 	"ward_ready": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] prevents the boss's next @-ability up to [b]{strength}[/b]."
+		"body": "[b]{card}[/b] of [player]{player}[/player] prevents the boss's next @-ability up to [b]{strength}[/b].",
+		"auto": true
 	},
 	"boss_ability_prevented": {
 		"title": "Prevented!",
-		"body": "[b]{card}[/b] prevents the ability of [boss]{boss}[/boss]."
+		"body": "[b]{card}[/b] prevents the ability of [boss]{boss}[/boss].",
+		"auto": true
 	},
 	"may_draw": {
 		"body": "[player]{player}[/player] may draw [heal]{count}[/heal] :card:."
 	},
 	"shield_breaker": {
-		"body": "Shield destroyed! [boss]{boss}[/boss] loses [damage]{damage} health[/damage] at once."
+		"body": "Shield destroyed! [boss]{boss}[/boss] loses [damage]{damage} health[/damage] at once.",
+		"auto": true
 	},
 	"prompt_if_healthy": {
 		"body": "Does [player]{player}[/player] now have [b]{health} health[/b] :health: or more?"
@@ -233,25 +232,31 @@
 		"body": "[player]{player}[/player] puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
 	},
 	"toxin_ready": {
-		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison token[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] more at the end of the round."
+		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison token[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] more at the end of the round.",
+		"auto": true
 	},
 	"card_repeated": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect once more."
+		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect once more.",
+		"auto": true
 	},
 	"nothing_to_repeat": {
-		"body": "No card with an attack has been played yet, so nothing takes effect again."
+		"body": "No card with an attack has been played yet, so nothing takes effect again.",
+		"auto": true
 	},
 	"attack_delayed": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] only goes off at the start of their first turn next round."
+		"body": "[b]{card}[/b] of [player]{player}[/player] only goes off at the start of their first turn next round.",
+		"auto": true
 	},
 	"delayed_attack_now": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] goes off now!"
+		"body": "[b]{card}[/b] of [player]{player}[/player] goes off now!",
+		"auto": true
 	},
 	"prompt_halve_who": {
 		"body": "[b]Tap the hero[/b] whose attack is halved."
 	},
 	"attack_halved": {
-		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :damage: and loses its extra effect."
+		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :damage: and loses its extra effect.",
+		"auto": true
 	},
 	"remove_curse": {
 		"body": "[player]{player}[/player] puts 1 active curse of any hero on the curse discard pile."
@@ -266,7 +271,8 @@
 		"body": "[b]Tap the hero[/b] who plays the top [b]{count}[/b] cards of their draw pile."
 	},
 	"boss_poison": {
-		"body": "The poison works! [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health:."
+		"body": "The poison works! [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health:.",
+		"auto": true
 	},
 	"example_magic_potion": {
 		"title": "Magic Potion",
@@ -288,40 +294,49 @@
 		"body": "Magic"
 	},
 	"shield_lowered": {
-		"body": "The {kind} shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage]."
+		"body": "The {kind} shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage].",
+		"auto": true
 	},
 	"no_shield_to_lower": {
-		"body": "[boss]{boss}[/boss] has no shield left: [b]{card}[/b] of [player]{player}[/player] does nothing."
+		"body": "[boss]{boss}[/boss] has no shield left: [b]{card}[/b] of [player]{player}[/player] does nothing.",
+		"auto": true
 	},
 	"prompt_poison_on_attack_who": {
 		"body": "[b]Tap the hero[/b]: whenever a boss attack of [damage]{threshold}[/damage] or more strikes them, the boss gets [poison]{poison} poison[/poison] :poison:."
 	},
 	"poison_on_attack_ready": {
-		"body": "[b]{card}[/b]: until the end of the fight, the boss gets [poison]{poison} poison[/poison] :poison: whenever it attacks [player]{player}[/player] with [damage]{threshold}[/damage] or more."
+		"body": "[b]{card}[/b]: until the end of the fight, the boss gets [poison]{poison} poison[/poison] :poison: whenever it attacks [player]{player}[/player] with [damage]{threshold}[/damage] or more.",
+		"auto": true
 	},
 	"poison_on_attack": {
-		"body": "[b]{card}[/b] strikes back: [boss]{boss}[/boss] attacks [player]{player}[/player] and gets [poison]{poison} poison[/poison] :poison:."
+		"body": "[b]{card}[/b] strikes back: [boss]{boss}[/boss] attacks [player]{player}[/player] and gets [poison]{poison} poison[/poison] :poison:.",
+		"auto": true
 	},
 	"attacks_weakened_next_round": {
-		"body": "[b]{card}[/b] of [player]{player}[/player]: next round, every attack of the boss is [heal]{amount}[/heal] lower."
+		"body": "[b]{card}[/b] of [player]{player}[/player]: next round, every attack of the boss is [heal]{amount}[/heal] lower.",
+		"auto": true
 	},
 	"attacks_weakened": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect: every attack of the boss is [heal]{amount}[/heal] lower."
+		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect: every attack of the boss is [heal]{amount}[/heal] lower.",
+		"auto": true
 	},
 	"remove_tokens_everyone": {
 		"body": "Each hero removes up to [heal]{count}[/heal] of their tokens."
 	},
 	"form_thorn": {
 		"title": "Thorn Form",
-		"body": "[player]{player}[/player] takes the Thorn Form: their attacks and supports get [heal]+1[/heal]."
+		"body": "[player]{player}[/player] takes the Thorn Form: their attacks and supports get [heal]+1[/heal].",
+		"auto": true
 	},
 	"form_blossom": {
 		"title": "Blossom Form",
-		"body": "[player]{player}[/player] takes the Blossom Form: each time their attacks or supports cost the boss health, they heal [heal]3 health[/heal] :health:."
+		"body": "[player]{player}[/player] takes the Blossom Form: each time their attacks or supports cost the boss health, they heal [heal]3 health[/heal] :health:.",
+		"auto": true
 	},
 	"form_bark": {
 		"title": "Bark Form",
-		"body": "[player]{player}[/player] takes the Bark Form: their protection :shield: gets [heal]+1[/heal]."
+		"body": "[player]{player}[/player] takes the Bark Form: their protection :shield: gets [heal]+1[/heal].",
+		"auto": true
 	},
 	"notice_form_already": {
 		"body": "[player]{player}[/player] already has this form."
@@ -342,13 +357,16 @@
 		"body": "[player]{player}[/player] discards [b]{count}[/b] random card from their hand, if they have one :card:."
 	},
 	"shields_lowered": {
-		"body": "Every shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage], without its effect."
+		"body": "Every shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage], without its effect.",
+		"auto": true
 	},
 	"threat_lowers_on_attack": {
-		"body": "Each time [player]{player}[/player] plays an attack this round, the boss's attack against them goes down by [heal]{amount}[/heal]."
+		"body": "Each time [player]{player}[/player] plays an attack this round, the boss's attack against them goes down by [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"threat_lowered": {
-		"body": "The attack of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal]."
+		"body": "The attack of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"remove_tokens_group": {
 		"body": "Together you remove up to [heal]{count}[/heal] tokens, from whoever you like."
@@ -375,7 +393,8 @@
 		"body": "Each hero draws [b]{draw}[/b] :card:, then puts [b]{back}[/b] of their hand cards face down on their draw pile."
 	},
 	"next_cards_boosted": {
-		"body": "On the next [b]{cards}[/b] :card: played, by anyone, every attack and support is [heal]{bonus}[/heal] higher."
+		"body": "On the next [b]{cards}[/b] :card: played, by anyone, every attack and support is [heal]{bonus}[/heal] higher.",
+		"auto": true
 	},
 	"random_token": {
 		"body": "Chosen at random: [player]{player}[/player] takes a status token, [poison]{tokens}[/poison]."
@@ -409,7 +428,8 @@
 		]
 	},
 	"tokens_per_lightning": {
-		"body": "Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play."
+		"body": "Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play.",
+		"auto": true
 	},
 	"totems_returned": {
 		"title": "Totems",

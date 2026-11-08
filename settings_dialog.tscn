@@ -97,6 +97,32 @@ focus_mode = 0
 toggle_mode = true
 text = "English"
 
+[node name="MessageTimeLabel" type="Label" parent="Dim/Center/Panel/Margin/Layout"]
+layout_mode = 2
+theme_type_variation = &"SettingLabel"
+
+[node name="MessageTime" type="HBoxContainer" parent="Dim/Center/Panel/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Normal" type="Button" parent="Dim/Center/Panel/Margin/Layout/MessageTime"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+
+[node name="Slow" type="Button" parent="Dim/Center/Panel/Margin/Layout/MessageTime"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+
+[node name="Off" type="Button" parent="Dim/Center/Panel/Margin/Layout/MessageTime"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+toggle_mode = true
+
 [node name="Done" type="Button" parent="Dim/Center/Panel/Margin/Layout"]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2

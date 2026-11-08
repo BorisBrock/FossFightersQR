@@ -50,6 +50,7 @@ theme_override_constants/margin_bottom = 100
 [node name="Panel" type="PanelContainer" parent="Margin"]
 layout_mode = 2
 size_flags_vertical = 4
+mouse_filter = 1
 
 [node name="Margin" type="MarginContainer" parent="Margin/Panel"]
 layout_mode = 2
@@ -107,6 +108,21 @@ theme_type_variation = &"PrimaryButton"
 icon = ExtResource("5_check")
 icon_alignment = 1
 expand_icon = true
+
+[node name="Countdown" type="ColorRect" parent="Margin/Panel/Margin/Layout/Confirm"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_top = -16.0
+offset_right = -22.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+color = Color(1, 0.94, 0.8, 0.85)
 
 [node name="Sound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_sound")

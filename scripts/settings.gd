@@ -11,6 +11,10 @@ const DEFAULT_SFX_VOLUME := 1.0
 ## Follows the language of the device.
 const SYSTEM_LANGUAGE := ""
 const LANGUAGES: Array[String] = ["de", "en"]
+## How long the messages that close by themselves stay, by the name of the setting: a
+## factor for MessageBox's time, 0 for never closing by themselves.
+const MESSAGE_TIMES := { "normal": 1.0, "slow": 1.75, "off": 0.0 }
+const DEFAULT_MESSAGE_TIME := "normal"
 
 var music_on := true:
 	set(value):
@@ -36,6 +40,11 @@ var language := SYSTEM_LANGUAGE:
 		language = value if LANGUAGES.has(value) else SYSTEM_LANGUAGE
 		TranslationServer.set_locale(OS.get_locale() if language == SYSTEM_LANGUAGE else language)
 
+## One of MESSAGE_TIMES. See message_time_factor().
+var message_time := DEFAULT_MESSAGE_TIME:
+	set(value):
+		message_time = value if MESSAGE_TIMES.has(value) else DEFAULT_MESSAGE_TIME
+
 var _path := SAVE_PATH
 
 
@@ -55,6 +64,7 @@ func load_file(path: String) -> void:
 	sfx_on = _read(config, "audio", "sfx_on", true)
 	sfx_volume = _read(config, "audio", "sfx_volume", DEFAULT_SFX_VOLUME)
 	language = _read(config, "display", "language", SYSTEM_LANGUAGE)
+	message_time = _read(config, "display", "message_time", DEFAULT_MESSAGE_TIME)
 
 
 func save() -> bool:
@@ -64,10 +74,16 @@ func save() -> bool:
 	config.set_value("audio", "sfx_on", sfx_on)
 	config.set_value("audio", "sfx_volume", sfx_volume)
 	config.set_value("display", "language", language)
+	config.set_value("display", "message_time", message_time)
 	var result := config.save(_path)
 	if result != OK:
 		push_error("Cannot save the settings: ", error_string(result))
 	return result == OK
+
+
+## How much longer than usual messages stay that close by themselves, 0 if they do not.
+func message_time_factor() -> float:
+	return MESSAGE_TIMES[message_time]
 
 
 func _read(config: ConfigFile, section: String, key: String, fallback: Variant) -> Variant:

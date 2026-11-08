@@ -3,6 +3,10 @@ extends Control
 ## Shows messages (see Messages) large over the fight, one at a time, each until the
 ## players tap the check mark. That is how they confirm that they read it and did what it
 ## says. Messages that arrive meanwhile wait in line.
+##
+## A message that asks nothing of the players (Messages.is_auto) also closes by itself:
+## a bar in the check mark runs down, for longer the more there is to read. Tapping the
+## message stops it, for those who need more time, and it waits for the check mark again.
 
 ## A message was confirmed. The next one, if any, follows.
 signal confirmed(id: String)
@@ -13,23 +17,55 @@ const FADE_SEC := 0.2
 ## Taps this soon after a message appears do not count, so that a double tap does not
 ## close the next message, unread.
 const CONFIRM_DELAY_SEC := 0.4
+## How long a message that closes by itself stays: AUTO_SEC plus AUTO_SEC_PER_WORD for
+## each word of it, as it is read out at the table, from AUTO_MIN_SEC to AUTO_MAX_SEC.
+## Settings.message_time_factor() makes it longer, or turns it off.
+const AUTO_SEC := 2.0
+const AUTO_SEC_PER_WORD := 0.4
+const AUTO_MIN_SEC := 4.0
+const AUTO_MAX_SEC := 15.0
 
 ## What waits, oldest first, as [id, values]. The first one is on screen.
 var queue: Array[Array] = []
 
 var _hold_until := 0.0
 var _tween: Tween
+## The time the message on screen has left before it closes by itself, of
+## _countdown_total. 0 if it does not, or no longer does.
+var _countdown_left := 0.0
+var _countdown_total := 0.0
 
 @onready var _panel: Control = $Margin/Panel
 @onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Title
 @onready var _body: RichTextLabel = $Margin/Panel/Margin/Layout/Body
 @onready var _confirm: BaseButton = $Margin/Panel/Margin/Layout/Confirm
+@onready var _countdown: Control = $Margin/Panel/Margin/Layout/Confirm/Countdown
 @onready var _sound: AudioStreamPlayer = $Sound
 
 
 func _ready() -> void:
 	hide()
+	_countdown.hide()
 	_confirm.pressed.connect(confirm)
+
+
+func _process(delta: float) -> void:
+	if _countdown_left <= 0.0:
+		return
+	# Not while the players are busy with a dialog, such as the settings.
+	if not get_tree().get_nodes_in_group(MenuScreen.DIALOG_GROUP).is_empty():
+		return
+	_countdown_left -= delta
+	_countdown.scale.x = maxf(0.0, _countdown_left / _countdown_total)
+	if _countdown_left <= 0.0:
+		confirm()
+
+
+## A tap on the message, not on its check mark, stops it from closing by itself.
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and is_counting_down():
+		stop_countdown()
+		accept_event()
 
 
 func _notification(what: int) -> void:
@@ -55,6 +91,28 @@ func current() -> String:
 	return queue[0][0] if is_showing() else ""
 
 
+## Whether the message on screen is about to close by itself.
+func is_counting_down() -> bool:
+	return _countdown_left > 0.0
+
+
+## Seconds until the message on screen closes by itself, 0 if it does not.
+func countdown_left() -> float:
+	return maxf(0.0, _countdown_left)
+
+
+## The message on screen waits for the check mark, rather than closing by itself.
+func stop_countdown() -> void:
+	_countdown_left = 0.0
+	_countdown.hide()
+
+
+## How long a message with this text, as shown, stays before it closes by itself.
+static func auto_seconds(text: String) -> float:
+	var words := text.split(" ", false).size()
+	return clampf(AUTO_SEC + AUTO_SEC_PER_WORD * words, AUTO_MIN_SEC, AUTO_MAX_SEC) * Settings.message_time_factor()
+
+
 ## Keeps messages back for a while, such as while the fight is introduced.
 func hold(seconds: float) -> void:
 	_hold_until = maxf(_hold_until, _now() + seconds)
@@ -64,6 +122,7 @@ func hold(seconds: float) -> void:
 func confirm() -> void:
 	if not is_showing() or _confirm.disabled:
 		return
+	stop_countdown()
 	var id: String = queue.pop_front()[0]
 	confirmed.emit(id)
 	if is_showing():
@@ -75,6 +134,7 @@ func confirm() -> void:
 
 func _show_first() -> void:
 	_stop_tween()
+	stop_countdown()
 	_confirm.disabled = true
 	var wait := _hold_until - _now()
 	if wait > 0.0:
@@ -97,8 +157,25 @@ func _show_first() -> void:
 		_panel.scale = Vector2(0.9, 0.9)
 		_tween.tween_property(self, "modulate:a", 1.0, FADE_SEC)
 		_tween.tween_property(_panel, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_tween.tween_callback(func() -> void: _confirm.disabled = false).set_delay(CONFIRM_DELAY_SEC)
+	_tween.tween_callback(_on_ready_to_confirm).set_delay(CONFIRM_DELAY_SEC)
 	_sound.play()
+
+
+## The message is in view and can be confirmed. One that asks nothing of the players
+## starts running down.
+func _on_ready_to_confirm() -> void:
+	_confirm.disabled = false
+	if not Messages.is_auto(current()):
+		return
+	var text := _body.get_parsed_text()
+	if _title.visible:
+		text = _title.get_parsed_text() + " " + text
+	var seconds := auto_seconds(text.replace("\n", " "))
+	if seconds > 0.0:
+		_countdown_total = seconds
+		_countdown_left = seconds
+		_countdown.scale.x = 1.0
+		_countdown.show()
 
 
 func _refresh_text() -> void:
@@ -113,6 +190,7 @@ func _refresh_text() -> void:
 
 func _fade_out() -> void:
 	_stop_tween()
+	stop_countdown()
 	_confirm.disabled = true
 	_tween = create_tween()
 	_tween.tween_property(self, "modulate:a", 0.0, FADE_SEC)

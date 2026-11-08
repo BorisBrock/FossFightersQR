@@ -4,7 +4,7 @@ extends Node
 ## godot --headless res://tests/test_settings.tscn
 
 const PATH := "user://test_settings.cfg"
-const EXPECTED_CHECKS := 47
+const EXPECTED_CHECKS := 51
 
 var _failures := 0
 var _checks_run := 0
@@ -73,9 +73,11 @@ func _check_round_trip() -> void:
 	Settings.music_volume = 0.25
 	Settings.sfx_on = false
 	Settings.sfx_volume = 0.75
+	Settings.message_time = "slow"
 	_check(Settings.save(), "saves")
 	Settings.load_file(PATH)
 	_check(not Settings.music_on and not Settings.sfx_on and Settings.music_volume == 0.25 and Settings.sfx_volume == 0.75, "keeps everything")
+	_check(Settings.message_time == "slow" and Settings.message_time_factor() > 1.0, "also how long messages stay")
 	_check(_is_muted(Settings.MUSIC_BUS) and _is_muted(Settings.SFX_BUS), "loading applies to the buses")
 
 
@@ -87,6 +89,9 @@ func _check_damaged_files() -> void:
 	Settings.load_file(PATH)
 	_check(Settings.music_on and Settings.music_volume == Settings.DEFAULT_MUSIC_VOLUME, "wrong types give the defaults")
 	_check(Settings.sfx_volume == 1.0, "a volume out of range is limited")
+	_check(Settings.message_time == Settings.DEFAULT_MESSAGE_TIME, "messages close by themselves without a setting")
+	Settings.message_time = "forever"
+	_check(Settings.message_time == Settings.DEFAULT_MESSAGE_TIME, "an unknown message time gives the default")
 	DirAccess.remove_absolute(PATH)
 	Settings.load_file(PATH)
 
@@ -135,6 +140,18 @@ func _check_language_in_dialog() -> void:
 	await get_tree().process_frame
 	Settings.load_file(PATH)
 	_check(Settings.language == Settings.SYSTEM_LANGUAGE, "closing saves the language")
+
+	Settings.language = "en"
+	dialog = load("res://settings_dialog.tscn").instantiate()
+	add_child(dialog)
+	var never: Button = dialog.get_node(layout + "MessageTime/Off")
+	never.pressed.emit()
+	await get_tree().process_frame
+	_check(never.text == "Never" and Settings.message_time == "off" and never.button_pressed and not dialog.get_node(layout + "MessageTime/Normal").button_pressed, "the dialog sets whether messages close by themselves")
+	dialog.queue_free()
+	await get_tree().process_frame
+	Settings.message_time = Settings.DEFAULT_MESSAGE_TIME
+	Settings.save()
 
 
 func _check_dialog() -> void:

@@ -54,18 +54,19 @@ func action_phase_ended(_fight: Fight) -> void:
 	pass
 
 
-## After the boss's attacks, before the status phase.
+## After the boss's attacks and what rules did on them, before the end of the round.
 func attack_phase_ended(_fight: Fight) -> void:
 	pass
 
 
-## The discard phase has begun, after its message, such as for reminders of what to do
-## with the cards in the play area.
-func discard_phase_started(_fight: Fight) -> void:
+## The end of the round has begun (status, discard and draw, Fight.Phase.ROUND_END),
+## before the players are told what to do in it. Such as for reminders of what to do with
+## the cards in the play area instead of discarding them.
+func round_end_started(_fight: Fight) -> void:
 	pass
 
 
-## The last thing in a round, after the draw phase.
+## The last thing in a round, after the players have drawn.
 func round_ended(_fight: Fight) -> void:
 	pass
 #endregion
@@ -107,7 +108,8 @@ func shield_broken(_fight: Fight, _kind: String, _play: CardPlay) -> void:
 
 
 ## The boss's attack struck hero with damage, what was left of it after everything that
-## lowered it (Fight.strike). Before hero_hurt.
+## lowered it (Fight.strike). Once the players have been told of all the boss's hits this
+## round, before hero_hurt.
 func hero_struck(_fight: Fight, _hero: FightHero, _damage: int) -> void:
 	pass
 

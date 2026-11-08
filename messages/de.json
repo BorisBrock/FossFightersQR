@@ -1,18 +1,16 @@
 {
 	"boss_taunt": {
 		"title": "{boss}",
-		"body": "[i]»{taunt}«[/i]"
+		"body": "[i]»{taunt}«[/i]",
+		"auto": true
 	},
 	"round_started": {
 		"title": "Runde {round}",
-		"body": "Eine neue Runde beginnt. Seht euch den Boss an und plant gemeinsam eure Züge."
-	},
-	"phase_planning": {
-		"title": "Phase 1 · Planung",
 		"body": [
-			"[boss]{boss}[/boss] plant seine Angriffe.",
-			"Der Angriff gegen jeden von euch steht an eurem Platz :damage:."
-		]
+			"[boss]{boss}[/boss] plant seine Angriffe: Der Angriff gegen jeden von euch steht an eurem Platz :damage:.",
+			"Seht sie euch an und plant gemeinsam eure Züge."
+		],
+		"auto": true
 	},
 	"phase_action": {
 		"title": "Phase 3 · Aktionen",
@@ -23,45 +21,36 @@
 			"Zeigt eure Karte der Kamera, wenn ihr dran seid."
 		]
 	},
-	"boss_hits": {
-		"title": "Phase 4 · Angriff",
-		"body": "[boss]{boss}[/boss] trifft [player]{player}[/player] mit [damage]{damage} Schaden[/damage] :damage:."
-	},
-	"boss_hits_with_tokens": {
+	"boss_attacks": {
 		"title": "Phase 4 · Angriff",
 		"body": [
-			"[boss]{boss}[/boss] trifft [player]{player}[/player] mit [damage]{damage} Schaden[/damage] :damage:.",
-			"[player]{player}[/player] bekommt außerdem [poison]{tokens}[/poison]."
+			"[boss]{boss}[/boss] greift an:",
+			"{hits}"
 		]
+	},
+	"part_hit": {
+		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :damage:"
+	},
+	"part_hit_with_tokens": {
+		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :damage: und [poison]{tokens}[/poison]"
 	},
 	"phase_attack_blocked": {
 		"title": "Phase 4 · Angriff",
-		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden."
+		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden.",
+		"auto": true
 	},
-	"phase_status": {
-		"title": "Phase 5 · Status",
+	"round_end": {
+		"title": "Rundenende",
 		"body": [
-			"Gift :poison:: verliert [damage]1 Lebenspunkt[/damage] :health: pro Gift-Marker.",
-			"Feuer :fire:: zieht [b]1[/b] :card: pro Feuer-Marker. Für jede Karte: für den Rest des Kampfes entfernen, [i]oder[/i] abwerfen und [damage]2 Lebenspunkte[/damage] :health: verlieren."
-		]
-	},
-	"phase_discard": {
-		"title": "Phase 6 · Abwerfen",
-		"body": [
-			"Legt die Karten aus eurem Spielbereich auf euren Ablagestapel.",
-			"Werft bis auf euer Handkartenlimit ab. Ihr dürft auch mehr abwerfen."
-		]
-	},
-	"phase_draw": {
-		"title": "Phase 7 · Nachziehen",
-		"body": [
-			"Zieht bis zu eurem Handkartenlimit nach :card:.",
-			"Lähmung :paralysis:: euer Handkartenlimit ist pro Lähmungs-Marker um [damage]1[/damage] kleiner."
+			"[b]Status:[/b] Gift :poison:: [damage]1[/damage] :health: pro Marker verlieren. Feuer :fire:: [b]1[/b] :card: pro Marker ziehen, jede für den Kampf entfernen [i]oder[/i] abwerfen und [damage]2[/damage] :health: verlieren.",
+			"[b]Abwerfen:[/b] Spielbereich auf den Ablagestapel, dann bis aufs Handkartenlimit abwerfen, gern mehr.",
+			"[b]Nachziehen:[/b] bis zum Handkartenlimit :card:, pro Lähmung :paralysis: [damage]1[/damage] weniger."
 		]
 	},
 	"support_without_attack": {
 		"title": "Ohne Wirkung",
-		"body": "Eine Unterstützung wirkt erst nach einem Angriff der Art [b]{kind}[/b] in dieser Runde. Die Unterstützung von [player]{player}[/player] bewirkt nichts."
+		"body": "Eine Unterstützung wirkt erst nach einem Angriff der Art [b]{kind}[/b] in dieser Runde. Die Unterstützung von [player]{player}[/player] bewirkt nichts.",
+		"auto": true
 	},
 	"heal": {
 		"body": "[player]{player}[/player] heilt [heal]{amount} Lebenspunkte[/heal] :health:, aber nicht über die Start-Lebenspunkte."
@@ -73,20 +62,24 @@
 		"body": "[player]{player}[/player] zieht [b]{count}[/b] :card:."
 	},
 	"extra_turns_now": {
-		"body": "[player]{player}[/player] bekommt in dieser Runde [heal]{count} Züge mehr[/heal]."
+		"body": "[player]{player}[/player] bekommt in dieser Runde [heal]{count} Züge mehr[/heal].",
+		"auto": true
 	},
 	"extra_turns_next_round": {
-		"body": "[player]{player}[/player] bekommt in der nächsten Runde [heal]{count} Züge mehr[/heal]."
+		"body": "[player]{player}[/player] bekommt in der nächsten Runde [heal]{count} Züge mehr[/heal].",
+		"auto": true
 	},
 	"empowered": {
-		"body": "Bis zum Ende der Runde bekommt jeder {kind} von [player]{player}[/player] [heal]+{bonus}[/heal]."
+		"body": "Bis zum Ende der Runde bekommt jeder {kind} von [player]{player}[/player] [heal]+{bonus}[/heal].",
+		"auto": true
 	},
 	"remove_tokens": {
 		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Marker."
 	},
 	"mirefang_bite": {
 		"title": "Giftiger Biss",
-		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:."
+		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:.",
+		"auto": true
 	},
 	"victory": {
 		"title": "Sieg!",
@@ -157,29 +150,35 @@
 		"body": "Jeder Held zieht [heal]{count}[/heal] :card:."
 	},
 	"attack_effects_removed": {
-		"body": "Der Angriff gegen [player]{player}[/player] verliert seinen Zusatzeffekt."
+		"body": "Der Angriff gegen [player]{player}[/player] verliert seinen Zusatzeffekt.",
+		"auto": true
 	},
 	"attack_cancelled": {
-		"body": "Der Angriff gegen [player]{player}[/player] entfällt."
+		"body": "Der Angriff gegen [player]{player}[/player] entfällt.",
+		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :damage: trifft jetzt [player]{player}[/player]."
+		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :damage: trifft jetzt [player]{player}[/player].",
+		"auto": true
 	},
 	"ward_placed": {
 		"body": "[player]{player}[/player] legt [b]{card}[/b] neben die Heldenkarte. Sie kann eine @-Fähigkeit des Bosses gegen [player]{player}[/player] verhindern."
 	},
 	"ward_ready": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] verhindert die nächste @-Fähigkeit bis [b]{strength}[/b] des Bosses."
+		"body": "[b]{card}[/b] von [player]{player}[/player] verhindert die nächste @-Fähigkeit bis [b]{strength}[/b] des Bosses.",
+		"auto": true
 	},
 	"boss_ability_prevented": {
 		"title": "Verhindert!",
-		"body": "[b]{card}[/b] verhindert die Fähigkeit von [boss]{boss}[/boss]."
+		"body": "[b]{card}[/b] verhindert die Fähigkeit von [boss]{boss}[/boss].",
+		"auto": true
 	},
 	"may_draw": {
 		"body": "[player]{player}[/player] darf [heal]{count}[/heal] :card: ziehen."
 	},
 	"shield_breaker": {
-		"body": "Schild zerstört! [boss]{boss}[/boss] verliert sofort [damage]{damage} Leben[/damage]."
+		"body": "Schild zerstört! [boss]{boss}[/boss] verliert sofort [damage]{damage} Leben[/damage].",
+		"auto": true
 	},
 	"prompt_if_healthy": {
 		"body": "Hat [player]{player}[/player] jetzt [b]{health} Lebenspunkte[/b] :health: oder mehr?"
@@ -233,25 +232,31 @@
 		"body": "[player]{player}[/player] legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
 	},
 	"toxin_ready": {
-		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] mehr."
+		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] mehr.",
+		"auto": true
 	},
 	"card_repeated": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt noch einmal."
+		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt noch einmal.",
+		"auto": true
 	},
 	"nothing_to_repeat": {
-		"body": "Es wurde noch keine Karte mit Angriff gespielt, also wird nichts wiederholt."
+		"body": "Es wurde noch keine Karte mit Angriff gespielt, also wird nichts wiederholt.",
+		"auto": true
 	},
 	"attack_delayed": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] geht erst zu Beginn des ersten Zuges in der nächsten Runde los."
+		"body": "[b]{card}[/b] von [player]{player}[/player] geht erst zu Beginn des ersten Zuges in der nächsten Runde los.",
+		"auto": true
 	},
 	"delayed_attack_now": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] geht jetzt los!"
+		"body": "[b]{card}[/b] von [player]{player}[/player] geht jetzt los!",
+		"auto": true
 	},
 	"prompt_halve_who": {
 		"body": "[b]Tippt den Helden an[/b], dessen Angriff halbiert wird."
 	},
 	"attack_halved": {
-		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :damage: halbiert und verliert seinen Zusatzeffekt."
+		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :damage: halbiert und verliert seinen Zusatzeffekt.",
+		"auto": true
 	},
 	"remove_curse": {
 		"body": "[player]{player}[/player] legt 1 aktiven Fluch eines beliebigen Helden auf den Fluch-Ablagestapel."
@@ -266,7 +271,8 @@
 		"body": "[b]Tippt den Helden an[/b], der die obersten [b]{count}[/b] Karten seines Nachziehstapels ausspielt."
 	},
 	"boss_poison": {
-		"body": "Das Gift wirkt! [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert [damage]{damage} Leben[/damage] :health:."
+		"body": "Das Gift wirkt! [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert [damage]{damage} Leben[/damage] :health:.",
+		"auto": true
 	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",
@@ -288,40 +294,49 @@
 		"body": "Magie"
 	},
 	"shield_lowered": {
-		"body": "Der {kind}-Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage]."
+		"body": "Der {kind}-Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage].",
+		"auto": true
 	},
 	"no_shield_to_lower": {
-		"body": "[boss]{boss}[/boss] hat keinen Schild mehr: [b]{card}[/b] von [player]{player}[/player] bewirkt nichts."
+		"body": "[boss]{boss}[/boss] hat keinen Schild mehr: [b]{card}[/b] von [player]{player}[/player] bewirkt nichts.",
+		"auto": true
 	},
 	"prompt_poison_on_attack_who": {
 		"body": "[b]Tippt den Helden an[/b]: Trifft ihn eine Boss-Attacke von [damage]{threshold}[/damage] oder mehr, erhält der Boss [poison]{poison} Gift[/poison] :poison:."
 	},
 	"poison_on_attack_ready": {
-		"body": "[b]{card}[/b]: Bis zum Ende des Kampfes erhält der Boss [poison]{poison} Gift[/poison] :poison:, wenn er [player]{player}[/player] mit [damage]{threshold}[/damage] oder mehr angreift."
+		"body": "[b]{card}[/b]: Bis zum Ende des Kampfes erhält der Boss [poison]{poison} Gift[/poison] :poison:, wenn er [player]{player}[/player] mit [damage]{threshold}[/damage] oder mehr angreift.",
+		"auto": true
 	},
 	"poison_on_attack": {
-		"body": "[b]{card}[/b] wirkt: [boss]{boss}[/boss] greift [player]{player}[/player] an und erhält [poison]{poison} Gift[/poison] :poison:."
+		"body": "[b]{card}[/b] wirkt: [boss]{boss}[/boss] greift [player]{player}[/player] an und erhält [poison]{poison} Gift[/poison] :poison:.",
+		"auto": true
 	},
 	"attacks_weakened_next_round": {
-		"body": "[b]{card}[/b] von [player]{player}[/player]: In der nächsten Runde sinken alle Angriffe des Bosses um [heal]{amount}[/heal]."
+		"body": "[b]{card}[/b] von [player]{player}[/player]: In der nächsten Runde sinken alle Angriffe des Bosses um [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"attacks_weakened": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt: Alle Angriffe des Bosses sinken um [heal]{amount}[/heal]."
+		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt: Alle Angriffe des Bosses sinken um [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"remove_tokens_everyone": {
 		"body": "Jeder Held entfernt bis zu [heal]{count}[/heal] eigene Marker."
 	},
 	"form_thorn": {
 		"title": "Stachelform",
-		"body": "[player]{player}[/player] nimmt die Stachelform an: Alle ihre Angriffe und Verstärkungen bekommen [heal]+1[/heal]."
+		"body": "[player]{player}[/player] nimmt die Stachelform an: Alle ihre Angriffe und Verstärkungen bekommen [heal]+1[/heal].",
+		"auto": true
 	},
 	"form_blossom": {
 		"title": "Blütenform",
-		"body": "[player]{player}[/player] nimmt die Blütenform an: Jedes Mal, wenn ihre Angriffe oder Verstärkungen den Boss Leben kosten, heilt sie [heal]3 Lebenspunkte[/heal] :health:."
+		"body": "[player]{player}[/player] nimmt die Blütenform an: Jedes Mal, wenn ihre Angriffe oder Verstärkungen den Boss Leben kosten, heilt sie [heal]3 Lebenspunkte[/heal] :health:.",
+		"auto": true
 	},
 	"form_bark": {
 		"title": "Borkenform",
-		"body": "[player]{player}[/player] nimmt die Borkenform an: Jeder ihrer Schutz-Effekte :shield: bekommt [heal]+1[/heal]."
+		"body": "[player]{player}[/player] nimmt die Borkenform an: Jeder ihrer Schutz-Effekte :shield: bekommt [heal]+1[/heal].",
+		"auto": true
 	},
 	"notice_form_already": {
 		"body": "[player]{player}[/player] hat diese Form schon."
@@ -342,13 +357,16 @@
 		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte ab, falls möglich :card:."
 	},
 	"shields_lowered": {
-		"body": "Jeder Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage], ohne seinen Effekt auszulösen."
+		"body": "Jeder Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage], ohne seinen Effekt auszulösen.",
+		"auto": true
 	},
 	"threat_lowers_on_attack": {
-		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff spielt, sinkt die Boss-Attacke gegen [player]{player}[/player] um [heal]{amount}[/heal]."
+		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff spielt, sinkt die Boss-Attacke gegen [player]{player}[/player] um [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"threat_lowered": {
-		"body": "Die Attacke von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal]."
+		"body": "Die Attacke von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal].",
+		"auto": true
 	},
 	"remove_tokens_group": {
 		"body": "Ihr entfernt als Gruppe insgesamt bis zu [heal]{count}[/heal] Marker, von wem ihr wollt."
@@ -375,7 +393,8 @@
 		"body": "Jeder Held zieht [b]{draw}[/b] :card: und legt dann [b]{back}[/b] seiner Handkarten verdeckt auf seinen Nachziehstapel."
 	},
 	"next_cards_boosted": {
-		"body": "Auf den nächsten [b]{cards}[/b] gespielten :card:, von wem auch immer, ist jeder Angriff und jede Verstärkung um [heal]{bonus}[/heal] erhöht."
+		"body": "Auf den nächsten [b]{cards}[/b] gespielten :card:, von wem auch immer, ist jeder Angriff und jede Verstärkung um [heal]{bonus}[/heal] erhöht.",
+		"auto": true
 	},
 	"random_token": {
 		"body": "Zufällig getroffen: [player]{player}[/player] erhält eine Statusmarke, [poison]{tokens}[/poison]."
@@ -409,7 +428,8 @@
 		]
 	},
 	"tokens_per_lightning": {
-		"body": "Bis zum Ende der Runde darf [player]{player}[/player] für jeden gespielten Blitz :lightning: [heal]{count}[/heal] eigene Statusmarke entfernen."
+		"body": "Bis zum Ende der Runde darf [player]{player}[/player] für jeden gespielten Blitz :lightning: [heal]{count}[/heal] eigene Statusmarke entfernen.",
+		"auto": true
 	},
 	"totems_returned": {
 		"title": "Totems",

@@ -1,17 +1,17 @@
 extends CardAbility
 ## The card's effects of "type" are "bonus" stronger for each time its hero played it
 ## before in the fight, as the Stachelfaust. With "back_to_pile", the players are reminded
-## in the discard phase that the hero shuffles it back into their draw pile instead of
+## at the end of the round that the hero shuffles it back into their draw pile instead of
 ## discarding it, so that it comes again.
 ## values: "type" (attack), "bonus" (1), "back_to_pile" (false).
 
 
-## In the fight until the discard phase of the round.
+## In the fight until the end of the round.
 class BackToPile extends FightRule:
 	var hero: FightHero
 	var card: Card
 
-	func discard_phase_started(fight: Fight) -> void:
+	func round_end_started(fight: Fight) -> void:
 		fight.remove_rule(self)
 		fight.tell("card_back_to_pile", { "player": hero.name, "card": card.title })
 

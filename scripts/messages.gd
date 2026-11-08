@@ -9,6 +9,9 @@ extends RefCounted
 ## - BBCode, such as [b]bold[/b], [i]italic[/i] or [color=#ff0000]red[/color],
 ## - the styles below, such as [damage]5 damage[/damage],
 ## - symbols such as :poison:, drawn inline as an icon.
+##
+## A message marked "auto" asks nothing of the players, so it closes by itself after a
+## while (see MessageBox). One without it waits until the players confirm it.
 
 const FOLDER := "res://messages/"
 ## A language without a file, or a message missing from it, falls back to this.
@@ -52,6 +55,8 @@ static var _style := _regex("\\[(/?)([a-z_]+)\\]")
 ## The text of a message, ready for a RichTextLabel with BBCode on: { "title": …,
 ## "body": … }. The title is "" if the message has none. values fill in the placeholders,
 ## either as they are or, for a { "de": …, "en": … } dictionary, in the language shown.
+## A value can also be a list of parts, each [id, values] of another message, whose
+## bodies are filled in one per line, such as one line per hero.
 ## symbol_size is the height of the symbols in pixels, best about that of the text.
 static func render(id: String, values := {}, locale := TranslationServer.get_locale(), symbol_size := 32) -> Dictionary:
 	var entry := find(id, locale)
@@ -76,6 +81,12 @@ static func find(id: String, locale := TranslationServer.get_locale()) -> Dictio
 
 static func has(id: String) -> bool:
 	return not find(id, FALLBACK_LANGUAGE).is_empty()
+
+
+## Whether the message closes by itself, as it asks nothing of the players. The same in
+## every language, so it is read from the fallback.
+static func is_auto(id: String) -> bool:
+	return find(id, FALLBACK_LANGUAGE).get("auto", false)
 
 
 ## Every message of a language by its id, with the body as one string. Empty if the
@@ -113,6 +124,8 @@ static func read_file(path: String) -> Dictionary:
 		var message := { "body": "\n".join(body) if body is Array else body }
 		if entry.has("title"):
 			message.title = entry.title
+		if entry.get("auto", false):
+			message.auto = true
 		messages[id] = message
 	return messages
 
@@ -129,7 +142,10 @@ static func to_bbcode(text: String, values := {}, locale := TranslationServer.ge
 		var key := found.get_string(1)
 		if values.has(key):
 			var value: Variant = values[key]
-			result += _escape(CardDatabase.localized(value, locale) if value is Dictionary else str(value))
+			if value is Array:
+				result += _parts(value, locale, symbol_size)
+			else:
+				result += _escape(CardDatabase.localized(value, locale) if value is Dictionary else str(value))
 		else:
 			push_warning("Message placeholder {%s} has no value" % key)
 			result += found.get_string()
@@ -179,6 +195,22 @@ static func _markup(text: String, symbol_size: int) -> String:
 	return result + text.substr(start)
 
 
+## Each part, [id, values] of a message, as the BBCode of its body, one per line.
+static func _parts(parts: Array, locale: String, symbol_size: int) -> String:
+	var lines := PackedStringArray()
+	for part: Variant in parts:
+		if not part is Array or part.size() != 2 or not part[0] is String or not part[1] is Dictionary:
+			push_error("A message part has to be [id, values], not %s" % [part])
+			continue
+		var entry := find(part[0], locale)
+		if entry.is_empty():
+			push_error("No message '%s'" % part[0])
+			lines.append(_escape(part[0]))
+		else:
+			lines.append(to_bbcode(entry.body, part[1], locale, symbol_size))
+	return "\n".join(lines)
+
+
 static func _escape(text: String) -> String:
 	return text.replace("[", "[lb]")
 
@@ -192,8 +224,10 @@ static func _problem(entry: Variant) -> String:
 		return "the body has to be a text or a list of texts"
 	if entry.has("title") and not entry.title is String:
 		return "the title has to be a text"
+	if entry.has("auto") and not entry.auto is bool:
+		return "auto has to be true or false"
 	for key: String in entry:
-		if key != "title" and key != "body":
+		if not key in ["title", "body", "auto"]:
 			return "unknown field '%s'" % key
 	return ""
 

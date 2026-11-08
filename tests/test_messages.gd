@@ -2,7 +2,7 @@ extends SceneTree
 ## The message files in messages/ and how a message is turned into text for the screen.
 ## Run with: godot --headless -s tests/test_messages.gd
 
-const EXPECTED_CHECKS := 23
+const EXPECTED_CHECKS := 26
 const BAD_PATH := "user://test_messages_bad.json"
 ## Tags a message may use besides Messages.STYLES. Each has to be closed again.
 const BBCODE_TAGS := ["b", "i", "u", "s", "color", "font_size", "bgcolor", "outline_color", "outline_size"]
@@ -48,6 +48,8 @@ func _check_files() -> void:
 				problems.append("%s: '%s' is not in %s" % [language, id, Messages.FALLBACK_LANGUAGE])
 			elif _sorted(Messages.placeholders(text)) != _sorted(Messages.placeholders(_all_text(fallback[id]))):
 				problems.append("%s: '%s' has other placeholders than in %s" % [language, id, Messages.FALLBACK_LANGUAGE])
+			elif message.get("auto", false) != fallback[id].get("auto", false):
+				problems.append("%s: '%s' closes by itself in one language but not in another" % [language, id])
 			if message.body.strip_edges().is_empty():
 				problems.append("%s: '%s' has no body" % [language, id])
 			if message.has("title") and message.title.strip_edges().is_empty():
@@ -76,10 +78,16 @@ func _check_render() -> void:
 	_check(render.call("lose 1 :health:!", {}, "en", 40) == "lose 1 [img=center width=40 height=40]%s[/img]!" % Messages.SYMBOLS.health, "draws symbols at the size asked for")
 	_check(render.call("at 10:30:00 :nothing:") == "at 10:30:00 :nothing:", "leaves colons that are no symbol alone")
 
-	var round := Messages.render("round_started", { "round": 3 }, "en")
+	var parts := [["part_hit", { "player": "[b]Bo", "damage": 3 }], ["part_hit", { "player": "Sonja", "damage": 1 }]]
+	var lines: PackedStringArray = render.call("{boss}:\n{hits}", { "boss": "Toad", "hits": parts }, "en").split("\n")
+	_check(lines.size() == 3 and lines[1].begins_with(Messages.STYLES.player[0] + "[lb]b]Bo") and "Sonja" in lines[2], "fills in a list of parts, one line each, their values shown as they are")
+
+	var values := { "round": 3, "boss": "Toad" }
+	var round := Messages.render("round_started", values, "en")
 	_check(round.title == "Round 3" and not round.body.is_empty(), "renders a message by its id")
-	_check(Messages.render("round_started", { "round": 3 }, "de_AT").title == "Runde 3", "in the language of the locale")
-	_check(Messages.render("round_started", { "round": 3 }, "fr_FR").title == "Runde 3", "and in German for a language without messages")
+	_check(Messages.render("round_started", values, "de_AT").title == "Runde 3", "in the language of the locale")
+	_check(Messages.render("round_started", values, "fr_FR").title == "Runde 3", "and in German for a language without messages")
+	_check(Messages.is_auto("boss_taunt") and not Messages.is_auto("round_end") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
 	_check(Messages.render("example_reminder", {}, "en").title == "", "a message may have no title")
 	_check(Messages.has("round_started") and not Messages.has("no_such_message"), "knows which messages there are")
 
@@ -92,10 +100,13 @@ func _check_bad_file() -> void:
 		"number_body": { "body": 5 },
 		"typo": { "body": "x", "titel": "T" },
 		"not_an_object": "x",
+		"auto": { "body": "x", "auto": true },
+		"bad_auto": { "body": "x", "auto": "yes" },
 	}))
 	file.close()
 	var messages := Messages.read_file(BAD_PATH)
-	_check(messages.keys() == ["good"], "skips messages with mistakes: %s" % ", ".join(messages.keys()))
+	_check(messages.size() == 2 and messages.has("good") and messages.has("auto"), "skips messages with mistakes: %s" % ", ".join(messages.keys()))
+	_check(messages.auto.auto and not messages.good.has("auto"), "reads which close by themselves")
 	_check(messages.good.body == "one\ntwo", "joins a body of several lines")
 	_check(Messages.read_file("user://no_such_file.json").is_empty(), "a missing file has no messages")
 	file = FileAccess.open(BAD_PATH, FileAccess.WRITE)

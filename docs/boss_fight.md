@@ -20,7 +20,8 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The banner** across the middle, between the seats, for short messages. `show_banner(text)` shows one for 3 s. At the
   start it announces the boss.
 - **Messages** over the middle, large, each until the players confirm it with the check mark. They announce rounds and
-  phases and say what happens. See [Messages](messages.md).
+  phases and say what happens. Those that ask nothing of the players close by themselves after a few seconds, unless
+  a player taps them. See [Messages](messages.md).
 - **Badges at the seats,** facing each hero: the boss's attack against them this round, with an icon for what it does
   besides (such as poison). They appear in the planning phase. The heroes' own status tokens are not shown: they are
   real tokens on the table.
@@ -49,7 +50,7 @@ on and take off themselves.
 
 1. **Start:** the heroes appear at their seats, the boss appears, its health counts up, and it greets the heroes
    (`Boss.taunt`).
-2. **Each round:** *Round n*.
+2. **Each round:** *Round n*, in one message with the planning, which closes by itself.
 3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`), shown at their seat. Knowing
    them, the players tap the hero who starts. With one hero, nobody is asked.
 4. **Shields:** the boss raises its shields (`Boss.raise_shields`). There is no message: a short *Shields* banner
@@ -61,14 +62,17 @@ on and take off themselves.
    **yellow** for extra ones (Lightning, a free card from another hero, a Warhorse's turn) and **red** for extra
    ones that allow only some cards (the Lucky Charm's top card). The one being played comes first and glows; extra
    turns are taken last.
-6. **Attack:** the boss strikes each hero with what is left of its attack (`Boss.attack_hero`). For poison and the like, the
-   players are told which tokens the hero takes.
-7. **Status:** a reminder of what poison and fire do. **Discard** and **draw** are reminders too, the latter with
-   paralysis.
-8. **End of the round:** the boss's poison hurts it, past its shields: 1 health per token, which rules can change
+6. **Attack:** the boss strikes each hero with what is left of its attack (`Boss.attack_hero`). One message lists
+   every hit, a line per hero, with the tokens the hero takes for poison and the like. What rules do on a hit
+   (`hero_struck`, `hero_hurt`) follows it.
+7. **End of the round:** status, discard and draw (phases 5 to 7 of the rules) are one message, a line each, as the
+   players do them together at the table: what poison and fire do, discarding, and drawing, with paralysis. What
+   rules remind them of, such as a card not to discard (`round_end_started`), comes first.
+8. **Then** the boss's poison hurts it, past its shields: 1 health per token, which rules can change
    (`FightRule.poison_damage`, such as the Toxikum). Its tokens stay for the whole fight.
 
-Every phase but the shields starts with a message, and the fight goes on once the players have confirmed it. When the
+Every phase but the shields is announced, and the fight goes on once the players have confirmed it, or it has closed
+by itself. When the
 boss's health reaches 0, the fight is won at once. The heroes' health is not in the app, so when a hero falls, the players say *We
 have lost*. A rule can also end a fight as lost (`Fight.lose()`). After the message of victory or defeat, or right
 away when the players stop the fight, the [game over screen](game_over.md) shows how it went.

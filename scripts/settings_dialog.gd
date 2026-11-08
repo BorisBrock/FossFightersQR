@@ -8,6 +8,10 @@ const TEXT := {
 	"music": { "de": "Musik", "en": "Music" },
 	"sfx": { "de": "Soundeffekte", "en": "Sound effects" },
 	"language": { "de": "Sprache", "en": "Language" },
+	"message_time": { "de": "Meldungen im Kampf schließen sich", "en": "Fight messages close by themselves" },
+	"normal": { "de": "Normal", "en": "Normal" },
+	"slow": { "de": "Langsam", "en": "Slowly" },
+	"off": { "de": "Nie", "en": "Never" },
 	"done": { "de": "Fertig", "en": "Done" },
 }
 
@@ -25,6 +29,13 @@ var _quit_on_go_back := true
 	Settings.SYSTEM_LANGUAGE: $Dim/Center/Panel/Margin/Layout/Language/System,
 	"de": $Dim/Center/Panel/Margin/Layout/Language/German,
 	"en": $Dim/Center/Panel/Margin/Layout/Language/English,
+}
+@onready var _message_time_label: Label = $Dim/Center/Panel/Margin/Layout/MessageTimeLabel
+## By the name of the setting, Settings.MESSAGE_TIMES.
+@onready var _message_time_buttons := {
+	"normal": $Dim/Center/Panel/Margin/Layout/MessageTime/Normal,
+	"slow": $Dim/Center/Panel/Margin/Layout/MessageTime/Slow,
+	"off": $Dim/Center/Panel/Margin/Layout/MessageTime/Off,
 }
 @onready var _done: Button = $Dim/Center/Panel/Margin/Layout/Done
 @onready var _preview: AudioStreamPlayer = $PreviewSound
@@ -44,6 +55,12 @@ func _ready() -> void:
 		button.button_group = language_group
 		button.pressed.connect(_on_language_pressed.bind(language))
 	_refresh_language_buttons()
+	var message_time_group := ButtonGroup.new()
+	for time: String in _message_time_buttons:
+		var button: Button = _message_time_buttons[time]
+		button.button_group = message_time_group
+		button.pressed.connect(_on_message_time_pressed.bind(time))
+	_refresh_message_time_buttons()
 
 	_music_toggle.toggled.connect(_on_music_toggled)
 	_music_volume.value_changed.connect(func(value: float) -> void: Settings.music_volume = value)
@@ -89,6 +106,9 @@ func _refresh_text() -> void:
 	_music_toggle.text = _t("music")
 	_sfx_toggle.text = _t("sfx")
 	_language_label.text = _t("language")
+	_message_time_label.text = _t("message_time")
+	for time: String in _message_time_buttons:
+		_message_time_buttons[time].text = _t(time)
 	_done.text = _t("done")
 
 
@@ -102,6 +122,19 @@ func _refresh_language_buttons() -> void:
 	for language: String in _language_buttons:
 		var button: Button = _language_buttons[language]
 		var selected := language == Settings.language
+		button.set_pressed_no_signal(selected)
+		button.theme_type_variation = &"PrimaryButton" if selected else &""
+
+
+func _on_message_time_pressed(time: String) -> void:
+	Settings.message_time = time
+	_refresh_message_time_buttons()
+
+
+func _refresh_message_time_buttons() -> void:
+	for time: String in _message_time_buttons:
+		var button: Button = _message_time_buttons[time]
+		var selected := time == Settings.message_time
 		button.set_pressed_no_signal(selected)
 		button.theme_type_variation = &"PrimaryButton" if selected else &""
 

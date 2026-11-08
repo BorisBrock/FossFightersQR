@@ -1,8 +1,9 @@
 # Settings
 
 The gear button at the top left opens the settings dialog, both in the onboarding and in the game. It has an on/off
-toggle and a volume slider for music and for sound effects, and the choice of language: *System* (the default), which
-follows the device, *Deutsch* or *English*.
+toggle and a volume slider for music and for sound effects, the choice of language: *System* (the default), which
+follows the device, *Deutsch* or *English*, and how fight messages that ask nothing of the players close by
+themselves: *Normal* (the default), *Slowly* or *Never* (see [Messages](messages.md#how-it-looks)).
 
 - Changes count at once. Moving the sound effects slider or turning them on plays a sample sound.
 - A new language shows at once in the dialog and behind it, and also applies to the text of the cards. A device in

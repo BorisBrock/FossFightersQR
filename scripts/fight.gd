@@ -43,7 +43,9 @@ signal buffs_changed
 signal won
 signal lost
 
-enum Phase { SETUP, PLANNING, SHIELD, ACTION, ATTACK, STATUS, DISCARD, DRAW, OVER }
+## ROUND_END is phases 5 to 7 of the rules, status, discard and draw: the players do them
+## at the table, together.
+enum Phase { SETUP, PLANNING, SHIELD, ACTION, ATTACK, ROUND_END, OVER }
 
 const DAMAGE_TYPES: Array[String] = ["melee", "ranged", "magic"]
 ## The kind of damage from the broken heart: no shield takes it.
@@ -129,6 +131,8 @@ var rng := RandomNumberGenerator.new()
 
 var _round_rules: Array[FightRule] = []
 var _unread := 0
+## The boss's hits in this attack phase, as [hero, damage, effects], told together.
+var _hits: Array[Array] = []
 
 signal _read
 signal _answered(value: Variant)
@@ -531,24 +535,19 @@ func protect(hero: FightHero, amount: int) -> void:
 	hero_changed.emit(hero)
 
 
-## The boss strikes hero with what is left of its attack, and its effects. The players
-## put the tokens on the table.
+## The boss strikes hero with what is left of its attack, and its effects, in the attack
+## phase. The players are told of all its hits at once, when every hero has been struck,
+## and put the tokens on the table. Only then do the rules hear of them (hero_struck,
+## hero_hurt), so that what they tell follows the hits.
 func strike(hero: FightHero) -> void:
 	if hero.threat <= 0:
 		return
-	var values := { "boss": boss.title, "player": hero.name, "damage": hero.threat }
 	var token_count := 0
 	for token: String in hero.threat_effects:
 		token_count += hero.threat_effects[token]
 	stats.hero_hit(hero, hero.threat, token_count)
-	if hero.threat_effects.is_empty():
-		tell("boss_hits", values)
-	else:
-		values.tokens = token_text(hero.threat_effects)
-		tell("boss_hits_with_tokens", values)
+	_hits.append([hero, hero.threat, hero.threat_effects.duplicate()])
 	hero_changed.emit(hero)
-	await _each_rule("hero_struck", [hero, hero.threat])
-	await _each_rule("hero_hurt", [hero, hero.threat, null])
 
 
 func set_shields(values: Dictionary) -> void:
@@ -675,14 +674,13 @@ func _play_round() -> void:
 		hero.pending.clear()
 		hero_changed.emit(hero)
 	round_changed.emit(round_number)
-	tell("round_started", { "round": round_number })
+	# One message for the new round and its planning, which the badges show as it happens.
+	tell("round_started", { "round": round_number, "boss": boss.title })
 	await _each_rule("round_started")
-	await until_read()
 	if over:
 		return
 
 	await _phase(Phase.PLANNING)
-	tell("phase_planning", { "boss": boss.title })
 	await boss.plan_attacks(self)
 	await _each_rule("attacks_planned")
 	await until_read()
@@ -715,6 +713,7 @@ func _play_round() -> void:
 
 	await _phase(Phase.ATTACK)
 	var hit := false
+	_hits.clear()
 	for hero in heroes:
 		if hero.threat > 0:
 			hit = true
@@ -724,27 +723,20 @@ func _play_round() -> void:
 			return
 	if not hit:
 		tell("phase_attack_blocked", { "boss": boss.title })
+	await _tell_hits()
+	if over:
+		return
 	await _each_rule("attack_phase_ended")
 	await until_read()
 	if over:
 		return
 
-	# The status tokens are on the table, so the players apply them.
-	await _phase(Phase.STATUS)
-	tell("phase_status")
-	await until_read()
-	if over:
-		return
-
-	await _phase(Phase.DISCARD)
-	tell("phase_discard")
-	await _each_rule("discard_phase_started")
-	await until_read()
-	if over:
-		return
-
-	await _phase(Phase.DRAW)
-	tell("phase_draw")
+	# Status, discard and draw: the status tokens and the cards are on the table, so the
+	# players do all three there, told in one message. What rules remind them of comes
+	# first, such as a card not to discard.
+	await _phase(Phase.ROUND_END)
+	await _each_rule("round_end_started")
+	tell("round_end")
 	await until_read()
 	if over:
 		return
@@ -758,6 +750,27 @@ func _play_round() -> void:
 	await until_read()
 	if over:
 		return
+
+
+## Tells the players of the boss's hits, one line each, then lets the rules hear of them.
+func _tell_hits() -> void:
+	if _hits.is_empty():
+		return
+	var parts := []
+	for hit in _hits:
+		var effects: Dictionary = hit[2]
+		var values := { "player": hit[0].name, "damage": hit[1] }
+		if effects.is_empty():
+			parts.append(["part_hit", values])
+		else:
+			values.tokens = token_text(effects)
+			parts.append(["part_hit_with_tokens", values])
+	tell("boss_attacks", { "boss": boss.title, "hits": parts })
+	for hit in _hits:
+		await _each_rule("hero_struck", [hit[0], hit[1]])
+		await _each_rule("hero_hurt", [hit[0], hit[1], null])
+		if over:
+			return
 
 
 ## The rules for the round leave the fight. The heroes with a Totem give back its token.
