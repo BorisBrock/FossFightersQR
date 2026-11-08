@@ -7,11 +7,19 @@ extends Control
 ## A message that asks nothing of the players (Messages.is_auto) also closes by itself:
 ## a bar in the check mark runs down, for longer the more there is to read. Tapping the
 ## message stops it, for those who need more time, and it waits for the check mark again.
+##
+## A message that goes with an animation (Messages.is_animated), such as the boss planning
+## its attacks, has no check mark and leaves the fight undimmed: the screen plays the
+## animation when the message shows (shown) and closes it with finish().
+##
+## Messages show in the top half of the screen, clear of the heroes at the bottom.
 
 ## A message was confirmed. The next one, if any, follows.
 signal confirmed(id: String)
 ## The last message waiting was confirmed.
 signal all_confirmed
+## A message is now on screen, such as one whose animation the screen plays now.
+signal shown(id: String)
 
 const FADE_SEC := 0.2
 ## Taps this soon after a message appears do not count, so that a double tap does not
@@ -24,6 +32,22 @@ const AUTO_SEC := 2.0
 const AUTO_SEC_PER_WORD := 0.4
 const AUTO_MIN_SEC := 4.0
 const AUTO_MAX_SEC := 15.0
+## The space beside a message, and beside one that goes with an animation.
+const MARGIN := 28
+const ANIMATED_MARGIN := 160
+## Messages with a sound of their own (see Sfx), by id. The others play the box's own.
+const SOUNDS := {
+	"round_started": "round",
+	"boss_attacks": "boss_attack",
+	"phase_attack_blocked": "protect",
+	"health_loss": "hurt",
+	"heal": "heal",
+	"boss_poison": "poison",
+	"poison_burst": "poison",
+	"shield_broken_poison": "shield_break",
+	"victory": "victory",
+	"defeat": "defeat",
+}
 
 ## What waits, oldest first, as [id, values]. The first one is on screen.
 var queue: Array[Array] = []
@@ -34,7 +58,10 @@ var _tween: Tween
 ## _countdown_total. 0 if it does not, or no longer does.
 var _countdown_left := 0.0
 var _countdown_total := 0.0
+var _default_sound: AudioStream
 
+@onready var _dim: Control = $Dim
+@onready var _margin: Control = $Margin
 @onready var _panel: Control = $Margin/Panel
 @onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Title
 @onready var _body: RichTextLabel = $Margin/Panel/Margin/Layout/Body
@@ -46,6 +73,7 @@ var _countdown_total := 0.0
 func _ready() -> void:
 	hide()
 	_countdown.hide()
+	_default_sound = _sound.stream
 	_confirm.pressed.connect(confirm)
 
 
@@ -118,6 +146,15 @@ func hold(seconds: float) -> void:
 	_hold_until = maxf(_hold_until, _now() + seconds)
 
 
+## Closes the message on screen if it is id, even before it could be confirmed: for a
+## message that goes with an animation, once the animation is done.
+func finish(id: String) -> void:
+	if current() != id:
+		return
+	_confirm.disabled = false
+	confirm()
+
+
 ## Closes the message on screen, as the check mark does.
 func confirm() -> void:
 	if not is_showing() or _confirm.disabled:
@@ -158,14 +195,15 @@ func _show_first() -> void:
 		_tween.tween_property(self, "modulate:a", 1.0, FADE_SEC)
 		_tween.tween_property(_panel, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_tween.tween_callback(_on_ready_to_confirm).set_delay(CONFIRM_DELAY_SEC)
-	_sound.play()
+	_play_sound(current())
+	shown.emit(current())
 
 
 ## The message is in view and can be confirmed. One that asks nothing of the players
 ## starts running down.
 func _on_ready_to_confirm() -> void:
 	_confirm.disabled = false
-	if not Messages.is_auto(current()):
+	if not Messages.is_auto(current()) or Messages.is_animated(current()):
 		return
 	var text := _body.get_parsed_text()
 	if _title.visible:
@@ -178,6 +216,11 @@ func _on_ready_to_confirm() -> void:
 		_countdown.show()
 
 
+func _play_sound(id: String) -> void:
+	_sound.stream = Sfx.stream(SOUNDS[id]) if SOUNDS.has(id) else _default_sound
+	_sound.play()
+
+
 func _refresh_text() -> void:
 	var locale := TranslationServer.get_locale()
 	var text := Messages.render(queue[0][0], queue[0][1], locale, _symbol_size(_body))
@@ -186,6 +229,12 @@ func _refresh_text() -> void:
 	_title.text = "[center]%s[/center]" % title
 	_title.visible = not text.title.is_empty()
 	_body.text = "[center]%s[/center]" % text.body
+	var animated := Messages.is_animated(queue[0][0])
+	_confirm.visible = not animated
+	_dim.visible = not animated
+	# What happens meanwhile is at the seats, so the message leaves those at the sides clear.
+	for side in ["margin_left", "margin_right"]:
+		_margin.add_theme_constant_override(side, ANIMATED_MARGIN if animated else MARGIN)
 
 
 func _fade_out() -> void:

@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 79
+const EXPECTED_CHECKS := 89
 
 var _failures := 0
 var _checks_run := 0
@@ -198,7 +198,19 @@ func _check_countdown() -> void:
 
 	await _confirm(box)
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
-	_check(box.current() == "round_started" and box.is_counting_down(), "the next one runs down again")
+	var check_mark: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm")
+	_check(box.current() == "round_started" and not box.is_counting_down() and not check_mark.visible and not box.get_node("Dim").visible, "while the boss plans its attacks, its message has no check mark and leaves the fight undimmed")
+	await _until(func() -> bool: return box.current() != "round_started", 6.0)
+	_check(box.current() != "round_started", "once the attacks are shown, it closes by itself")
+	# Then maybe Mirefang's bite, which asks nothing either.
+	while box.is_showing():
+		box._countdown_left = 0.1
+		await get_tree().create_timer(MessageBox.FADE_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
+	_check(not box.is_showing() and screen.fight.request != null, "when they have run down, they close, and the fight goes on")
+
+	screen.show_message("boss_poison", { "boss": "Toad", "poison": 1, "damage": 1 })
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "boss_poison" and box.is_counting_down() and check_mark.visible, "the next one runs down again, with its check mark")
 	var dialog := Node.new()
 	dialog.add_to_group(MenuScreen.DIALOG_GROUP)
 	add_child(dialog)
@@ -206,11 +218,7 @@ func _check_countdown() -> void:
 	await get_tree().create_timer(0.3).timeout
 	_check(is_equal_approx(box.countdown_left(), left), "not while a dialog is open, such as the settings")
 	dialog.free()
-	# Then Mirefang's bite, which asks nothing either.
-	for i in 2:
-		box._countdown_left = 0.1
-		await get_tree().create_timer(MessageBox.FADE_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
-	_check(not box.is_showing() and screen.fight.request != null, "when they have run down, they close, and the fight goes on")
+	await _confirm(box)
 
 	screen.show_message("example_reminder")
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
@@ -242,16 +250,22 @@ func _check_round() -> void:
 	await get_tree().create_timer(screen.INTRO_SEC).timeout
 	await _confirm(box)
 	_check(box.current() == "round_started", "after the boss's words, the round begins, and the boss plans its attacks")
-	var badge: Control = tokens[1].get_node("Badge")
-	_check(badge.visible and badge.get_node("Row/Threat/Value").text == str(screen.fight.hero_at(1).threat), "each hero sees the attack against them")
-	await _confirm(box)
+	var threats: Array[Control] = [tokens[1].get_node("Threat"), tokens[3].get_node("Threat")]
+	_check(not threats[0].visible and not threats[1].visible, "the attacks are not shown yet")
+	await get_tree().create_timer(screen.PLAN_START_SEC + 0.1).timeout
+	_check(threats[0].visible and not threats[1].visible, "the boss plans them one hero after the other")
+	await _until(func() -> bool: return not box.is_showing(), 6.0)
+	_check(threats[1].visible and threats[0].get_node("Column/Value").text == str(screen.fight.hero_at(1).threat), "each hero sees the attack against them, beside their portrait")
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	var prompt: Control = screen.get_node("Prompt")
 	_check(prompt.visible and tokens[1].mode == SeatToken.Mode.SELECTABLE and tokens[3].mode == SeatToken.Mode.SELECTABLE, "then the players are asked who starts")
+	await get_tree().create_timer(0.2).timeout
+	_check(tokens[1].get_node("Portrait").scale.x > 1.0, "the heroes to choose from pulse")
 	tokens[3].pressed.emit()
 	await get_tree().process_frame
 	_check(screen.fight.starter.name == "Borin", "tapping a hero chooses them")
-	var shield: Label = screen.get_node("Shields").get_child(0).get_node("Row/Value")
+	_check(tokens[1].get_node("Portrait").scale.x == 1.0, "and stop once one is chosen")
+	var shield: Label = screen.get_node("Shields").get_child(0).get_node("Shield/Value")
 	_check(box.current() == "phase_action" and not box.visible and shield.text == "0", "the boss's shields rise, and the next message waits")
 	await get_tree().create_timer(1.6).timeout
 	_check(shield.text == "2", "they count up to the shields the boss raised")
@@ -264,18 +278,35 @@ func _check_round() -> void:
 	_check(spheres.visible and spheres.actions().size() == 3, "each hero sees the actions they have left")
 
 	var health: int = screen.fight.health
+	var pling: AudioStreamPlayer = screen.get_node("Pling")
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())
-	_check(screen.fight.health == health - 2 and screen.get_node("Hud/Health/Row/Value").text == str(health - 2), "a card shown to the camera is played")
+	_check(pling.playing and screen.fight.health == health, "a card shown to the camera plings at once, and does nothing yet")
+	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0).timeout
+	_check(screen.fight.health == health, "the card waits for the pling")
+	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0 + 0.1).timeout
+	_check(screen.fight.health == health - 2 and screen.get_node("Hud/Health/Row/Value").text == str(health - 2), "after the pling, the card is played")
+	var melee: Control = screen.get_node("Shields/Melee/Attack")
+	var magic: Control = screen.get_node("Shields/Magic/Attack")
+	_check(melee.get_meta("open") and not magic.get_meta("open"), "the attack type it attacked with lights up, the others stay grey")
 	_check(text.get_parsed_text().contains("Sonja") and tokens[1].mode == SeatToken.Mode.ACTIVE, "then it is the next hero's turn")
+	pling.stop()
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())
+	_check(not pling.playing, "a card still in view does not pling again")
+	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC + 0.1).timeout
 	_check(not screen.get_node("Prompt/Layout/Notice").visible, "a card still in view does not count again")
 	screen._on_code_read("NOPE", PackedVector2Array(), Vector2i())
+	_check(pling.playing, "an unknown card plings too, as it was read")
+	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC + 0.1).timeout
 	_check(screen.get_node("Prompt/Layout/Notice").visible and screen.get_node("Prompt/Layout/Notice").get_parsed_text().contains("NOPE"), "an unknown card is pointed out, with its QR code")
-	var pass_button: Button = screen.get_node("Prompt/Layout/Buttons").get_child(0)
-	_check(pass_button.text == "Pass", "a hero can pass")
-	pass_button.pressed.emit()
-	_check(text.get_parsed_text().contains("Borin"), "which ends their turn")
+	_check(not screen.get_node("Prompt/Layout/Buttons").visible, "a card is asked for without a button to pass")
 	screen.queue_free()
+
+
+## Waits until condition holds, at most seconds.
+func _until(condition: Callable, seconds: float) -> void:
+	var deadline := Time.get_ticks_msec() + int(seconds * 1000.0)
+	while not condition.call() and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
 
 
 func _confirm(box: MessageBox) -> void:

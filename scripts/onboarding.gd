@@ -62,6 +62,8 @@ var _camera_problem := ""
 var _camera_running := false
 var _code_seen_msec := {}
 var _codes_to_ignore := {}
+## Codes that have plinged and whose card waits for the pling to finish.
+var _codes_confirming := {}
 var _last_selection_msec := -SELECTION_DWELL_MSEC
 var _tiles := {}
 var _prompt_tween: Tween
@@ -110,6 +112,7 @@ var _party_name_font_size := 0
 @onready var _reveal_sound: AudioStreamPlayer = $RevealSound
 @onready var _seat_sound: AudioStreamPlayer = $SeatSound
 @onready var _fanfare_sound: AudioStreamPlayer = $FanfareSound
+@onready var _pling: AudioStreamPlayer = $Pling
 
 
 func _ready() -> void:
@@ -223,9 +226,25 @@ func _on_switch_camera_pressed() -> void:
 
 func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vector2i) -> void:
 	var now := Time.get_ticks_msec()
-	if now - _code_seen_msec.get(text, -STILL_IN_VIEW_MSEC) >= STILL_IN_VIEW_MSEC:
-		_codes_to_ignore.erase(text)
+	var came_into_view: bool = now - _code_seen_msec.get(text, -STILL_IN_VIEW_MSEC) >= STILL_IN_VIEW_MSEC
 	_code_seen_msec[text] = now
+	if came_into_view:
+		_codes_to_ignore.erase(text)
+		# Every card plings when it is read, so the player knows they can take it back.
+		# What the card does comes after the pling.
+		_pling.play()
+		_codes_confirming[text] = true
+		var wait := create_tween()
+		wait.tween_interval(QrCameraScanner.CONFIRM_SEC)
+		wait.tween_callback(_on_code_confirmed.bind(text))
+	elif not _codes_confirming.has(text) and not _codes_to_ignore.has(text):
+		_apply_card(_cards.find(text))
+
+
+## The pling of a card read has rung. The screen may have moved on meanwhile, so the card
+## may no longer count.
+func _on_code_confirmed(text: String) -> void:
+	_codes_confirming.erase(text)
 	if not _codes_to_ignore.has(text):
 		_apply_card(_cards.find(text))
 

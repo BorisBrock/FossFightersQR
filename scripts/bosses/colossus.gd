@@ -31,6 +31,11 @@ func _init() -> void:
 	}
 
 
-## Its armour halves melee and ranged damage, rounded down. Magic slips through.
-func damage_taken(_fight: Fight, amount: int, kind: String, _play: CardPlay) -> int:
-	return amount if kind == "magic" else floori(amount / 2.0)
+## Its armour halves melee and ranged damage, rounded down, and tells the players so.
+## Magic slips through, and so do poison and direct damage, which are no attacks.
+func damage_taken(fight: Fight, amount: int, kind: String, _play: CardPlay) -> int:
+	if kind not in ["melee", "ranged"]:
+		return amount
+	var halved := floori(amount / 2.0)
+	fight.tell("colossus_armour", { "damage": halved })
+	return halved

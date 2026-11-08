@@ -15,8 +15,23 @@ const STILL_IN_VIEW_MSEC := 2000
 const NOTICE_SEC := 3.0
 ## How long the boss's health takes to count up at the start.
 const HEALTH_COUNT_SEC := 1.2
-const BADGE_ICON_SIZE := 30
-const SHIELD_ICON_SIZE := 40
+## The marks beside each hero: the boss's attack on their left, what it does besides on
+## their right, in the seat's own coordinates (SeatToken), where the portrait is centred
+## at PORTRAIT_MIDDLE.
+const THREAT_ICON_SIZE := 34
+const PORTRAIT_MIDDLE := 39.0
+const THREAT_RIGHT := 36.0
+const EFFECTS_LEFT := 144.0
+## A shield above each attack type, both large.
+const SHIELD_SIZE := Vector2(92, 100)
+const ATTACK_STATE_SIZE := 76
+const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
+## How long the boss takes to plan its attack against each hero, while the message says
+## so: the attack pops up and counts up, then what it does besides.
+const PLAN_START_SEC := 0.5
+const PLAN_COUNT_SEC := 0.45
+const PLAN_HERO_SEC := 0.75
+const PLAN_END_SEC := 0.9
 ## How long the shields take to rise, one after the other, each counting up. Messages wait
 ## meanwhile.
 const SHIELD_APPEAR_SEC := 0.35
@@ -88,11 +103,18 @@ var _prompt_tween: Tween
 var _badges := {}
 ## By damage type: the plate of each shield.
 var _shield_plates := {}
+## By damage type: whether it was attacked this round, a medallion each below its shield.
+var _attack_states := {}
+## By seat: whether the attack planned against the hero has been shown yet. The boss plans
+## them one after the other, while its message says so (_animate_planning).
+var _revealed := {}
 var _camera_problem := ""
 ## The style of the HUD's plates, for the badges and shields.
 var _plate: StyleBox
 ## What lasts a while for everyone, such as Muttis Nachtisch, at the top of the screen.
 var _global_buffs: BuffChips
+## The sound effects of what happens in the fight. See docs/sounds.md.
+var _sfx: Sfx
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
@@ -113,10 +135,14 @@ var _global_buffs: BuffChips
 @onready var _notice: RichTextLabel = $Prompt/Layout/Notice
 @onready var _buttons: HBoxContainer = $Prompt/Layout/Buttons
 @onready var _scanner: QrCameraScanner = $QrCameraScanner
+@onready var _pling: AudioStreamPlayer = $Pling
 
 
 func _ready() -> void:
 	super()
+	_sfx = Sfx.new()
+	_sfx.name = "Sfx"
+	add_child(_sfx)
 	# Only when run on its own, as from the editor.
 	if not Bosses.has(Encounter.boss):
 		Encounter.boss = Bosses.IDS[0]
@@ -140,7 +166,9 @@ func _ready() -> void:
 	fight.boss_hit.connect(_on_boss_hit)
 	fight.won.connect(_on_won)
 	fight.buffs_changed.connect(_refresh_buffs)
+	fight.attacked_changed.connect(_on_attacked_changed)
 	messages.all_confirmed.connect(_on_messages_read)
+	messages.shown.connect(_on_message_shown)
 
 	_show_boss(fight.boss)
 	_show_party(party)
@@ -217,6 +245,8 @@ func scan_code(code: String) -> String:
 
 ## Shows a short note in the prompt for a while, such as why a card was not played.
 func show_notice(id: String, values := {}) -> void:
+	# Lightning is good news, every other notice says why a card was not played.
+	_sfx.play("lightning" if id == "notice_lightning" else "rejected")
 	_notice.text = "[center]%s[/center]" % Messages.render(id, values, TranslationServer.get_locale(), _symbol_size(_notice)).body
 	_notice.show()
 	_notice.modulate.a = 1.0
@@ -303,6 +333,9 @@ func _show_party(party: Party) -> void:
 func _on_round_changed(round_number: int) -> void:
 	_round.text = str(round_number)
 	_pop(_round)
+	# The boss plans its attacks anew, shown one by one (_animate_planning).
+	for seat: int in _badges:
+		_revealed[seat] = false
 
 
 func _on_health_changed(health: int, _max_health: int) -> void:
@@ -311,6 +344,8 @@ func _on_health_changed(health: int, _max_health: int) -> void:
 
 
 func _on_poison_changed(poison: int) -> void:
+	if poison > _poison_value.text.to_int():
+		_sfx.play("poison")
 	_poison_value.text = str(poison)
 	_poison.visible = poison > 0
 	if poison > 0:
@@ -328,16 +363,28 @@ func _on_messages_read() -> void:
 #region The players
 func _on_seat_pressed(seat: int) -> void:
 	var hero := fight.hero_at(seat)
-	if hero != null:
-		fight.choose(hero)
+	if hero == null:
+		return
+	var request := fight.request
+	if request != null and request.kind == Fight.Request.Kind.HERO and hero in request.heroes:
+		_sfx.play("select")
+	fight.choose(hero)
 
 
 func _on_code_read(text: String, _corners: PackedVector2Array, _frame_size: Vector2i) -> void:
 	var now := Time.get_ticks_msec()
 	var last: int = _code_seen_msec.get(text, -STILL_IN_VIEW_MSEC)
 	_code_seen_msec[text] = now
-	if now - last >= STILL_IN_VIEW_MSEC:
-		scan_code(text)
+	if now - last < STILL_IN_VIEW_MSEC:
+		return
+	# Every card plings when it is read, even one that does nothing now, so the players
+	# know they can take it back. What the card does comes after the pling.
+	_pling.play()
+	var wait := create_tween()
+	wait.tween_interval(QrCameraScanner.CONFIRM_SEC)
+	wait.tween_callback(func() -> void:
+		if not _leaving:
+			scan_code(text))
 
 
 func _on_camera_failed(reason: String) -> void:
@@ -350,7 +397,10 @@ func _on_camera_started() -> void:
 	_refresh_prompt()
 
 
-func _on_request_changed(_request: Fight.Request) -> void:
+func _on_request_changed(request: Fight.Request) -> void:
+	# The players have to do something: a hero shows a card, or they choose.
+	if request != null:
+		_sfx.play("turn" if request.kind == Fight.Request.Kind.ACTION else "choose")
 	_refresh_seats()
 	_refresh_prompt()
 	# The action being played glows.
@@ -393,12 +443,10 @@ func _refresh_prompt() -> void:
 	for button in _buttons.get_children():
 		_buttons.remove_child(button)
 		button.queue_free()
-	match request.kind:
-		Fight.Request.Kind.ACTION:
-			_add_button("option_pass", fight.pass_action)
-		Fight.Request.Kind.OPTION:
-			for i in request.options.size():
-				_add_button(request.options[i], fight.choose_option.bind(i))
+	# A hero passes by showing a Pass card, so actions get no button for it.
+	if request.kind == Fight.Request.Kind.OPTION:
+		for i in request.options.size():
+			_add_button(request.options[i], fight.choose_option.bind(i))
 	# Declining a free card is passing on it, so actions need no button to skip.
 	if request.can_skip and request.kind != Fight.Request.Kind.ACTION:
 		_add_button("option_skip", fight.skip)
@@ -410,6 +458,7 @@ func _add_button(id: String, action: Callable) -> void:
 	button.text = Messages.find(id).get("body", id)
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(150, 64)
+	button.pressed.connect(_sfx.play.bind("select"))
 	button.pressed.connect(action)
 	_buttons.add_child(button)
 
@@ -429,8 +478,9 @@ func _fade_prompt(shown: bool) -> void:
 
 
 #region What the fight shows
-## A badge by each hero, facing them: the boss's attack against them, with what it does
-## besides, the actions they have left this round, and what lasts a while for them, such
+## The marks by each hero, facing them: the boss's attack against them on their left,
+## what it does besides (tokens such as poison) on their right, and above their portrait a
+## badge with the actions they have left this round and what lasts a while for them, such
 ## as a Totem (FightBuff). Their own status tokens are on the table.
 func _make_badges() -> void:
 	for token: SeatToken in _seats:
@@ -451,21 +501,6 @@ func _make_badges() -> void:
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_theme_constant_override("separation", 4)
 		badge.add_child(row)
-		var threat := HBoxContainer.new()
-		threat.name = "Threat"
-		threat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		threat.add_theme_constant_override("separation", 4)
-		threat.add_child(_icon("res://assets/fight/icon_damage.svg", BADGE_ICON_SIZE))
-		var value := Label.new()
-		value.name = "Value"
-		value.theme_type_variation = &"Title"
-		value.add_theme_font_size_override("font_size", 26)
-		threat.add_child(value)
-		var effects := HBoxContainer.new()
-		effects.name = "Effects"
-		effects.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		threat.add_child(effects)
-		row.add_child(threat)
 		var actions := ActionSpheres.new()
 		actions.name = "Actions"
 		actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -476,6 +511,45 @@ func _make_badges() -> void:
 		badge.hide()
 		token.add_child(badge)
 		_badges[token.seat] = badge
+		_revealed[token.seat] = true
+
+		var threat := _side_plate("Threat", token, THREAT_RIGHT, Control.GROW_DIRECTION_BEGIN)
+		var column := VBoxContainer.new()
+		column.name = "Column"
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_theme_constant_override("separation", 0)
+		var value := Label.new()
+		value.name = "Value"
+		value.theme_type_variation = &"Title"
+		value.add_theme_font_size_override("font_size", 32)
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		column.add_child(value)
+		column.add_child(_icon("res://assets/fight/icon_damage.svg", THREAT_ICON_SIZE))
+		threat.add_child(column)
+		var effects := _side_plate("Effects", token, EFFECTS_LEFT, Control.GROW_DIRECTION_END)
+		var effect_row := HBoxContainer.new()
+		effect_row.name = "Row"
+		effect_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		effect_row.add_theme_constant_override("separation", 6)
+		effects.add_child(effect_row)
+
+
+## A plate beside the portrait of a seat, its edge at x in the seat's coordinates and
+## growing away from it, centred on the portrait.
+func _side_plate(plate_name: String, token: SeatToken, x: float, grow: Control.GrowDirection) -> PanelContainer:
+	var plate := PanelContainer.new()
+	plate.name = plate_name
+	plate.add_theme_stylebox_override("panel", _plate)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.anchor_left = x / token.size.x
+	plate.anchor_right = plate.anchor_left
+	plate.anchor_top = PORTRAIT_MIDDLE / token.size.y
+	plate.anchor_bottom = plate.anchor_top
+	plate.grow_horizontal = grow
+	plate.grow_vertical = Control.GROW_DIRECTION_BOTH
+	plate.hide()
+	token.add_child(plate)
+	return plate
 
 
 ## The dryad's seat shows the form she has taken.
@@ -490,17 +564,34 @@ func _refresh_badge(hero: FightHero) -> void:
 	var badge: Control = _badges.get(hero.seat)
 	if badge == null:
 		return
-	var threat: Control = badge.get_node("Row/Threat")
+	var token := badge.get_parent() as SeatToken
+	var threat: Control = token.get_node("Threat")
+	var effects: Control = token.get_node("Effects")
 	var planned := fight.phase in [Fight.Phase.PLANNING, Fight.Phase.SHIELD, Fight.Phase.ACTION, Fight.Phase.ATTACK]
-	threat.visible = planned
-	var value: Label = threat.get_node("Value")
+	var shown: bool = planned and _revealed.get(hero.seat, true)
+	var value: Label = threat.get_node("Column/Value")
 	var old := value.text
+	var was_shown := threat.visible
 	value.text = str(hero.threat)
+	# An attack lowered by a card, as by a Protection.
+	if fight.phase == Fight.Phase.ACTION and hero.threat < old.to_int():
+		_sfx.play("protect")
+	threat.visible = shown
 	threat.modulate.a = 1.0 if hero.threat > 0 else 0.45
-	var effects: Control = threat.get_node("Effects")
-	_clear(effects)
-	for token: String in hero.threat_effects:
-		effects.add_child(_icon(TOKEN_ICONS.get(token, ""), BADGE_ICON_SIZE))
+	_fit(threat)
+	if shown and was_shown and old != value.text:
+		_pop(threat)
+
+	var row: Control = effects.get_node("Row")
+	var old_effects := row.get_child_count()
+	_clear(row)
+	for token_name: String in hero.threat_effects:
+		row.add_child(_effect(token_name, hero.threat_effects[token_name]))
+	effects.visible = shown and not hero.threat_effects.is_empty()
+	_fit(effects)
+	if effects.visible and was_shown and hero.threat_effects.size() > old_effects:
+		_pop(effects)
+
 	var actions: ActionSpheres = badge.get_node("Row/Actions")
 	var old_actions := actions.actions()
 	var request := fight.request
@@ -511,14 +602,39 @@ func _refresh_badge(hero: FightHero) -> void:
 	actions.show_actions(left, playing)
 	var was_visible := badge.visible
 	var buffs: BuffChips = badge.get_node("Row/Buffs")
-	badge.visible = planned or actions.visible or buffs.visible
+	badge.visible = actions.visible or buffs.visible
 	# Size the badge to what it holds now, centred over the seat.
 	badge.offset_left = 0.0
 	badge.offset_right = 0.0
 	badge.reset_size()
-	if badge.visible and (not was_visible or old != value.text or actions.actions().size() > old_actions.size()):
+	if badge.visible and (not was_visible or actions.actions().size() > old_actions.size()):
 		badge.pivot_offset = badge.size / 2.0
 		_pop(badge)
+
+
+## A token the boss's attack gives besides damage, with how many.
+func _effect(token_name: String, count: int) -> Control:
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 0)
+	var value := Label.new()
+	value.theme_type_variation = &"Title"
+	value.add_theme_font_size_override("font_size", 32)
+	value.add_theme_color_override("font_color", Color(0.714, 0.878, 0.29) if token_name == "poison" else Color(0.98, 0.88, 0.62))
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	value.text = str(count)
+	column.add_child(value)
+	column.add_child(_icon(TOKEN_ICONS.get(token_name, ""), THREAT_ICON_SIZE))
+	return column
+
+
+## Sizes a plate beside a seat to what it holds now, keeping where it is anchored.
+func _fit(plate: Control) -> void:
+	plate.offset_left = 0.0
+	plate.offset_right = 0.0
+	plate.offset_top = 0.0
+	plate.offset_bottom = 0.0
+	plate.reset_size()
 
 
 ## The chips for everyone at the top of the screen, between the buttons.
@@ -552,26 +668,97 @@ func _on_phase_changed(_phase: Fight.Phase) -> void:
 		_refresh_badge(hero)
 
 
+## A column for each damage type: the boss's shield, with its value on it, and below it
+## a medallion for the attack type, grey until a hero attacks with it this round. Then it
+## is in colour: supports of that type can be played.
 func _make_shields() -> void:
+	var medallion := StyleBoxFlat.new()
+	medallion.bg_color = Color(0.08, 0.04, 0.02, 0.85)
+	medallion.border_color = Color(0.84, 0.65, 0.28)
+	medallion.set_border_width_all(3)
+	medallion.set_corner_radius_all(ATTACK_STATE_SIZE / 2)
 	for kind in Fight.DAMAGE_TYPES:
-		var plate := PanelContainer.new()
-		plate.add_theme_stylebox_override("panel", _plate)
-		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var row := HBoxContainer.new()
-		row.name = "Row"
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_theme_constant_override("separation", 6)
-		row.add_child(_icon(SHIELD_ICONS[kind], SHIELD_ICON_SIZE))
+		var column := VBoxContainer.new()
+		column.name = kind.to_pascal_case()
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_theme_constant_override("separation", 4)
+		var shield := Control.new()
+		shield.name = "Shield"
+		shield.custom_minimum_size = SHIELD_SIZE
+		shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var picture := _icon(fight.boss.shield_icon(kind), 0)
+		picture.name = "Icon"
+		picture.set_anchors_preset(Control.PRESET_FULL_RECT)
+		picture.material = _gray_material()
+		shield.add_child(picture)
 		var value := Label.new()
 		value.name = "Value"
 		value.theme_type_variation = &"Title"
-		value.add_theme_font_size_override("font_size", 30)
-		value.custom_minimum_size.x = 26
+		value.add_theme_font_size_override("font_size", 40)
+		value.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0))
+		value.add_theme_constant_override("outline_size", 8)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		row.add_child(value)
-		plate.add_child(row)
-		_shields.add_child(plate)
-		_shield_plates[kind] = plate
+		value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		value.set_anchors_preset(Control.PRESET_FULL_RECT)
+		# The middle of the shield's face, a little below that of the picture.
+		value.offset_top = 6.0
+		value.text = "0"
+		shield.add_child(value)
+		column.add_child(shield)
+
+		var state := PanelContainer.new()
+		state.name = "Attack"
+		state.custom_minimum_size = Vector2(ATTACK_STATE_SIZE, ATTACK_STATE_SIZE)
+		state.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		state.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		state.add_theme_stylebox_override("panel", medallion)
+		state.material = _gray_material()
+		var icon := _icon(SHIELD_ICONS[kind], ATTACK_STATE_SIZE - 22)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon.use_parent_material = true
+		state.add_child(icon)
+		column.add_child(state)
+		_shields.add_child(column)
+		_shield_plates[kind] = shield
+		_attack_states[kind] = state
+	_on_attacked_changed(fight.attacked)
+
+
+func _gray_material() -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = GRAY_SHADER
+	return material
+
+
+## A shield at 0 is broken: grey and faint.
+func _show_shield_state(shield: Control, value: int) -> void:
+	var broken := value <= 0
+	shield.modulate.a = 0.45 if broken else 1.0
+	((shield.get_node("Icon") as CanvasItem).material as ShaderMaterial).set_shader_parameter("gray", 1.0 if broken else 0.0)
+
+
+## The attack types attacked this round are in colour, those not yet grey. One that has
+## just been attacked lights up.
+func _on_attacked_changed(kinds: Array[String]) -> void:
+	for kind: String in _attack_states:
+		var state: Control = _attack_states[kind]
+		var material := state.material as ShaderMaterial
+		var open := kind in kinds
+		var was_open: bool = state.get_meta("open", false)
+		state.set_meta("open", open)
+		if open == was_open:
+			material.set_shader_parameter("gray", 0.0 if open else 1.0)
+			state.modulate.a = 1.0 if open else 0.6
+			continue
+		if open:
+			var light := create_tween().set_parallel()
+			light.tween_method(func(gray: float) -> void: material.set_shader_parameter("gray", gray), 1.0, 0.0, 0.35)
+			light.tween_property(state, "modulate:a", 1.0, 0.35)
+			_pop(state)
+		else:
+			material.set_shader_parameter("gray", 1.0)
+			state.modulate.a = 0.6
 
 
 func _on_shields_changed(shields: Dictionary) -> void:
@@ -582,13 +769,12 @@ func _on_shields_changed(shields: Dictionary) -> void:
 		create_tween().tween_property(_shields, "modulate:a", 1.0, 0.4)
 	for kind: String in _shield_plates:
 		var plate: Control = _shield_plates[kind]
-		var value: Label = plate.get_node("Row/Value")
-		var text := str(shields.get(kind, 0))
+		var value: Label = plate.get_node("Value")
+		var text := "%d" % shields.get(kind, 0)
 		if value.text != text:
 			value.text = text
-			plate.pivot_offset = plate.size / 2.0
 			_pop(plate)
-		plate.modulate.a = 1.0 if shields.get(kind, 0) > 0 else 0.4
+		_show_shield_state(plate, shields.get(kind, 0))
 
 
 ## Instead of a message: the shields appear one after the other and count up to their
@@ -598,6 +784,8 @@ func _on_shields_raised(shields: Dictionary) -> void:
 	var seconds := SHIELD_APPEAR_SEC + SHIELD_STAGGER_SEC * (kinds.size() - 1) + SHIELD_COUNT_SEC
 	messages.hold(seconds + 0.2)
 	var none := not shields.values().any(func(value: int) -> bool: return value > 0)
+	if not none:
+		_sfx.play("shields_up")
 	show_banner(_t("no_shields" if none else "shields_raised"), SHIELD_BANNER_SEC)
 	var appearing := _shields.modulate.a < 1.0
 	if appearing:
@@ -605,31 +793,34 @@ func _on_shields_raised(shields: Dictionary) -> void:
 	for i in kinds.size():
 		var kind: String = kinds[i]
 		var plate: Control = _shield_plates[kind]
-		var value: Label = plate.get_node("Row/Value")
+		var value: Label = plate.get_node("Value")
 		var from := 0 if appearing else value.text.to_int()
 		var to: int = shields.get(kind, 0)
 		var delay := SHIELD_STAGGER_SEC * i
 		var tween := create_tween()
 		if appearing:
 			value.text = "0"
-			plate.modulate.a = 0.4
+			_show_shield_state(plate, 0)
 			plate.pivot_offset = plate.size / 2.0
 			plate.scale = Vector2.ZERO
 			tween.tween_property(plate, "scale", Vector2.ONE, SHIELD_APPEAR_SEC).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		else:
 			tween.tween_interval(SHIELD_APPEAR_SEC + delay)
 		if from != to:
-			tween.tween_callback(func() -> void: plate.modulate.a = 1.0)
+			tween.tween_callback(_show_shield_state.bind(plate, to))
 			tween.tween_method(func(shown: int) -> void: value.text = str(shown), from, to, SHIELD_COUNT_SEC)
 			tween.tween_callback(_pop.bind(plate))
 		tween.tween_callback(func() -> void:
 			value.text = str(to)
-			plate.modulate.a = 1.0 if to > 0 else 0.4)
+			_show_shield_state(plate, to))
 
 
-func _on_boss_hit(_kind: String, _absorbed: int, dealt: int) -> void:
+func _on_boss_hit(kind: String, absorbed: int, dealt: int) -> void:
+	if absorbed > 0:
+		_sfx.play("shield_break" if fight.shields.get(kind, 0) == 0 else "shield_block")
 	if dealt <= 0:
 		return
+	_sfx.play("hit")
 	var material := _figure.material as ShaderMaterial
 	var flash := create_tween()
 	flash.tween_method(func(value: float) -> void: material.set_shader_parameter("flash", value), 0.8, 0.0, 0.45)
@@ -649,6 +840,62 @@ func _on_boss_hit(_kind: String, _absorbed: int, dealt: int) -> void:
 	rise.tween_property(number, "position:y", number.position.y - 120.0, 1.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	rise.tween_property(number, "modulate:a", 0.0, 0.5).set_delay(0.6)
 	rise.chain().tween_callback(number.queue_free)
+
+
+func _on_message_shown(id: String) -> void:
+	if not Messages.is_animated(id):
+		return
+	if id == "round_started":
+		_animate_planning()
+	else:
+		messages.finish(id)
+
+
+## While its message says so, the boss plans its attack against each hero, one after the
+## other: the attack pops up by the hero and counts up, then what it does besides. Then the
+## message closes. There is nothing to confirm, the players see it all happen.
+func _animate_planning() -> void:
+	await get_tree().create_timer(PLAN_START_SEC).timeout
+	if not is_inside_tree() or messages.current() != "round_started":
+		return
+	# A rule that waits for the players as the round starts would hold up the planning:
+	# then the attacks show as they come.
+	if fight.phase != Fight.Phase.PLANNING:
+		for seat: int in _revealed:
+			_revealed[seat] = true
+		messages.finish("round_started")
+		return
+	for hero in fight.heroes:
+		if not is_inside_tree() or fight.over:
+			return
+		_reveal_threat(hero)
+		await get_tree().create_timer(PLAN_HERO_SEC).timeout
+	if not is_inside_tree():
+		return
+	await get_tree().create_timer(PLAN_END_SEC).timeout
+	if is_inside_tree():
+		messages.finish("round_started")
+
+
+func _reveal_threat(hero: FightHero) -> void:
+	_revealed[hero.seat] = true
+	_refresh_badge(hero)
+	var token: SeatToken = _badges[hero.seat].get_parent()
+	var threat: Control = token.get_node("Threat")
+	var effects: Control = token.get_node("Effects")
+	var value: Label = threat.get_node("Column/Value")
+	_sfx.play("select")
+	threat.pivot_offset = threat.size / 2.0
+	threat.scale = Vector2.ZERO
+	var tween := create_tween()
+	tween.tween_property(threat, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_method(func(shown: int) -> void: value.text = str(shown), 0, hero.threat, PLAN_COUNT_SEC)
+	tween.tween_callback(func() -> void: value.text = str(hero.threat))
+	if effects.visible:
+		effects.pivot_offset = effects.size / 2.0
+		effects.scale = Vector2.ZERO
+		tween.tween_callback(_sfx.play.bind("poison" if hero.threat_effects.has("poison") else "select"))
+		tween.tween_property(effects, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _on_won() -> void:
@@ -681,6 +928,7 @@ func _symbol_size(label: RichTextLabel) -> int:
 
 
 func _play_intro() -> void:
+	_sfx.play("boss_appears")
 	_figure.modulate.a = 0.0
 	var intro := create_tween()
 	intro.tween_property(_figure, "modulate:a", 1.0, 0.8).set_delay(0.2)

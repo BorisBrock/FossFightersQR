@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -19,6 +19,7 @@
 [ext_resource type="Texture2D" path="res://assets/splash.png" id="17_splash"]
 [ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="18_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="19_settings"]
+[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/pling.wav" id="20_pling"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("7_table_shader")
@@ -70,6 +71,11 @@ script = ExtResource("1_script")
 
 [node name="QrCameraScanner" type="Node" parent="."]
 script = ExtResource("4_scanner")
+
+[node name="Pling" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("20_pling")
+max_polyphony = 3
+bus = &"SFX"
 
 [node name="Table" type="TextureRect" parent="."]
 material = SubResource("table_material")

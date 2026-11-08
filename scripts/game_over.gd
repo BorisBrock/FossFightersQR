@@ -8,11 +8,12 @@ const ONBOARDING_SCENE := "res://onboarding.tscn"
 const GOLD := Color(0.98, 0.82, 0.48)
 const CREAM := Color(0.95, 0.88, 0.74)
 const FAINT := Color(0.72, 0.64, 0.5)
-## The damage types, checked with the dataviz palette validator against the panels.
+## The damage types, in the colours of their symbols on the cards (and their icons):
+## melee crimson with a touch of pink, ranged yellow-orange, magic bright blue.
 const TYPE_COLORS := {
-	"melee": Color("#cf7e45"),
-	"ranged": Color("#1fa8a3"),
-	"magic": Color("#9a78e2"),
+	"melee": Color("#d6386a"),
+	"ranged": Color("#f0a326"),
+	"magic": Color("#3b9cf2"),
 }
 const TYPE_ICONS := {
 	"melee": "res://assets/fight/icon_melee.svg",

@@ -6,7 +6,8 @@ check mark below it. Tapping the check mark confirms that the players have read 
 
 ## How it looks
 
-- An optional **title** in the title font, and a **body**, both centred on a dark panel. The fight is dimmed behind it.
+- An optional **title** in the title font, and a **body**, both centred on a dark panel, **in the top half of the
+  screen**, clear of the heroes at the bottom. The fight is dimmed behind it.
 - The round, the boss's health, *end the fight* and the settings stay in view and can still be used.
 - The check mark closes a message. Taps for 0.4 s after a message appears do not count, so that a double tap
   does not close the next message unread.
@@ -16,6 +17,9 @@ check mark below it. Tapping the check mark confirms that the players have read 
   message stops the bar**, and the message waits for the check mark like any other. The bar also stops while a
   dialog is open, such as the settings, where the players can make messages stay longer (*Slowly*, 1.75 times as
   long) or never close by themselves.
+- **A message that goes with an animation** (`"animation": true`), such as *Round 2: the boss is planning its
+  attacks*, has no check mark and leaves the fight undimmed, and is narrower, so that the seats at the sides stay in
+  view. The screen plays the animation as it shows, and closes it once the animation is done.
 - A message that asks the players to do something (draw, heal, lose health, take tokens, discard) always waits for the
   check mark, as confirming it says that they did it.
 - Messages that arrive while one is shown wait in line and follow one after another.
@@ -52,6 +56,8 @@ asks nothing of the players, so that it closes by itself:
 
 - **The body** is one text, or a list of texts, which become one line each.
 - **Ids** are lowercase with `_`. For a message of only one boss, start it with the boss's id: `mirefang_dive`.
+- **`animation`** is the same in every language, and only for messages whose animation the screen knows
+  (`BossFight._on_message_shown`); any other closes at once.
 - **`auto`** is the same in every language. Mark a message only if the players have nothing to do on the table
   when they read it: what is told only once must not slip by while they are busy.
 - **Placeholders** such as `{player}` are filled in by the game. Each language has to use the same ones, in any order.
@@ -129,7 +135,9 @@ itself. The fight waits until every message so far is confirmed before it goes o
   `confirmed(id)` says that the players confirmed one and `all_confirmed` that none is left. `hold()` keeps messages
   back for a while. A message that closes by itself is confirmed by the box, as if the check mark was tapped, so the
   fight cannot tell the difference. `Messages.is_auto(id)` says which do, `MessageBox.auto_seconds()` for how long,
-  and `Settings.message_time` holds the players' choice.
+  and `Settings.message_time` holds the players' choice. `MessageBox.shown(id)` says that a message is now on
+  screen; for one that goes with an animation (`Messages.is_animated(id)`) the screen plays it then and closes the
+  message with `MessageBox.finish(id)`.
 - The box lies between the seats and the HUD in `boss_fight.tscn`, so that the HUD stays usable. Dialogs, such as
   giving up, are above it.
 - Italics are Almendra, slanted by a `FontVariation`, as the font has no italic of its own.

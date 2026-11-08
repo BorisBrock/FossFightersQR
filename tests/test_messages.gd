@@ -2,7 +2,7 @@ extends SceneTree
 ## The message files in messages/ and how a message is turned into text for the screen.
 ## Run with: godot --headless -s tests/test_messages.gd
 
-const EXPECTED_CHECKS := 26
+const EXPECTED_CHECKS := 29
 const BAD_PATH := "user://test_messages_bad.json"
 ## Tags a message may use besides Messages.STYLES. Each has to be closed again.
 const BBCODE_TAGS := ["b", "i", "u", "s", "color", "font_size", "bgcolor", "outline_color", "outline_size"]
@@ -82,12 +82,20 @@ func _check_render() -> void:
 	var lines: PackedStringArray = render.call("{boss}:\n{hits}", { "boss": "Toad", "hits": parts }, "en").split("\n")
 	_check(lines.size() == 3 and lines[1].begins_with(Messages.STYLES.player[0] + "[lb]b]Bo") and "Sonja" in lines[2], "fills in a list of parts, one line each, their values shown as they are")
 
+	# Numbers read from JSON are floats, even when written as 1: they must never show as 1.0.
+	var from_json: Dictionary = JSON.parse_string("{ \"count\": 1, \"damage\": 12 }")
+	_check(render.call("Draw {count} cards, take {damage}.", from_json) == "Draw 1 cards, take 12.", "shows numbers read from JSON as whole numbers")
+	_check(render.call("{a} {b} {c}", { "a": 2.0, "b": -3.0, "c": 0.0 }) == "2 -3 0", "shows floats as whole numbers")
+	var float_parts := [["part_hit", { "player": "Bo", "damage": 3.0 }]]
+	var part_text: String = render.call("{hits}", { "hits": float_parts }, "en")
+	_check("3" in part_text and not "3.0" in part_text, "shows floats in parts as whole numbers: %s" % part_text)
+
 	var values := { "round": 3, "boss": "Toad" }
 	var round := Messages.render("round_started", values, "en")
 	_check(round.title == "Round 3" and not round.body.is_empty(), "renders a message by its id")
 	_check(Messages.render("round_started", values, "de_AT").title == "Runde 3", "in the language of the locale")
 	_check(Messages.render("round_started", values, "fr_FR").title == "Runde 3", "and in German for a language without messages")
-	_check(Messages.is_auto("boss_taunt") and not Messages.is_auto("round_end") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
+	_check(Messages.is_auto("boss_taunt") and not Messages.is_auto("round_end_status") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
 	_check(Messages.render("example_reminder", {}, "en").title == "", "a message may have no title")
 	_check(Messages.has("round_started") and not Messages.has("no_such_message"), "knows which messages there are")
 

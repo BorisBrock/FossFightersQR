@@ -11,7 +11,8 @@ extends RefCounted
 ## - symbols such as :poison:, drawn inline as an icon.
 ##
 ## A message marked "auto" asks nothing of the players, so it closes by itself after a
-## while (see MessageBox). One without it waits until the players confirm it.
+## while (see MessageBox). One marked "animation" goes with an animation on screen, which
+## closes it. Any other waits until the players confirm it.
 
 const FOLDER := "res://messages/"
 ## A language without a file, or a message missing from it, falls back to this.
@@ -89,6 +90,13 @@ static func is_auto(id: String) -> bool:
 	return find(id, FALLBACK_LANGUAGE).get("auto", false)
 
 
+## Whether the message goes with an animation on screen, such as the boss planning its
+## attacks: it has no check mark, and the screen closes it once the animation is done
+## (MessageBox.finish()).
+static func is_animated(id: String) -> bool:
+	return find(id, FALLBACK_LANGUAGE).get("animation", false)
+
+
 ## Every message of a language by its id, with the body as one string. Empty if the
 ## language has no file. Files are read once.
 static func load_language(language: String) -> Dictionary:
@@ -124,8 +132,9 @@ static func read_file(path: String) -> Dictionary:
 		var message := { "body": "\n".join(body) if body is Array else body }
 		if entry.has("title"):
 			message.title = entry.title
-		if entry.get("auto", false):
-			message.auto = true
+		for flag: String in ["auto", "animation"]:
+			if entry.get(flag, false):
+				message[flag] = true
 		messages[id] = message
 	return messages
 
@@ -145,7 +154,7 @@ static func to_bbcode(text: String, values := {}, locale := TranslationServer.ge
 			if value is Array:
 				result += _parts(value, locale, symbol_size)
 			else:
-				result += _escape(CardDatabase.localized(value, locale) if value is Dictionary else str(value))
+				result += _escape(_text_of(value, locale))
 		else:
 			push_warning("Message placeholder {%s} has no value" % key)
 			result += found.get_string()
@@ -211,6 +220,18 @@ static func _parts(parts: Array, locale: String, symbol_size: int) -> String:
 	return "\n".join(lines)
 
 
+## A placeholder's value as text. Numbers are always shown as whole numbers: a value read
+## from JSON is a float even when it is written as 1, and would show as "1.0".
+static func _text_of(value: Variant, locale: String) -> String:
+	if value is Dictionary:
+		return CardDatabase.localized(value, locale)
+	if value is float:
+		if not is_equal_approx(value, roundf(value)):
+			push_warning("Message value %s is no whole number, rounded" % value)
+		return str(roundi(value))
+	return str(value)
+
+
 static func _escape(text: String) -> String:
 	return text.replace("[", "[lb]")
 
@@ -224,10 +245,12 @@ static func _problem(entry: Variant) -> String:
 		return "the body has to be a text or a list of texts"
 	if entry.has("title") and not entry.title is String:
 		return "the title has to be a text"
+	if entry.has("animation") and not entry.animation is bool:
+		return "animation has to be true or false"
 	if entry.has("auto") and not entry.auto is bool:
 		return "auto has to be true or false"
 	for key: String in entry:
-		if not key in ["title", "body", "auto"]:
+		if not key in ["title", "body", "auto", "animation"]:
 			return "unknown field '%s'" % key
 	return ""
 

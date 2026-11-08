@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 66
+const EXPECTED_CHECKS := 67
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -104,6 +104,9 @@ func _run() -> void:
 	await get_tree().create_timer(IGNORE_SEC).timeout
 	_check(_scene._draft.race.is_empty() and _scene._draft.hero_class.is_empty(), "a playing card is ignored")
 	_feed.show_image(DWARF)
+	var pling: AudioStreamPlayer = _scene._pling
+	await _until(func() -> bool: return pling.playing, READ_TIMEOUT_SEC)
+	_check(pling.playing and _scene._draft.race.is_empty(), "a card read plings first, before it chooses anything")
 	await _until(func() -> bool: return not _scene._draft.race.is_empty(), READ_TIMEOUT_SEC)
 	_check(_scene._draft.race == "dwarf", "a character card chooses the race: '%s'" % _scene._draft.race)
 	_check(_scene._draft.name in HeroOptions.RACES.dwarf.names, "the race suggests a name: '%s'" % _scene._draft.name)

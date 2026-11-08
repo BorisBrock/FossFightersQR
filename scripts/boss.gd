@@ -114,6 +114,12 @@ func attack_hero(fight: Fight, hero: FightHero) -> void:
 	await fight.strike(hero)
 
 
+## The picture of its shield of kind, on which the screen shows the shield's value. A boss
+## whose shields are special, such as thorny ones, can show its own.
+func shield_icon(_kind: String) -> String:
+	return "res://assets/fight/icon_boss_shield.svg"
+
+
 ## Its shield of kind absorbed amount damage from play (or null). What a shield does
 ## besides, such as hurting whoever hits it, goes here. Not called when a rule lets play
 ## ignore it (FightRule.ignores_shield_effect). By default a shield only absorbs.

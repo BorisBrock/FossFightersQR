@@ -28,6 +28,12 @@ switched between in the order they are listed, and infrared cameras are avoided 
 **Display rule:** the card stays until 5 s after the code was last seen. A code that stays in view plings
 once. It plings again after 2 s out of view, and a different code plings immediately.
 
+**Scan confirmation:** in the hero editor and in the fight, every card that comes into view plings at once,
+even one that does nothing right now. The pling tells the player the card was read and can be taken back.
+What the card does (a choice and its reveal sound, an attack and its message) waits
+`QrCameraScanner.CONFIRM_SEC` (0.5 s, about the length of `assets/pling.wav`), so it comes clearly after
+the pling. A card that stays in view does not pling or count again until it has been out of view for 2 s.
+
 **False reads:** rescue reads must be repeated on another frame. The benchmark caught the Flattened and
 Sharpened filters decoding garbage from damaged images twice, and no other pass has done so.
 

@@ -6,11 +6,8 @@
 	},
 	"round_started": {
 		"title": "Round {round}",
-		"body": [
-			"[boss]{boss}[/boss] plans its attacks: the attack against each of you is shown at your seat :damage:.",
-			"Look at them and plan your moves together."
-		],
-		"auto": true
+		"body": "[boss]{boss}[/boss] is planning its attacks …",
+		"animation": true
 	},
 	"phase_action": {
 		"title": "Phase 3 · Actions",
@@ -39,13 +36,20 @@
 		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round.",
 		"auto": true
 	},
-	"round_end": {
-		"title": "End of the Round",
+	"round_end_status": {
+		"title": "End of the Round · Status",
 		"body": [
-			"[b]Status:[/b] poison :poison:: lose [damage]1[/damage] :health: per token. Fire :fire:: draw [b]1[/b] :card: per token, remove each for the fight [i]or[/i] discard it and lose [damage]2[/damage] :health:.",
-			"[b]Discard:[/b] your play area to your discard pile, then down to your hand limit, or more.",
-			"[b]Draw:[/b] up to your hand limit :card:, [damage]1 fewer[/damage] per paralysis :paralysis:."
+			"Poison :poison:: lose [damage]1[/damage] :health: per token.",
+			"Fire :fire:: draw [b]1[/b] :card: per token, remove each for the fight [i]or[/i] discard it and lose [damage]2[/damage] :health:."
 		]
+	},
+	"round_end_discard": {
+		"title": "End of the Round · Discard",
+		"body": "Your play area to your discard pile, then down to your hand limit, or more."
+	},
+	"round_end_draw": {
+		"title": "End of the Round · Draw",
+		"body": "Up to your hand limit :card:, [damage]1 fewer[/damage] per paralysis :paralysis:."
 	},
 	"support_without_attack": {
 		"title": "No effect",
@@ -80,6 +84,10 @@
 		"title": "Venomous Bite",
 		"body": "[boss]{boss}[/boss] licks its lips: its attack on [player]{player}[/player] is poisonous :poison:.",
 		"auto": true
+	},
+	"colossus_armour": {
+		"title": "Iron Armour",
+		"body": "The boss's armour weakens your attack. It deals only [damage]{damage} damage[/damage] :damage:."
 	},
 	"victory": {
 		"title": "Victory!",
@@ -136,9 +144,6 @@
 	},
 	"notice_lightning": {
 		"body": ":lightning: Lightning! [player]{player}[/player] takes another action."
-	},
-	"option_pass": {
-		"body": "Pass"
 	},
 	"option_skip": {
 		"body": "Skip"

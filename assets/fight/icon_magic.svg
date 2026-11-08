@@ -1,5 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <path d="M28 6l5 15 15 5-15 5-5 15-5-15-15-5 15-5z" fill="#b57cf2" stroke="#ecd9ff" stroke-width="2.5" stroke-linejoin="round"/>
-  <path d="M48 38l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#7cc8f2" stroke="#e0f4ff" stroke-width="2" stroke-linejoin="round"/>
-  <circle cx="50" cy="14" r="3.5" fill="#ecd9ff"/>
+  <defs>
+    <radialGradient id="orb" cx="0.62" cy="0.36" r="0.75">
+      <stop offset="0" stop-color="#8ff0ff"/>
+      <stop offset="0.35" stop-color="#3aa8f5"/>
+      <stop offset="1" stop-color="#1446c8"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#orb)" stroke="#e4e7ec" stroke-width="3"/>
+  <circle cx="32" cy="32" r="27" fill="none" stroke="#0a1a40" stroke-width="1.2"/>
+  <path d="M48 14L30 30l6 3-20 18 26-15-6-3 14-16z" fill="#7fe8ff" opacity="0.55" transform="translate(1 1)"/>
+  <path d="M47 13L29 29l6 3-19 18 25-15-6-3 13-17z" fill="#ffffff" stroke="#bff6ff" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M14 22c4-3 7-4 10-4M42 50c4-1 7-4 9-8" stroke="#bff6ff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
 </svg>

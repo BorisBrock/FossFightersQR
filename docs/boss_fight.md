@@ -17,24 +17,32 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   (`assets/fight/figure.gdshader`). The shader also has `flash` for lighting the boss up on a hit.
 - **The heroes** at their seats, as on the table (`seats.tscn`, shared with the onboarding). Seats without a hero are
   hidden.
-- **The banner** across the middle, between the seats, for short messages. `show_banner(text)` shows one for 3 s. At the
+- **The banner** across the upper half, for short messages. `show_banner(text)` shows one for 3 s. At the
   start it announces the boss.
-- **Messages** over the middle, large, each until the players confirm it with the check mark. They announce rounds and
+- **Messages** in the top half, large, each until the players confirm it with the check mark. They announce rounds and
   phases and say what happens. Those that ask nothing of the players close by themselves after a few seconds, unless
   a player taps them. See [Messages](messages.md).
-- **Badges at the seats,** facing each hero: the boss's attack against them this round, with an icon for what it does
-  besides (such as poison). They appear in the planning phase. The heroes' own status tokens are not shown: they are
-  real tokens on the table.
+- **Marks at the seats,** facing each hero: on the hero's left the boss's attack against them this round, on their
+  right the tokens it gives besides (such as 1 poison), each with its count. They appear one hero after the other
+  in the planning phase. Above the portrait, a badge shows the actions the hero has left. The heroes' own status
+  tokens are not shown: they are real tokens on the table.
+- **Choosing a hero:** the heroes the players can tap pulse, growing and shrinking a little, with a golden glow.
 - **Buffs:** what lasts a while, as small chips with icons and a value such as `+1`
   ([Buffs on screen](cards.md#buffs-on-screen)). Those for one hero, such as a Totem, are in their badge, which then
   shows outside the planning phase too; a hero with a totem token also has a turquoise glow around their portrait.
   Those for everyone, such as *Muttis Nachtisch* with the cards it still boosts, are at the top, between the buttons.
-- **The boss's poison** at the bottom right, next to its health, once it has any (`Fight.poison_changed`).
-- **The shields** at the bottom, below the boss: melee, ranged and magic, from the shield phase on. A broken shield is dimmed.
-- **The prompt** above the table head, while the fight waits for the players: whose turn it is, or which hero to tap,
-  with buttons for what cannot be done by tapping a hero or showing a card (*Pass*, *Skip*, choices). Below the
+- **The boss's poison** at the bottom right, above its health, once it has any (`Fight.poison_changed`).
+- **The shields and attack types** above the hero at the bottom, from the shield phase on: a column each for melee,
+  ranged and magic. On top the boss's shield, a picture with its value on it (`Boss.shield_icon()`, so that a boss
+  with special shields can show its own); a broken shield is grey and faint. Below it, set apart in a round
+  medallion, the attack type: grey each round until a hero attacks with it (`Fight.attacked_changed`), then in
+  colour, as supports of that type can now be played.
+- **The prompt** in the upper half, between the seats at the sides, while the fight waits for the players: whose turn it is, or which hero to tap,
+  with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
 - **Hits:** the boss lights up and the damage rises from it.
+- **Sounds:** what happens and what the players have to do, such as a hero's turn or choosing a hero, has a sound
+  effect. See [Sounds](sounds.md).
 - **Top left:** end the fight. It asks first: *We have lost* (a hero has fallen) ends the fight as lost, *Stop the
   fight* ends it without a result, *Keep fighting* closes the question.
 - **Top right:** the settings.
@@ -50,9 +58,11 @@ on and take off themselves.
 
 1. **Start:** the heroes appear at their seats, the boss appears, its health counts up, and it greets the heroes
    (`Boss.taunt`).
-2. **Each round:** *Round n*, in one message with the planning, which closes by itself.
-3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`), shown at their seat. Knowing
-   them, the players tap the hero who starts. With one hero, nobody is asked.
+2. **Each round:** *Round n: the boss is planning its attacks*, in one message without a check mark.
+3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`). While the message shows, the
+   attack pops up at one seat after the other and counts up, and the tokens it gives besides pop up beside it.
+   Then the message closes by itself. Knowing the attacks, the players tap the hero who starts. With one hero,
+   nobody is asked.
 4. **Shields:** the boss raises its shields (`Boss.raise_shields`). There is no message: a short *Shields* banner
    shows, the shields appear one after the other and count up to their values (`Fight.shields_raised`), and the
    next message waits until they are done.
@@ -65,7 +75,7 @@ on and take off themselves.
 6. **Attack:** the boss strikes each hero with what is left of its attack (`Boss.attack_hero`). One message lists
    every hit, a line per hero, with the tokens the hero takes for poison and the like. What rules do on a hit
    (`hero_struck`, `hero_hurt`) follows it.
-7. **End of the round:** status, discard and draw (phases 5 to 7 of the rules) are one message, a line each, as the
+7. **End of the round:** status, discard and draw (phases 5 to 7 of the rules) are a short message each, as the
    players do them together at the table: what poison and fire do, discarding, and drawing, with paralysis. What
    rules remind them of, such as a card not to discard (`round_end_started`), comes first.
 8. **Then** the boss's poison hurts it, past its shields: 1 health per token, which rules can change

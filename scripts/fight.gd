@@ -36,6 +36,9 @@ signal message(id: String, values: Dictionary)
 signal notice(id: String, values: Dictionary)
 ## Damage went to the boss: absorbed by its shield of kind, and dealt to its health.
 signal boss_hit(kind: String, absorbed: int, dealt: int)
+## The damage types attacked this round changed (attacked): one was attacked for the first
+## time, or a new round cleared them.
+signal attacked_changed(kinds: Array[String])
 signal card_played(play: CardPlay)
 ## A rule that shows on screen (FightRule.buff) came or went, or its buff changed. See
 ## buffs().
@@ -669,6 +672,7 @@ func _play_round() -> void:
 	round_number += 1
 	stats.round_started(round_number)
 	attacked.clear()
+	attacked_changed.emit(attacked)
 	for hero in heroes:
 		hero.threat = 0
 		hero.threat_effects.clear()
@@ -737,11 +741,13 @@ func _play_round() -> void:
 		return
 
 	# Status, discard and draw: the status tokens and the cards are on the table, so the
-	# players do all three there, told in one message. What rules remind them of comes
-	# first, such as a card not to discard.
+	# players do all three there, told in a short message each. What rules remind them of
+	# comes first, such as a card not to discard.
 	await _phase(Phase.ROUND_END)
 	await _each_rule("round_end_started")
-	tell("round_end")
+	tell("round_end_status")
+	tell("round_end_discard")
+	tell("round_end_draw")
 	await until_read()
 	if over:
 		return
@@ -856,6 +862,7 @@ func _apply(play: CardPlay, effect: CardPlay.Effect) -> void:
 			var opened := not effect.damage_type in attacked
 			if opened:
 				attacked.append(effect.damage_type)
+				attacked_changed.emit(attacked)
 			stats.power_played(hero, effect.damage_type, effect.strength)
 			await deal_damage(effect.strength, effect.damage_type, play)
 			if opened:

@@ -6,11 +6,8 @@
 	},
 	"round_started": {
 		"title": "Runde {round}",
-		"body": [
-			"[boss]{boss}[/boss] plant seine Angriffe: Der Angriff gegen jeden von euch steht an eurem Platz :damage:.",
-			"Seht sie euch an und plant gemeinsam eure Züge."
-		],
-		"auto": true
+		"body": "[boss]{boss}[/boss] plant seine Angriffe …",
+		"animation": true
 	},
 	"phase_action": {
 		"title": "Phase 3 · Aktionen",
@@ -39,13 +36,20 @@
 		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden.",
 		"auto": true
 	},
-	"round_end": {
-		"title": "Rundenende",
+	"round_end_status": {
+		"title": "Rundenende · Status",
 		"body": [
-			"[b]Status:[/b] Gift :poison:: [damage]1[/damage] :health: pro Marker verlieren. Feuer :fire:: [b]1[/b] :card: pro Marker ziehen, jede für den Kampf entfernen [i]oder[/i] abwerfen und [damage]2[/damage] :health: verlieren.",
-			"[b]Abwerfen:[/b] Spielbereich auf den Ablagestapel, dann bis aufs Handkartenlimit abwerfen, gern mehr.",
-			"[b]Nachziehen:[/b] bis zum Handkartenlimit :card:, pro Lähmung :paralysis: [damage]1[/damage] weniger."
+			"Gift :poison:: [damage]1[/damage] :health: pro Marker verlieren.",
+			"Feuer :fire:: [b]1[/b] :card: pro Marker ziehen, jede für den Kampf entfernen [i]oder[/i] abwerfen und [damage]2[/damage] :health: verlieren."
 		]
+	},
+	"round_end_discard": {
+		"title": "Rundenende · Abwerfen",
+		"body": "Spielbereich auf den Ablagestapel, dann bis aufs Handkartenlimit abwerfen, gern mehr."
+	},
+	"round_end_draw": {
+		"title": "Rundenende · Nachziehen",
+		"body": "Bis zum Handkartenlimit :card:, pro Lähmung :paralysis: [damage]1[/damage] weniger."
 	},
 	"support_without_attack": {
 		"title": "Ohne Wirkung",
@@ -80,6 +84,10 @@
 		"title": "Giftiger Biss",
 		"body": "[boss]{boss}[/boss] leckt sich die Lippen: sein Angriff auf [player]{player}[/player] ist giftig :poison:.",
 		"auto": true
+	},
+	"colossus_armour": {
+		"title": "Eisenpanzer",
+		"body": "Die Panzerung des Bosses schwächt euren Angriff. Er macht nur [damage]{damage} Schaden[/damage] :damage:."
 	},
 	"victory": {
 		"title": "Sieg!",
@@ -136,9 +144,6 @@
 	},
 	"notice_lightning": {
 		"body": ":lightning: Blitz! [player]{player}[/player] hat noch eine Aktion."
-	},
-	"option_pass": {
-		"body": "Passen"
 	},
 	"option_skip": {
 		"body": "Auslassen"

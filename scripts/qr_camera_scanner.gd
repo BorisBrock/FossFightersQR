@@ -15,6 +15,10 @@ signal camera_started
 ## changes.
 signal failed(reason: String)
 
+## A card that comes into view plings at once, so the player knows it was read and can
+## take it back. Whatever the card does waits this long, so that its own sounds and
+## pictures come clearly after the pling.
+const CONFIRM_SEC := 0.5
 const PERMISSION_CAMERA := "CAMERA"
 const CAMERA_RECOVERY_INTERVAL_SEC := 1.0
 const READBACK_TIMEOUT_MSEC := 1000

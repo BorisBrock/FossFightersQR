@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 460
+const EXPECTED_CHECKS := 462
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -162,7 +162,7 @@ func _check_round() -> void:
 	var hits: Array = _values[-1].hits
 	_check(hits.map(func(hit: Array) -> String: return hit[1].player) == ["Rosie", "Borin"] and hits[1] == ["part_hit", { "player": "Borin", "damage": 2 }], "every hero it still threatens, one line each")
 	_ready(fight)
-	_check(_told[-1] == "round_end" and fight.phase == Fight.Phase.ROUND_END, "then the players apply their status tokens, discard and draw, told in one message")
+	_check(_told.slice(-3) == ["round_end_status", "round_end_discard", "round_end_draw"] and fight.phase == Fight.Phase.ROUND_END, "then the players apply their status tokens, discard and draw, told in a message each")
 	_ready(fight)
 	_check(_told[-1] == "round_started" and fight.round_number == 2, "and the next round begins")
 	_ready(fight)
@@ -177,7 +177,7 @@ func _check_round() -> void:
 		fight.pass_action()
 	_check(_told[-1] == "boss_attacks" and _values[-1].hits[-1][0] == "part_hit_with_tokens" and _values[-1].hits[-1][1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
 	_ready(fight)
-	_check(_told[-1] == "round_end", "which the players apply at the end of the round")
+	_check(_told[-1] == "round_end_draw", "which the players apply at the end of the round")
 
 	# What the game over screen shows of these two rounds.
 	var stats := fight.stats
@@ -629,7 +629,7 @@ func _check_magic_loot_cards() -> void:
 	_check("yAEAAA==" in fight.removed and _told[-1] == "poison_on_attack_ready", "Krone des Prinzen: for Borin, then out of the game")
 	_ready(fight)
 	_check(_asks_card_of(fight, 1), "Krone des Prinzen: 1 more action")
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(fight.poison == 1 and _told.count("poison_on_attack") == 1 and _values[_told.find("poison_on_attack")].player == "Borin", "Krone des Prinzen: attack of 4 on Borin, the boss gets 1 poison")
 	_check(_told.find("poison_on_attack") == _told.find("boss_attacks") + 1, "Krone des Prinzen: told right after the boss's hits")
 	fight.abandon()
@@ -642,7 +642,7 @@ func _check_magic_loot_cards() -> void:
 	_ready(fight)
 	fight.scan(_card("GUARD", [["protection", 2]], "halfling"))
 	fight.choose(fight.hero_at(3))
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(fight.poison == 0 and not _told.has("poison_on_attack"), "Krone des Prinzen: lowered to 3, no poison")
 	fight.abandon()
 
@@ -1290,8 +1290,8 @@ func _check_dryad_cards() -> void:
 	var fight := _dryad_starts()
 	fight.scan(fist)
 	_check(fight.health == 29, "Stachelfaust: a melee attack of 3")
-	_pass_until(fight, "round_end")
-	_check(_told[-2] == "card_back_to_pile" and _values[-2].player == "Sonja" and fight.phase == Fight.Phase.ROUND_END, "Stachelfaust: a reminder at the end of the round, before the players discard, to shuffle it back into the draw pile")
+	_pass_until(fight, "round_end_draw")
+	_check(_told[-4] == "card_back_to_pile" and _values[-4].player == "Sonja" and fight.phase == Fight.Phase.ROUND_END, "Stachelfaust: a reminder at the end of the round, before the players discard, to shuffle it back into the draw pile")
 	_pass_until(fight, "phase_action")
 	_ready(fight)
 	for i in 6:
@@ -1548,7 +1548,7 @@ func _check_battle_robot() -> void:
 	fight.choose(fight.hero_at(3))
 	_ready(fight)
 	_check(fight.health == 29 and _told.slice(-2) == ["card_removed", "robot_built"], "Astraler Robo-Schrauber: still, its three symbols build the robot at once")
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(fight.buffs(rosie)[0].bar == 5, "the boss's attack of 3 on the goblin costs the robot 3 health")
 	fight.abandon()
 
@@ -1697,7 +1697,7 @@ func _check_boss_poison() -> void:
 	var fight := _started(TestBoss.new())
 	var changes: Array[int] = []
 	fight.poison_changed.connect(func(poison: int) -> void: changes.append(poison))
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_ready(fight)
 	_check(not _told.has("boss_poison") and fight.round_number == 2, "without poison, nothing happens at the end of a round")
 	for i in 3:
@@ -1784,7 +1784,7 @@ func _check_combos() -> void:
 	_ready(fight)
 	fight.scan(catalog.find("HgEAAA=="))
 	_check(_told[-1] == "attack_delayed" and fight.health == 30, "Amulett der Zeit repeats Bombling: it waits too")
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	for i in 4:
 		_ready(fight)
 	fight.choose(fight.hero_at(1))
@@ -2060,7 +2060,7 @@ func _check_redirects() -> void:
 	fight.scan(aid)
 	fight.choose(fight.hero_at(5))
 	_check(fight.hero_at(3).threat == 3 and fight.hero_at(5).threat == 0, "Ritterlicher Beistand: Borin takes on Sonja's 3")
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(fight.poison == 0, "Krone des Prinzen: 3 on Borin is below 4, no poison")
 	fight.abandon()
 
@@ -2074,7 +2074,7 @@ func _check_redirects() -> void:
 	fight.pass_action()
 	fight.scan(aid)
 	fight.choose(fight.hero_at(5))
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(fight.poison == 1, "Krone des Prinzen: Sonja's 5, taken on by Borin, poisons the boss")
 	fight.abandon()
 
@@ -2112,7 +2112,7 @@ func _check_redirects() -> void:
 	fight.scan(aid)
 	fight.choose(fight.hero_at(3))
 	_check(robot.get("health") == 7, "the goblin takes on Borin's 4, the card wears the robot by 1")
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	_check(robot.get("health") == 3, "the boss's 4 on her costs the robot 4")
 	fight.abandon()
 
@@ -2192,7 +2192,7 @@ func _check_ends_mid_chain() -> void:
 	fight = _started(TestBoss.new())
 	fight.set_health(5)
 	fight.scan(catalog.find("1gEAAA=="))
-	_pass_until(fight, "round_end")
+	_pass_until(fight, "round_end_draw")
 	for i in 4:
 		_ready(fight)
 	fight.choose(fight.hero_at(1))
@@ -2290,6 +2290,12 @@ func _check_bosses() -> void:
 	_check(colossus.health == colossus.max_health - 4, "the colossus's armour halves melee")
 	colossus.deal_damage(9, "magic")
 	_check(colossus.health == colossus.max_health - 13, "but not magic")
+	var armour_told: Array = []
+	colossus.message.connect(func(id: String, values: Dictionary) -> void: armour_told.append([id, values.get("damage")]))
+	colossus.deal_damage(5, "ranged")
+	_check(colossus.health == colossus.max_health - 15 and armour_told == [["colossus_armour", 2]], "the players are told how much the armour let through")
+	colossus.deal_damage(4, Fight.DIRECT)
+	_check(colossus.health == colossus.max_health - 19 and armour_told.size() == 1, "direct damage is no attack: the armour does not halve it")
 
 	var mirefang := Bosses.create("mirefang")
 	mirefang.attack_min = 4

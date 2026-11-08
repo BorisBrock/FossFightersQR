@@ -22,6 +22,9 @@ const DASH_COUNT := 16
 const RING_RADIUS := 36.0
 const GOLD := Color(0.98, 0.82, 0.45)
 const SELECTABLE_TURNS_PER_SECOND := 0.08
+## A hero who can be chosen grows and shrinks a little, to catch the players' eye.
+const PULSE_SCALE := 0.1
+const PULSE_SPEED := 5.0
 ## The forms the dryad can take (FightHero.form): a badge by her portrait, and the colour
 ## of its ring and of her picture.
 const FORMS := {
@@ -56,6 +59,9 @@ var _time := 0.0
 func _ready() -> void:
 	pivot_offset = size / 2.0
 	rotation_degrees = facing_degrees
+	var middle := _portrait.position + _portrait.size / 2.0
+	for picture: Control in [_portrait, _crest, _form]:
+		picture.pivot_offset = middle - picture.position
 	_portrait.material = PortraitMaterial.new(0.5, 0.05)
 	_crest.material = PortraitMaterial.new(0.5, 0.08)
 	_hit.pressed.connect(pressed.emit)
@@ -65,7 +71,19 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	if _pulsing():
+		var grown := 1.0 + PULSE_SCALE * (0.5 - 0.5 * cos(_time * PULSE_SPEED))
+		_scale_portrait(Vector2(grown, grown))
 	queue_redraw()
+
+
+func _pulsing() -> bool:
+	return mode == Mode.SELECTABLE and _hero != null
+
+
+func _scale_portrait(factor: Vector2) -> void:
+	for picture: Control in [_portrait, _crest, _form]:
+		picture.scale = factor
 
 
 func _draw() -> void:
@@ -78,6 +96,9 @@ func _draw() -> void:
 			draw_circle(center, RING_RADIUS + 6.0 + glow * 4.0, Color(TOTEM_COLOR, 0.22 + glow * 0.18))
 		if mode == Mode.ACTIVE:
 			draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.3 + pulse * 0.25))
+		elif _pulsing():
+			var grown := 0.5 - 0.5 * cos(_time * PULSE_SPEED)
+			draw_circle(center, RING_RADIUS + 6.0 + grown * 10.0, Color(GOLD, 0.2 + grown * 0.3))
 		return
 	if selectable:
 		draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.14 + pulse * 0.14))
@@ -131,6 +152,8 @@ func show_totem(has_totem: bool) -> void:
 
 func set_mode(new_mode: Mode) -> void:
 	mode = new_mode
+	if not _pulsing():
+		_scale_portrait(Vector2.ONE)
 	_hit.mouse_filter = MOUSE_FILTER_STOP if mode == Mode.SELECTABLE or mode == Mode.QUIET_SELECTABLE else MOUSE_FILTER_IGNORE
 	_update_process()
 	var target := Color(0.72, 0.72, 0.72, 0.7) if mode == Mode.DIMMED else Color.WHITE

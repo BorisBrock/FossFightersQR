@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_fight.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="12_scanner"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="13_regular"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="14_bold"]
+[ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/pling.wav" id="16_pling"]
 
 [sub_resource type="ShaderMaterial" id="background_material"]
 shader = ExtResource("3_background")
@@ -151,9 +152,9 @@ layout_mode = 1
 [node name="Banner" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.555
+anchor_top = 0.3
 anchor_right = 1.0
-anchor_bottom = 0.645
+anchor_bottom = 0.39
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -175,26 +176,27 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -180.0
-offset_top = -84.0
-offset_right = 180.0
-offset_bottom = -16.0
+offset_left = -170.0
+offset_top = -354.0
+offset_right = 170.0
+offset_bottom = -174.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 22
 alignment = 1
 
 [node name="Prompt" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.06
-anchor_top = 0.86
-anchor_right = 0.94
-anchor_bottom = 0.86
+anchor_left = 0.12
+anchor_top = 0.36
+anchor_right = 0.88
+anchor_bottom = 0.36
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("prompt")
 
 [node name="Layout" type="VBoxContainer" parent="Prompt"]
@@ -240,6 +242,11 @@ alignment = 1
 
 [node name="QrCameraScanner" type="Node" parent="."]
 script = ExtResource("12_scanner")
+
+[node name="Pling" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("16_pling")
+max_polyphony = 3
+bus = &"SFX"
 
 [node name="Messages" parent="." instance=ExtResource("11_messages")]
 layout_mode = 1
@@ -391,10 +398,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -282.0
-offset_top = -84.0
-offset_right = -166.0
-offset_bottom = -16.0
+offset_left = -132.0
+offset_top = -160.0
+offset_right = -16.0
+offset_bottom = -92.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
