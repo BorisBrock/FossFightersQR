@@ -346,5 +346,14 @@
 	},
 	"discard_random": {
 		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte ab, falls möglich :card:."
+	},
+	"shields_lowered": {
+		"body": "Jeder Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage], ohne seinen Effekt auszulösen."
+	},
+	"threat_lowers_on_attack": {
+		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff spielt, sinkt die Boss-Attacke gegen [player]{player}[/player] um [heal]{amount}[/heal]."
+	},
+	"threat_lowered": {
+		"body": "Die Attacke von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal]."
 	}
 }

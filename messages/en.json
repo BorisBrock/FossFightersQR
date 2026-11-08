@@ -346,5 +346,14 @@
 	},
 	"discard_random": {
 		"body": "[player]{player}[/player] discards [b]{count}[/b] random card from their hand, if they have one :card:."
+	},
+	"shields_lowered": {
+		"body": "Every shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage], without its effect."
+	},
+	"threat_lowers_on_attack": {
+		"body": "Each time [player]{player}[/player] plays an attack this round, the boss's attack against them goes down by [heal]{amount}[/heal]."
+	},
+	"threat_lowered": {
+		"body": "The attack of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal]."
 	}
 }

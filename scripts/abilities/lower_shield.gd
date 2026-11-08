@@ -2,7 +2,9 @@ extends CardAbility
 ## Lowers a shield of the boss of the players' choice by "amount", as with the
 ## Explosivkristall. It is no attack: what the shield does besides absorbing is not set
 ## off, and what is more than the shield has does not reach the boss (Fight.lower_shield).
-## values: "amount" (7).
+## With "all", every shield goes down by "amount", as with the Hammer des Zorns, and
+## without shields nothing is said, as the card does something else too.
+## values: "amount" (7), "all" (false).
 
 
 func after_effects(fight: Fight, play: CardPlay) -> void:
@@ -11,6 +13,13 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 	for kind in Fight.DAMAGE_TYPES:
 		if fight.shields.get(kind, 0) > 0:
 			kinds.append(kind)
+	if value("all", false):
+		if kinds.is_empty():
+			return
+		for kind in kinds:
+			await fight.lower_shield(kind, amount, play)
+		fight.tell("shields_lowered", { "boss": fight.boss.title, "amount": amount })
+		return
 	if kinds.is_empty():
 		fight.tell("no_shield_to_lower", { "boss": fight.boss.title, "player": play.hero.name, "card": play.card.title })
 		return

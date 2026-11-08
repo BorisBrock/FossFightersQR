@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 263
+const EXPECTED_CHECKS := 277
 
 var _failures := 0
 var _checks_run := 0
@@ -67,6 +67,7 @@ func _initialize() -> void:
 	_check_items()
 	_check_dryad_forms()
 	_check_dryad_cards()
+	_check_paladin_cards()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -958,6 +959,96 @@ func _check_dryad_cards() -> void:
 	fight.abandon()
 
 
+## The paladin's deck, from the catalog, with Rosie as the paladin.
+func _check_paladin_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Schlachtross: a melee support, and a 4th action next round.
+	var fight := _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("sQEAAA=="))
+	_check(_told[-1] == "support_without_attack", "Schlachtross: its melee support needs a melee attack first")
+	_ready(fight)
+	_check(_told[-1] == "extra_turns_next_round" and _values[-1].count == 1 and fight.hero_at(1).bonus_turns == 1, "Schlachtross: 1 more action next round")
+	fight.abandon()
+
+	# Lichtelixier: a hero of the players' choice heals as much as the round, then another action.
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("qQEAAA=="))
+	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.prompt == "prompt_chosen_hero", "Lichtelixier: for a hero of the players' choice")
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	_check(_told[-1] == "heal" and _values[-1].player == "Borin" and _values[-1].amount == 1 and _asks_card_of(fight, 1), "Lichtelixier: Borin heals 1 in round 1, and Rosie acts again")
+	fight.abandon()
+
+	# Aura der Reinigung: each hero removes 1 token, then another action.
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("sAEAAA=="))
+	_check(_told[-1] == "remove_tokens_everyone" and _values[-1].count == 1 and not _told.has("remove_tokens"), "Aura der Reinigung: 1 token from each hero")
+	fight.abandon()
+
+	# Geweihte Rüstung: the protected hero heals, not the paladin.
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("rgEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 0 and _told[-1] == "heal" and _values[-1].player == "Borin" and _values[-1].amount == 3 and _told.count("heal") == 1, "Geweihte Rüstung: the protected hero heals 3")
+	fight.abandon()
+
+	# Hammer des Zorns: a melee attack of 3, then every shield 1 lower without its effect.
+	var boss := TestBoss.new()
+	fight = _paladin_starts(boss)
+	fight.scan(catalog.find("qAEAAA=="))
+	_check(fight.health == 29 and fight.shields.values().all(func(n: int) -> bool: return n == 0) and "shield_hit melee" in boss.calls and not "shield_hit magic" in boss.calls and _told[-1] == "shields_lowered", "Hammer des Zorns: 1 through the melee shield, then the magic shield goes down by 1 without its effect")
+	fight.abandon()
+
+	# Himmelsschild: an attack lowered to 0 lets the protected hero remove 2 tokens.
+	boss = TestBoss.new()
+	boss.threats = { 3: 2 }
+	fight = _paladin_starts(boss)
+	fight.scan(catalog.find("rwEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 0 and _told[-1] == "remove_tokens" and _values[-1].player == "Borin" and _values[-1].count == 2, "Himmelsschild: the attack on Borin is 0, he removes 2 tokens")
+	fight.abandon()
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("rwEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 1 and not _told.has("remove_tokens"), "Himmelsschild: not if the attack is still above 0")
+	fight.abandon()
+
+	# Segen des Gleichgewichts: the chosen hero's attacks lower the boss's attack against them.
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("rQEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "threat_lowers_on_attack" and _values[-1].player == "Borin" and _values[-1].amount == 2, "Segen des Gleichgewichts: for Borin this round")
+	_ready(fight)
+	fight.scan(_card("PAL_HIT", [["attack", 1, "magic"]], "paladin"))
+	_ready(fight)
+	_check(fight.hero_at(3).threat == 3 and fight.hero_at(1).threat == 3 and _asks_card_of(fight, 3), "Segen des Gleichgewichts: another hero's attack does nothing")
+	fight.scan(_card("AXE", [["attack", 1, "melee"]], "dwarf"))
+	_check(fight.hero_at(3).threat == 1 and _told[-1] == "threat_lowered" and _values[-1].amount == 2, "Segen des Gleichgewichts: Borin's attack lowers the attack against him by 2")
+	fight.abandon()
+
+	# Gleißendes Licht: a ranged support, and a hero of the players' choice draws 1.
+	fight = _paladin_starts(TestBoss.new())
+	fight.scan(catalog.find("rAEAAA=="))
+	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO, "Gleißendes Licht: for a hero of the players' choice")
+	fight.choose(fight.hero_at(5))
+	_ready(fight)
+	_check(_told[-1] == "draw_cards" and _values[-1].player == "Sonja" and _values[-1].count == 1, "Gleißendes Licht: Sonja draws 1")
+	fight.abandon()
+
+
+## A fight up to the first card of round 1, with Rosie, as a paladin, starting.
+func _paladin_starts(boss: Boss) -> Fight:
+	var fight := _fight(boss, "normal", false, "paladin")
+	fight.start()
+	_ready(fight)
+	_ready(fight)
+	_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_ready(fight)
+	return fight
+
+
 ## A fight up to the first card of round 1, with Sonja, the dryad, starting.
 func _dryad_starts() -> Fight:
 	var fight := _fight(TestBoss.new())
@@ -1228,9 +1319,10 @@ func _check_end() -> void:
 ## they have shown their level cards from the catalog: Rosie is a Halfling Luckmaster and
 ## Rogue King, Borin a Dwarven Treasure Keeper and Elite Warrior, Sonja a Dryad Primal
 ## Force and High Druid.
-func _fight(boss: Boss, difficulty := "normal", levels := false) -> Fight:
+## With rosie_class, Rosie has another class, such as paladin.
+func _fight(boss: Boss, difficulty := "normal", levels := false, rosie_class := "thief") -> Fight:
 	var heroes: Array[Party.Hero] = []
-	for entry: Array in [["Sonja", "dryad", "druid", 5, "iAEAAA==", "KwEAAA=="], ["Rosie", "halfling", "thief", 1, "AAEAAA==", "KgEAAA=="],
+	for entry: Array in [["Sonja", "dryad", "druid", 5, "iAEAAA==", "KwEAAA=="], ["Rosie", "halfling", rosie_class, 1, "AAEAAA==", "KgEAAA=="],
 			["Borin", "dwarf", "warrior", 3, "/wAAAA==", "KAEAAA=="]]:
 		var hero := Party.Hero.new()
 		hero.name = entry[0]

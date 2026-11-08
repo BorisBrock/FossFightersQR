@@ -1169,7 +1169,7 @@
       "title": { "de": "Moosumhang" },
       "symbols": [ { "type": "protection", "strength": 4 }, { "type": "draw", "strength": 1 } ],
       "effect": { "de": "Schutz 4. Der geschützte Held darf 1 Karte ziehen." },
-      "ability": "draw_for_protected"
+      "ability": "for_protected"
     },
     {
       "qr": "nAEAAA==",
@@ -1197,6 +1197,100 @@
       "effect": { "de": "Magie-Angriff 5. Wirf 1 zufällige Handkarte ab (falls möglich)." },
       "ability": "discard_random",
       "ability_values": { "count": 1 }
+    },
+    {
+      "qr": "sQEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Schlachtross" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Verstärkung 4. Du hast nächste Runde 1 Aktion mehr." },
+      "ability": "extra_turns",
+      "ability_values": { "turns": 1 }
+    },
+    {
+      "qr": "qQEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Lichtelixier" },
+      "symbols": [ { "type": "heal", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Ein Held deiner Wahl erhält Lebenspunkte entsprechend der aktuellen Runde (1 in Runde 1, 2 in Runde 2 usw.).\nFühre 1 weitere Aktion aus." },
+      "ability": "attack_by_round",
+      "ability_values": { "type": "heal", "chosen_hero": true }
+    },
+    {
+      "qr": "sAEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Aura der Reinigung" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Entferne je 1 Statusmarke von jedem Helden. Führe 1 weitere Aktion aus." },
+      "ability": "remove_tokens",
+      "ability_values": { "count": 0, "every_hero": 1 }
+    },
+    {
+      "qr": "qwEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Klingenblitz" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 3." }
+    },
+    {
+      "qr": "qgEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Donnerbogen" },
+      "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Angriff 4." }
+    },
+    {
+      "qr": "rgEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Geweihte Rüstung" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "heal", "strength": 3 } ],
+      "effect": { "de": "Schutz 3. Der geschützte Held erhält 3 Lebenspunkte." },
+      "ability": "for_protected"
+    },
+    {
+      "qr": "qAEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Hammer des Zorns" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 3. Alle Schilde des Bosses werden um 1 gesenkt. Dies löst die Effekte der Boss-Schilde nicht aus." },
+      "ability": "lower_shield",
+      "ability_values": { "amount": 1, "all": true }
+    },
+    {
+      "qr": "rwEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Himmelsschild" },
+      "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 2. Senkst du mit diesem Schutz eine Boss-Attacke auf 0, darf der geschützte Held 2 seiner Statusmarken entfernen." },
+      "ability": "tokens_on_full_block",
+      "ability_values": { "count": 2 }
+    },
+    {
+      "qr": "rQEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Segen des Gleichgewichts" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Wähle einen Helden aus. Jedes Mal, wenn der ausgewählte Held in dieser Runde einen Angriff spielt, sinkt die Boss-Attacke gegen ihn um 2. Führe 1 weitere Aktion aus." },
+      "ability": "attack_lowers_threat",
+      "ability_values": { "amount": 2 }
+    },
+    {
+      "qr": "rAEAAA==",
+      "deck": "paladin",
+      "level": 1,
+      "title": { "de": "Gleißendes Licht" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" }, { "type": "draw", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Verstärkung 3. Ein Held deiner Wahl darf 1 Karte ziehen." },
+      "ability": "for_chosen_hero"
     }
   ]
 }

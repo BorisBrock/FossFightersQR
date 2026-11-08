@@ -87,15 +87,15 @@ serves many cards.
 | Ability | Does | Values | Cards |
 |---------|------|--------|-------|
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | |
-| `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | |
+| `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | Schlachtross |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | Heiltrank |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
-| `attack_by_round` | The attack is as strong as the round. | `type` (attack) | Krawumm, Runenstein |
+| `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht |
 | `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
 | `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
@@ -119,14 +119,16 @@ serves many cards.
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 | `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
 | `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer |
-| `lower_shield` | A shield of the players' choice goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7) | Explosivkristall |
+| `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7), `all` (false) | Explosivkristall, Hammer des Zorns |
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
 | `dryad_form` | The dryad takes a form, which she keeps until she takes another (`FightHero.form`), and her seat shows it. `thorn`: her attacks and supports +1. `blossom`: she heals 3 each time her attack or support costs the boss health. `bark`: her Protection +1. Refused while she already has that form. | `form` (`thorn`, `blossom`, `bark`) | Stachelform, Blütenform, Borkenform |
 | `transfer_health` | Tells the hero they may give as much of their health as they like to exactly one other hero. | | Uralter Samen |
 | `stronger_each_play` | The card's effects of `type` are `bonus` stronger for each time its hero played it before in the fight. With `back_to_pile`, the players are reminded in the discard phase that the hero shuffles it back into their draw pile. | `type` (attack), `bonus` (1), `back_to_pile` (false) | Stachelfaust |
 | `heal_on_next_protection` | If the hero's next card has a Protection, each hero it protects heals as much as that Protection. | | Rindenmaske |
-| `draw_for_protected` | The card's Draw is for the heroes its Protection protected, not for its hero. | | Moosumhang |
+| `for_protected` | The card's Heal and Draw are for the heroes its Protection protected, not for its hero. | | Moosumhang, Geweihte Rüstung |
+| `tokens_on_full_block` | Each hero whose attack the card's Protection lowered to 0 may remove `count` of their tokens. | `count` (2) | Himmelsschild |
+| `attack_lowers_threat` | A hero of the players' choice: each time they play a card with an attack this round, the boss's attack against them is `amount` lower. | `amount` (2) | Segen des Gleichgewichts |
 | `redraw_hand` | A hero of the players' choice discards any number of hand cards, then draws up to their hand limit. | | Phönixbeere |
 | `discard_random` | Tells the hero to discard `count` random hand cards, if they have any. | `count` (1) | Säuremottenschwarm |
 | `weaken_next_round` | Next round, every attack of the boss is `amount` lower. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `amount` (3), `chosen_hero` (false) | Magische Eruption |
