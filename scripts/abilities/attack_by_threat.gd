@@ -5,7 +5,7 @@ extends CardAbility
 ## values: "threshold" (0: never), "health_loss" (0).
 
 
-func before_effects(_fight: Fight, play: CardPlay) -> void:
+func set_strength(_fight: Fight, play: CardPlay) -> void:
 	for effect in play.effects:
 		if effect.type == "attack":
 			effect.strength = play.hero.threat

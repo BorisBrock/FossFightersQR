@@ -61,6 +61,13 @@ func can_play(_fight: Fight, _play: CardPlay) -> String:
 	return ""
 
 
+## Sets the strength of effects whose strength the card's text decides, such as an attack
+## as strong as the round. It comes before the rules see the card (card_playing), so that
+## what they add, such as a Totem's bonus, is added to that strength and not replaced.
+func set_strength(_fight: Fight, _play: CardPlay) -> void:
+	pass
+
+
 ## Before the card's symbols take effect, after the rules have seen it (card_playing).
 func before_effects(_fight: Fight, _play: CardPlay) -> void:
 	pass

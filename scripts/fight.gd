@@ -407,6 +407,8 @@ func play_card(play: CardPlay) -> void:
 		hero.uses[play.card.qr] = hero.uses.get(play.card.qr, 0) + 1
 		history.append(play)
 		play.ability = CardAbility.create(play.card)
+	if play.ability != null:
+		play.ability.set_strength(self, play)
 	await _each_rule("card_playing", [play])
 	if play.cancelled or over:
 		return

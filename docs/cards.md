@@ -80,10 +80,15 @@ them. `tests/test_fight.gd` checks that every ability in the catalog loads.
 ### Abilities
 
 Each is a script in `scripts/abilities/`, named after its id, extending `CardAbility` (`scripts/card_ability.gd`),
-which is a `FightRule`. So an ability can do something when its card is played (`before_effects`, which can change the
-card's effects, and `after_effects`, which sees what they did), refuse the card (`can_play`), and stay in the fight to
+which is a `FightRule`. So an ability can do something when its card is played (`set_strength`, for effects whose
+strength its text decides, such as *Krawumm*'s, `before_effects`, which can change the card's effects, and
+`after_effects`, which sees what they did), refuse the card (`can_play`), and stay in the fight to
 step in later (`Fight.add_rule()`), such as for the rest of the round. The values come from the card, so one script
 serves many cards.
+
+`set_strength` comes before the rules see the card (`card_playing`), `before_effects` after. So what rules add, such as
+a Totem's bonus, the dryad's thorn form or the battle robot's, is added to a strength the card sets, not replaced by it:
+*Krawumm* with the *Vulkan-Totem* is 2 in round 1.
 
 | Ability | Does | Values | Cards |
 |---------|------|--------|-------|

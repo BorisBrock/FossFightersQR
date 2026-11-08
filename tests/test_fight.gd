@@ -3,7 +3,11 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 402
+const EXPECTED_CHECKS := 460
+const EMPOWER := preload("res://scripts/abilities/empower.gd")
+const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
+const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
+const DRYAD_FORM := preload("res://scripts/abilities/dryad_form.gd")
 
 var _failures := 0
 var _checks_run := 0
@@ -79,6 +83,12 @@ func _initialize() -> void:
 	_check_buffs()
 	_check_boss_poison()
 	_check_combos()
+	_check_set_strength()
+	_check_replays()
+	_check_shield_breaks()
+	_check_redirects()
+	_check_nested_plays()
+	_check_ends_mid_chain()
 	_check_actions()
 	_check_bosses()
 	_check_end()
@@ -1217,7 +1227,7 @@ func _check_items() -> void:
 	var ability := CardAbility.create(catalog.find("WQEAAA=="))
 	for i in 30:
 		var meteors := CardPlay.new(fight.hero_at(1), ability.card)
-		ability.before_effects(fight, meteors)
+		ability.set_strength(fight, meteors)
 		for effect in meteors.effects:
 			if effect.type == "attack":
 				rolls[effect.strength] = true
@@ -1829,6 +1839,388 @@ func _check_combos() -> void:
 	_check(_asks_card_of(fight, 3), "and the turn is over")
 	_check(fight.scan(catalog.find("ywEAAA==")) == "notice_removed", "nobody can play it again")
 	fight.abandon()
+
+
+## Cards whose text sets the strength of their effects, such as Krawumm's attack as strong as
+## the round, keep what other rules add: the strength is set first, then the bonuses come.
+func _check_set_strength() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var bonuses := {
+		"a +2 Totem": func(fight: Fight) -> FightRule:
+			var boost: FightRule = EMPOWER.Boost.new()
+			boost.hero = fight.hero_at(1)
+			boost.type = "attack"
+			boost.bonus = 2
+			return boost,
+		"Muttis Nachtisch +2": func(_fight: Fight) -> FightRule:
+			var boost: FightRule = BOOST_NEXT_CARDS.Boost.new()
+			boost.left = 8
+			boost.bonus = 2
+			return boost,
+		"a next-card boost +2": func(_fight: Fight) -> FightRule:
+			var next: FightRule = NEXT_CARD.NextCard.new()
+			next.symbol = "attack"
+			next.damage_type = "any"
+			next.then = "boost"
+			next.bonus = 2
+			return next,
+		"the thorn form +1": func(fight: Fight) -> FightRule:
+			var perk: FightRule = DRYAD_FORM.Perk.new()
+			perk.hero = fight.hero_at(1)
+			perk.form = "thorn"
+			return perk,
+		"the battle robot +2": func(fight: Fight) -> FightRule:
+			var robot := CardAbility.create(catalog.find("hwEAAA=="))
+			robot.owner = fight.hero_at(1)
+			robot.set("health", 8)
+			return robot,
+	}
+	var bonus_of := { "a +2 Totem": 2, "Muttis Nachtisch +2": 2, "a next-card boost +2": 2, "the thorn form +1": 1, "the battle robot +2": 2 }
+	# Each card is a ranged attack, against no ranged shield, by Rosie, whom the boss attacks with 3.
+	var cards := {
+		"attack_by_round": [{}, 1],
+		"random_strength": [{ "min": 2, "max": 2 }, 2],
+		"attack_by_threat": [{}, 3],
+	}
+	for ability: String in cards:
+		for bonus: String in bonuses:
+			var fight := _started(TestBoss.new())
+			fight.add_rule(bonuses[bonus].call(fight))
+			var card := _card("SET", [["attack", 0, "ranged"]], "halfling")
+			card.ability = ability
+			card.ability_values = cards[ability][0]
+			fight.scan(card)
+			var expected: int = cards[ability][1] + bonus_of[bonus]
+			_check(30 - fight.health == expected, "%s with %s: %d damage (%d)" % [ability, bonus, expected, 30 - fight.health])
+			fight.abandon()
+
+	# The cards themselves: Vulkan-Totem, then Krawumm, as strong as the round, +1.
+	var fight := _paladin_starts(TestBoss.new(), "shaman")
+	var rosie := fight.hero_at(1)
+	rosie.hero.race = "troll"
+	fight.scan(catalog.find("ngEAAA=="))
+	fight.choose(rosie)
+	_ready(fight)
+	_check(fight.health == 28 and fight.has_totem(rosie), "Vulkan-Totem: Rosie's melee attack 3 is 4, 2 through the shield")
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(catalog.find("EwAAAA=="))
+	_check(fight.health == 26, "Krawumm with the Vulkan-Totem: 1 in round 1, +1")
+	fight.abandon()
+
+	# Magische Haut, a Protection as strong as the round, with a +2 Protection Totem.
+	fight = _started(TestBoss.new())
+	var totem := _card("ICE", [["lightning", 1]], "halfling")
+	totem.ability = "empower"
+	totem.ability_values = { "type": "protection", "bonus": 2 }
+	fight.scan(totem)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	fight.scan(catalog.find("FQEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 0, "Magische Haut with a +2 Protection Totem: 1 in round 1, +2, blocks 3")
+	fight.abandon()
+
+	# Klauenstutzer, Support 3 while the ranged shield stands, after the Elven Keeper's own ranged attack: +2.
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 10, "magic": 0 }
+	fight = _goblin_starts(boss, catalog, false)
+	_give_trait(fight, catalog, "/QAAAA==", fight.hero_at(1))
+	fight.scan(_card("BOW", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	fight.scan(catalog.find("jwEAAA=="))
+	_check(fight.shields.ranged == 4, "Klauenstutzer with the Elven Keeper: Support 3 +2 into the ranged shield")
+	fight.abandon()
+
+
+## Replays (CardPlay.replay): a card taking effect once more is not played again.
+func _check_replays() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# The battle robot: a replay neither wears it, nor is it without the bonus.
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	var fight := _goblin_starts(boss, catalog)
+	var robot: CardAbility = fight.rules.filter(func(rule: FightRule) -> bool: return rule is CardAbility and rule.id == "battle_robot")[0]
+	robot.set("health", 8)
+	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	_check(fight.health == 27 and robot.get("health") == 7, "the robot's attack 1 +2, and it wears by 1")
+	fight.scan(catalog.find("HgEAAA=="))
+	_ready(fight)
+	_check(fight.health == 24 and robot.get("health") == 6, "Amulett der Zeit repeats it, +2 again: the Amulett wears the robot, the replay does not")
+	fight.abandon()
+
+	# Muttis Nachtisch neither counts nor boosts a replay, such as from Stachelbola.
+	fight = _started(TestBoss.new())
+	var dessert := _card("DESSERT", [["lightning", 1]], "halfling")
+	dessert.ability = "boost_next_cards"
+	dessert.ability_values = { "cards": 8, "bonus": 1 }
+	fight.scan(dessert)
+	_ready(fight)
+	fight.scan(catalog.find("OQEAAA=="))
+	fight.scan(_card("BOW", [["attack", 1, "ranged"]], "halfling"))
+	_ready(fight)
+	_check(fight.health == 27 and fight.buffs(null, true)[0].count == 6, "Muttis Nachtisch: Stachelbola and the attack count, 2 damage, the replay 1 more and not counted")
+	fight.abandon()
+
+	# Stachelfaust repeated by Amulett der Zeit: the replay is not a second play, so no bonus.
+	fight = _dryad_starts()
+	fight.scan(catalog.find("mQEAAA=="))
+	_check(fight.health == 29 and fight.shields.melee == 0, "Stachelfaust: melee 3, 2 into the shield")
+	fight.scan(catalog.find("HgEAAA=="))
+	_ready(fight)
+	_check(fight.health == 26, "Amulett der Zeit repeats it at 3, not 4")
+	fight.abandon()
+
+	# Amulett der Zeit repeating Donnerspeer, which is then out of the game: the replay hits too.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("MgEAAA=="))
+	_pass_until_asked(fight)
+	_check(fight.health == 22 and "MgEAAA==" in fight.removed, "Donnerspeer: ranged 8, then out of the game")
+	fight.scan(catalog.find("HgEAAA=="))
+	_pass_until_asked(fight)
+	_check(fight.health == 14 and fight.removed.count("MgEAAA==") == 1, "Amulett der Zeit repeats it, 8 again, still out of the game once")
+	fight.abandon()
+
+	# A card with a use limit, repeated: it is not used again.
+	fight = _started(TestBoss.new())
+	var flask := _card("FLASK", [["attack", 1, "ranged"], ["lightning", 1]], "halfling")
+	flask.uses_per_fight = 2
+	fight.scan(flask)
+	fight.scan(catalog.find("HgEAAA=="))
+	_ready(fight)
+	_check(fight.health == 28 and fight.hero_at(1).uses.get("FLASK", 0) == 1, "Amulett der Zeit: a card with a limit, repeated, is used once")
+	fight.abandon()
+
+	# Aufziehbare Ratte, wound up and repeated: the replay takes effect as the play it repeats.
+	fight = _goblin_starts(TestBoss.new(), catalog, false)
+	var rat := catalog.find("kwEAAA==")
+	fight.scan(rat)
+	_ready(fight)
+	var again := _card("AGAIN", [["lightning", 1]], "goblin")
+	again.ability = "next_card"
+	again.ability_values = { "symbol": "direct_damage", "then": "repeat" }
+	fight.scan(again)
+	fight.scan(rat)
+	_pass_until_asked(fight)
+	_check(fight.health == 22 and _asks_card_of(fight, 3), "Aufziehbare Ratte: wound up, 4, and again 4, without a Lightning")
+	_check(not "kwEAAA==" in fight.hero_at(1).notes.get("wound_up", []), "and it is not wound up after, as after one play")
+	fight.abandon()
+
+
+## What happens when a shield breaks, with several rules that see it.
+func _check_shield_breaks() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Kristallorb by the Halfling Luckmaster: both see the magic shield break.
+	var fight := _started(TestBoss.new())
+	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
+	fight.scan(catalog.find("zgEAAA=="))
+	_pass_until_asked(fight)
+	_check(fight.health == 21 and _told.count("shield_breaker") == 2, "Kristallorb and the Luckmaster: 2 through the shield, 3 and 4 more")
+	fight.abandon()
+
+	# Explosivkristall lowers a shield without damage, but it still breaks: the Luckmaster sees it.
+	fight = _started(TestBoss.new())
+	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
+	fight.scan(catalog.find("OgEAAA=="))
+	fight.choose_option(0)
+	_pass_until_asked(fight)
+	_check(fight.shields.melee == 0 and fight.health == 26 and _told.count("shield_breaker") == 1, "Explosivkristall and the Luckmaster: the melee shield breaks, 4 to the boss")
+	fight.abandon()
+
+	# Hammer des Zorns by a paladin Luckmaster: its attack breaks the melee shield, the lowering the magic one.
+	fight = _paladin_starts(TestBoss.new())
+	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
+	fight.scan(catalog.find("qAEAAA=="))
+	_pass_until_asked(fight)
+	_check(fight.health == 21 and _told.count("shield_breaker") == 2, "Hammer des Zorns and the Luckmaster: 1 through, 4 for each broken shield")
+	fight.abandon()
+
+	# A shield already broken does not break again.
+	fight = _started(TestBoss.new())
+	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
+	fight.scan(_card("ZAP", [["attack", 1, "magic"], ["lightning", 1]], "halfling"))
+	_pass_until_asked(fight)
+	fight.scan(_card("ZAP2", [["attack", 1, "magic"]], "halfling"))
+	_check(fight.health == 25 and _told.count("shield_breaker") == 1, "the Luckmaster: a broken shield only counts once")
+	fight.abandon()
+
+
+## An attack that Ritterlicher Beistand takes on, with what looks at attacks on heroes.
+func _check_redirects() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var aid := catalog.find("PQAAAA==")
+	# Krone des Prinzen sees the attack Borin took on.
+	var boss := TestBoss.new()
+	boss.threats = { 1: 3, 3: 2, 5: 3 }
+	var fight := _started(boss)
+	fight.scan(catalog.find("yAEAAA=="))
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	fight.pass_action()
+	fight.scan(aid)
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(3).threat == 3 and fight.hero_at(5).threat == 0, "Ritterlicher Beistand: Borin takes on Sonja's 3")
+	_pass_until(fight, "round_end")
+	_check(fight.poison == 0, "Krone des Prinzen: 3 on Borin is below 4, no poison")
+	fight.abandon()
+
+	boss = TestBoss.new()
+	boss.threats = { 1: 3, 3: 2, 5: 5 }
+	fight = _started(boss)
+	fight.scan(catalog.find("yAEAAA=="))
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	fight.pass_action()
+	fight.scan(aid)
+	fight.choose(fight.hero_at(5))
+	_pass_until(fight, "round_end")
+	_check(fight.poison == 1, "Krone des Prinzen: Sonja's 5, taken on by Borin, poisons the boss")
+	fight.abandon()
+
+	# Rune der Rache after Ritterlicher Beistand: as strong as the attack taken on.
+	boss = TestBoss.new()
+	boss.threats = { 1: 3, 3: 2, 5: 9 }
+	fight = _started(boss)
+	fight.pass_action()
+	_ready(fight)
+	fight.scan(aid)
+	fight.choose(fight.hero_at(5))
+	_pass_until_asked(fight)
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(catalog.find("WgEAAA=="))
+	_pass_until_asked(fight)
+	_check(fight.health == 21 and _told.has("health_loss"), "Rune der Rache: 9, Sonja's attack on Borin, and he loses 4")
+	fight.abandon()
+
+	# The goblin taking on an attack: the robot loses what hits her.
+	boss = TestBoss.new()
+	boss.threats = { 1: 1, 3: 4, 5: 3 }
+	fight = _fight(boss)
+	fight.hero_at(1).hero.race = "goblin"
+	fight.hero_at(1).hero.hero_class = "warrior"
+	_give_trait(fight, catalog, "hwEAAA==", fight.hero_at(1))
+	fight.start()
+	for i in 3:
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_ready(fight)
+	var robot: CardAbility = fight.rules.filter(func(rule: FightRule) -> bool: return rule is CardAbility and rule.id == "battle_robot")[0]
+	robot.set("health", 8)
+	fight.scan(aid)
+	fight.choose(fight.hero_at(3))
+	_check(robot.get("health") == 7, "the goblin takes on Borin's 4, the card wears the robot by 1")
+	_pass_until(fight, "round_end")
+	_check(robot.get("health") == 3, "the boss's 4 on her costs the robot 4")
+	fight.abandon()
+
+
+## Cards played inside cards: the actions come back to who they belong to.
+func _check_nested_plays() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Güldis Angel for Borin, who plays Wunderlampe among the drawn cards: Sonja plays her top 3.
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	var fight := _started(boss)
+	var borin := fight.hero_at(3)
+	var sonja := fight.hero_at(5)
+	fight.scan(catalog.find("1wEAAA=="))
+	fight.choose(borin)
+	_ready(fight)
+	fight.scan(catalog.find("GwEAAA=="))
+	_check(fight.request.prompt == "prompt_play_top_who", "Güldis Angel, then Wunderlampe: who plays their top cards?")
+	fight.choose(sonja)
+	_ready(fight)
+	for i in 3:
+		_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_lucky_charm", "Sonja shows top card %d" % (i + 1))
+		fight.scan(_card("TOP%d" % i, [["attack", 1, "melee"], ["lightning", 1]], "dryad"))
+		_pass_until_asked(fight)
+	_check(fight.health == 27, "each of them hits, their Lightning for later")
+	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "the Lightning on them: an action for Sonja")
+	fight.skip()
+	_pass_until_asked(fight)
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_play_drawn", "then Borin's second drawn card")
+	fight.scan(_card("DRAWN", [["attack", 1, "melee"]], "dwarf"))
+	_pass_until_asked(fight)
+	_check(fight.health == 26 and _asks_card_of(fight, 3) and fight.request.prompt != "prompt_play_drawn", "then Borin's own turn")
+	_check(_actions(fight.hero_at(1)) == "TT" and _actions(borin) == "TTT" and _actions(sonja) == "TTT", "the turns are where they were")
+	fight.abandon()
+
+	# Banner des Mutes inside Banner des Mutes: Rosie's lets Borin play his, which lets Sonja play.
+	fight = _started(TestBoss.new())
+	borin = fight.hero_at(3)
+	sonja = fight.hero_at(5)
+	var banner := catalog.find("CQEAAA==")
+	fight.scan(banner)
+	fight.choose(fight.hero_at(3))
+	fight.scan(banner)
+	_check(fight.request.prompt == "prompt_free_play_who" and not fight.hero_at(3) in fight.request.heroes, "Banner des Mutes in Banner des Mutes: Borin chooses another hero")
+	fight.choose(sonja)
+	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "Sonja acts at once")
+	fight.scan(_card("SUP", [["protection", 1]], "dryad"))
+	fight.choose(sonja)
+	_pass_until_asked(fight)
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "then the Lightning on Borin's Banner: another free card for him")
+	fight.skip()
+	_pass_until_asked(fight)
+	_check(_asks_card_of(fight, 1), "then Rosie's Lightning")
+	_check(_actions(fight.hero_at(1)) == "BTT" and _actions(borin) == "TTT" and _actions(sonja) == "TTT", "and nobody else's turns are used up")
+	fight.abandon()
+
+
+## The boss defeated in the middle of something: nothing more is asked or told.
+func _check_ends_mid_chain() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var finished := func(fight: Fight) -> bool:
+		_pass_until_asked(fight)
+		return fight.over and fight.request == null and _told.count("victory") == 1 and _told[-1] == "victory"
+	# By the first hit of Stachelbola's repeat.
+	var fight := _started(TestBoss.new())
+	fight.set_health(5)
+	fight.scan(catalog.find("OQEAAA=="))
+	fight.scan(catalog.find("JwEAAA=="))
+	_check(finished.call(fight) and fight.health == 0, "Stachelbola: the boss falls to the repeat, then nothing more")
+	# By Amulett der Zeit's repeat.
+	fight = _started(TestBoss.new())
+	fight.set_health(6)
+	fight.scan(_card("BOW", [["attack", 4, "ranged"], ["lightning", 1]], "halfling"))
+	fight.scan(catalog.find("HgEAAA=="))
+	_check(finished.call(fight), "Amulett der Zeit: the boss falls to the repeat, then nothing more")
+	# By Bombling, at the start of the next round.
+	fight = _started(TestBoss.new())
+	fight.set_health(5)
+	fight.scan(catalog.find("1gEAAA=="))
+	_pass_until(fight, "round_end")
+	for i in 4:
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_check(finished.call(fight), "Bombling: the boss falls at the start of the next round, then no turn")
+	# By the first card Güldis Angel lets Borin play: no second one.
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.set_health(2)
+	fight.scan(catalog.find("1wEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	fight.scan(_card("DRAWN", [["attack", 2, "melee"], ["lightning", 1]], "dwarf"))
+	_check(finished.call(fight), "Güldis Angel: the boss falls to the first drawn card, no second one is asked for")
+	# By the Luckmaster's shield break, in the middle of Kristallorb.
+	fight = _started(TestBoss.new())
+	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
+	fight.set_health(5)
+	fight.scan(catalog.find("zgEAAA=="))
+	_check(finished.call(fight) and _told.count("shield_breaker") <= 2, "Kristallorb and the Luckmaster: the boss falls, then nothing more")
+
+
+## Reads every message until the fight asks for something or is over.
+func _pass_until_asked(fight: Fight) -> void:
+	for i in 50:
+		if fight.over or fight.request != null:
+			return
+		_ready(fight)
 
 
 ## Passes every action, reads every message and chooses the first hero asked for, until

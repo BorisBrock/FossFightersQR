@@ -8,7 +8,7 @@ extends CardAbility
 var _broken := false
 
 
-func before_effects(fight: Fight, play: CardPlay) -> void:
+func set_strength(fight: Fight, play: CardPlay) -> void:
 	_broken = fight.shields.get(value("kind", "ranged"), 0) <= 0
 	if _broken or not values.has("otherwise"):
 		return

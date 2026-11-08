@@ -4,7 +4,7 @@ extends CardAbility
 ## values: "type" (attack), "min" (1), "max" (3).
 
 
-func before_effects(fight: Fight, play: CardPlay) -> void:
+func set_strength(fight: Fight, play: CardPlay) -> void:
 	var type: String = value("type", "attack")
 	for effect in play.effects:
 		if effect.type == type:
