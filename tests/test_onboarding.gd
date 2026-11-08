@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 69
+const EXPECTED_CHECKS := 74
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -63,7 +63,6 @@ func _run() -> void:
 	_check(not _scene.has_node("Splash"), "the logo goes away by itself")
 	var done: Button = _scene.get_node("Stage/Margin/Layout/Footer/Primary")
 	var delete: Button = _scene.get_node("Stage/Margin/Layout/Footer/Delete")
-	var cancel: Button = _scene.get_node("Stage/Margin/Layout/Footer/Cancel")
 	var seat_three: SeatToken = _scene.get_node("Seats/Seat3")
 	var seat_five: SeatToken = _scene.get_node("Seats/Seat5")
 
@@ -98,9 +97,15 @@ func _run() -> void:
 	_check(not party_name.visible and _scene._title.visible, "the editor shows the hero's number instead of the party's name")
 	_check(seat_three.mode == SeatToken.Mode.ACTIVE and seat_five.mode == SeatToken.Mode.QUIET_SELECTABLE, "the seat being edited stands out")
 	_check(_scene._camera_problem.is_empty() and _scene._camera_view.visible, "debug builds show the camera while waiting for a card")
-	_check(done.disabled and cancel.visible and not delete.visible, "a new hero can be cancelled, but not yet finished or deleted")
-	cancel.pressed.emit()
-	_check(_scene._view == VIEW_PARTY and _scene._party.heroes.is_empty(), "cancelling a new hero leaves the party empty")
+	_check(done.disabled and not delete.visible, "a new hero cannot be finished or deleted yet")
+	_check(not _scene.has_node("Stage/Margin/Layout/Footer/Cancel"), "there is no cancel button, tapping the table cancels")
+	await get_tree().process_frame
+	_check(done.size_flags_horizontal == Control.SIZE_EXPAND_FILL and is_equal_approx(_scene._footer_spacer.size.x, done.size.x), "done keeps its place on the right")
+	_check(done.has_meta(&"clicks") and delete.has_meta(&"clicks"), "the buttons click")
+	_tap(_scene._stage.global_position + Vector2(_scene._stage.size.x / 2.0, 12.0))
+	_check(_scene._view == VIEW_EDITOR, "a tap inside the panel stays in the editor")
+	_tap_table()
+	_check(_scene._view == VIEW_PARTY and _scene._party.heroes.is_empty(), "tapping the table cancels a new hero, leaving the party empty")
 	seat_three.pressed.emit()
 
 	# Cards choose on the one page, in any order.
@@ -197,7 +202,6 @@ func _run() -> void:
 	# Changing a hero.
 	delete = _scene.get_node("Stage/Margin/Layout/Footer/Delete")
 	done = _scene.get_node("Stage/Margin/Layout/Footer/Primary")
-	cancel = _scene.get_node("Stage/Margin/Layout/Footer/Cancel")
 	var token: SeatToken = _scene.get_node("Seats/Seat3")
 	_feed.show_image(NOTHING)
 	await get_tree().create_timer(AWAY_SEC).timeout
@@ -209,6 +213,7 @@ func _run() -> void:
 	await get_tree().process_frame
 	var stage_width: float = _scene.size.x - _scene.get_node("Ornaments").offset_left + _scene.get_node("Ornaments").offset_right
 	_check(is_equal_approx(_scene._stage.size.x, stage_width), "all footer buttons fit, so the panel stays clear of the seats: %s of %s" % [_scene._stage.size.x, stage_width])
+	_check(delete.size == done.size and is_equal_approx(delete.position.y, done.position.y) and delete.position.x < done.position.x, "delete and done are the same size, side by side: %s and %s" % [delete.get_rect(), done.get_rect()])
 	_scene._disarm_delete()
 	await get_tree().create_timer(0.9).timeout
 	_feed.show_image(ELF)
@@ -220,8 +225,8 @@ func _run() -> void:
 	var renamed: LineEdit = _scene._name_edit
 	renamed.text = "Boris II"
 	renamed.text_changed.emit("Boris II")
-	cancel.pressed.emit()
-	_check(_scene._view == VIEW_PARTY and reloaded.hero_at(3).name == "Boris", "cancel discards the change")
+	_tap_table()
+	_check(_scene._view == VIEW_PARTY and reloaded.hero_at(3).name == "Boris", "tapping the table discards the change")
 	token.pressed.emit()
 	_check(renamed.text == "Boris", "and the editor starts from the saved hero again")
 	renamed.text = "Boris II"
@@ -243,8 +248,8 @@ func _run() -> void:
 	free_target.pressed.emit()
 	_check(free_target.mode == SeatToken.Mode.ACTIVE and free_target.get_node("NamePlate/Name").text == "Boris II" and not token.get_node("NamePlate").visible, "tapping a free seat shows the hero there")
 	_check(reloaded.hero_at(3) == saved_hero and Party.load_file(PARTY_PATH).hero_at(3) != null, "which is not saved yet")
-	cancel.pressed.emit()
-	_check(reloaded.hero_at(3) == saved_hero and token.get_node("NamePlate").visible and not free_target.get_node("NamePlate").visible, "cancel leaves the hero where they were")
+	_tap_table()
+	_check(reloaded.hero_at(3) == saved_hero and token.get_node("NamePlate").visible and not free_target.get_node("NamePlate").visible, "tapping the table leaves the hero where they were")
 	token.pressed.emit()
 	free_target.pressed.emit()
 	done.pressed.emit()
@@ -264,7 +269,7 @@ func _run() -> void:
 	_scene._select_class("shaman")
 	await get_tree().create_timer(0.5).timeout
 	_check(_scene._portrait.texture.resource_path == HeroOptions.RACES.troll.art and _scene._badge.texture.resource_path == HeroOptions.CLASSES.shaman.art, "quick choices both show")
-	cancel.pressed.emit()
+	_tap_table()
 
 	# With four heroes there is no room for more.
 	for id: Array in [["goblin", "paladin", 0], ["troll", "warrior", 1]]:
@@ -304,11 +309,11 @@ func _run() -> void:
 
 	# Changing the language reaches what is on screen, in both views.
 	var prompt: Label = _scene._prompt
-	_check(cancel.text == "Abbrechen" and prompt.text == "Deine Klassenkarte", "the editor starts in German")
+	_check(done.text == "Fertig" and prompt.text == "Deine Klassenkarte", "the editor starts in German")
 	TranslationServer.set_locale("en")
 	await get_tree().process_frame
-	_check(cancel.text == "Cancel" and done.text == "Done" and prompt.text == "Your class card", "the open editor follows the language")
-	cancel.pressed.emit()
+	_check(done.text == "Done" and prompt.text == "Your class card", "the open editor follows the language")
+	_tap_table()
 	_check(done.text == "To Battle!", "the table stays in that language")
 	TranslationServer.set_locale("de")
 	await get_tree().process_frame
@@ -320,6 +325,22 @@ func _open_scene() -> void:
 	_scene.party_path = PARTY_PATH
 	_scene.cards_path = CARDS_PATH
 	add_child(_scene)
+
+
+## A tap at a place in the scene, sent through the viewport like a real one.
+func _tap(at: Vector2) -> void:
+	for pressed: bool in [true, false]:
+		var tap := InputEventMouseButton.new()
+		tap.button_index = MOUSE_BUTTON_LEFT
+		tap.pressed = pressed
+		tap.position = at
+		tap.global_position = at
+		get_viewport().push_input(tap, true)
+
+
+## The table above the panel, where there are no seats.
+func _tap_table() -> void:
+	_tap(Vector2(_scene.size.x / 2.0, _scene._stage.global_position.y / 2.0))
 
 
 func _until(condition: Callable, timeout_sec: float) -> void:

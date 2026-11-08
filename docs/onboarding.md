@@ -24,14 +24,15 @@ Everything about a hero is on one page, and can be done in any order:
 - **Class card:** chooses the class.
 - **Name:** tap it to type another, or roll the dice for a new suggestion.
 
-The buttons at the bottom:
+The buttons at the bottom, side by side and the same size:
 
-- *Done* saves the hero and appears once there is a character, a class and a name.
-- *Cancel* leaves without saving.
-- *Delete* is there for a hero that already exists, and asks once more.
+- *Delete* (left) is there for a hero that already exists, and asks once more.
+- *Done* (right) saves the hero and appears once there is a character, a class and a name.
+
+Tapping the table outside the panel (but not on a seat) leaves without saving.
 
 To move a hero, tap a free seat while the editor is open. The seats show the move at once. *Done* saves it and
-*Cancel* puts the hero back.
+tapping the table puts the hero back.
 
 The party is saved in `user://party.json` (`scripts/party.gd`) after every change. If a saved party exists, a returning
 group only needs one tap. A hero that is still in the editor is not saved.

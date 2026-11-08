@@ -15,6 +15,15 @@ func _ready() -> void:
 	_player.max_polyphony = 3
 	add_child(_player)
 	get_tree().node_added.connect(_on_node_added)
+	# The main scene enters the tree together with the autoloads, before this runs, so its
+	# buttons were added without being seen.
+	for button: Node in get_tree().root.find_children("*", "BaseButton", true, false):
+		_on_node_added(button)
+
+
+## For a tap that acts like a button without being one.
+func click() -> void:
+	_player.play()
 
 
 ## Keeps the click off a button whose press already has a sound.

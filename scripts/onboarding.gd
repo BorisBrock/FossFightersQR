@@ -18,7 +18,6 @@ const TAKEN_NOTICE_SEC := 3.0
 ## Keeps the caret from pushing a name that just fits out of view.
 const PARTY_NAME_SPARE_WIDTH := 6.0
 const TAKEN := Color(0.85, 0.5, 0.42)
-const FOOTER_BUTTON_PADDING := 12.0
 
 const TEXT := {
 	"hero": { "de": "Held %d", "en": "Hero %d" },
@@ -30,7 +29,6 @@ const TEXT := {
 	"taken": { "de": "%s ist schon vergeben, an %s.", "en": "%s is already taken by %s." },
 	"camera_starting": { "de": "Die Kamera startet…", "en": "Starting the camera…" },
 	"name_placeholder": { "de": "Dein Name", "en": "Your name" },
-	"cancel": { "de": "Abbrechen", "en": "Cancel" },
 	"done": { "de": "Fertig", "en": "Done" },
 	"delete": { "de": "Löschen", "en": "Delete" },
 	"delete_confirm": { "de": "Sicher?", "en": "Really?" },
@@ -94,7 +92,6 @@ var _party_name_font_size := 0
 @onready var _hint: Label = $Stage/Margin/Layout/Views/Editor/Info/Hint
 @onready var _name_edit: LineEdit = $Stage/Margin/Layout/Views/Editor/Info/NameRow/NameEdit
 @onready var _dice: TextureButton = $Stage/Margin/Layout/Views/Editor/Info/NameRow/Dice
-@onready var _cancel: Button = $Stage/Margin/Layout/Footer/Cancel
 @onready var _delete: Button = $Stage/Margin/Layout/Footer/Delete
 @onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
 @onready var _footer_spacer: Control = $Stage/Margin/Layout/Footer/Spacer
@@ -121,16 +118,13 @@ func _ready() -> void:
 	_switch_camera.pressed.connect(_on_switch_camera_pressed)
 	_switch_camera.hide()
 
-	_slim_footer_buttons()
 	_primary.pressed.connect(_on_primary_pressed)
-	_cancel.pressed.connect(_on_cancel_pressed)
 	_delete.pressed.connect(_on_delete_pressed)
 	_dice.pressed.connect(_on_dice_pressed)
 	_name_edit.text_changed.connect(_on_name_changed)
 	_name_edit.text_submitted.connect(func(_text: String) -> void: _name_edit.release_focus())
 	_name_edit.max_length = Party.MAX_NAME_LENGTH
 	_name_edit.placeholder_text = _t("name_placeholder")
-	_cancel.text = _t("cancel")
 	_party_name_font_size = _party_name_edit.get_theme_font_size("font_size")
 	_party_name_edit.max_length = Party.MAX_PARTY_NAME_LENGTH
 	_refresh_party_name_placeholder()
@@ -157,17 +151,6 @@ func _ready() -> void:
 		_refresh_hint()
 
 
-## Three large buttons share the panel's width in the editor, which in German only works
-## with less room beside their text.
-func _slim_footer_buttons() -> void:
-	for button: Button in [_cancel, _delete, _primary]:
-		for state: StringName in [&"normal", &"hover", &"pressed"]:
-			var box: StyleBox = button.get_theme_stylebox(state).duplicate()
-			box.content_margin_left = FOOTER_BUTTON_PADDING
-			box.content_margin_right = FOOTER_BUTTON_PADDING
-			button.add_theme_stylebox_override(state, box)
-
-
 func _on_resized() -> void:
 	_embers.position = Vector2(size.x / 2.0, size.y + 10.0)
 	_embers.emission_rect_extents = Vector2(size.x / 2.0, 8.0)
@@ -187,7 +170,6 @@ func _notification(what: int) -> void:
 ## Nothing of what is on screen may stay in the old language.
 func _refresh_language() -> void:
 	_name_edit.placeholder_text = _t("name_placeholder")
-	_cancel.text = _t("cancel")
 	_refresh_party_name_placeholder()
 	_taken_notice = ""
 	_refresh_view()
@@ -436,7 +418,18 @@ func _on_primary_pressed() -> void:
 		_finish_editing()
 
 
-func _on_cancel_pressed() -> void:
+## The panel and the seats take their own taps, so a tap that gets here was on the
+## table around them.
+func _gui_input(event: InputEvent) -> void:
+	var tap := event as InputEventMouseButton
+	if tap != null and tap.pressed and tap.button_index == MOUSE_BUTTON_LEFT and _view == View.EDITOR:
+		accept_event()
+		ButtonSounds.click()
+		_cancel_editing()
+
+
+## Leaves the editor without saving.
+func _cancel_editing() -> void:
 	_name_edit.release_focus()
 	_show_view(View.PARTY, -1.0)
 
@@ -608,10 +601,12 @@ func _refresh_controls() -> void:
 	# A name needs a race to be suggested from, typing one works at any time.
 	_dice.disabled = _draft.race.is_empty()
 	_dice.modulate.a = 0.35 if _dice.disabled else 1.0
-	_cancel.visible = editing
+	# In the editor, "Delete" and "Done" share the width in equal halves, and "Done" stays
+	# on the right even for a new hero, where the spacer keeps the place of "Delete".
+	# Alone, "To Battle!" sits centered.
 	_delete.visible = editing and _editing != null
-	# The editor keeps "Done" on the right; alone, "To Battle!" sits centered.
-	_footer_spacer.visible = editing
+	_footer_spacer.visible = editing and _editing == null
+	_primary.size_flags_horizontal = Control.SIZE_EXPAND_FILL if editing else Control.SIZE_SHRINK_CENTER
 	_delete.text = _t("delete_confirm") if _delete_armed else _t("delete")
 	_party_hint.text = _t("party_hint") if _party.heroes.size() < Party.MAX_HEROES else _t("party_hint_full")
 	_primary.text = _t("done") if editing else _t("battle")
