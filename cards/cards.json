@@ -1573,6 +1573,96 @@
       "ability": "empower",
       "ability_values": { "type": "protection" },
       "tags": [ "totem" ]
+    },
+    {
+      "qr": "jwEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Klauenstutzer" },
+      "symbols": [ { "type": "support", "strength": 5, "damage_type": "ranged" } ],
+      "effect": { "de": "Ist der Fernkampf-Schild des Bosses bereits zerstört: Fernkampf-Verstärkung 5. Ansonsten: Fernkampf-Verstärkung 3." },
+      "ability": "if_shield_broken",
+      "ability_values": { "kind": "ranged", "type": "support", "otherwise": 3 }
+    },
+    {
+      "qr": "kgEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Abwehrarm" },
+      "symbols": [ { "type": "protection", "strength": 4 } ],
+      "effect": { "de": "Schutz 4." }
+    },
+    {
+      "qr": "jgEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Astraler Robo-Schrauber" },
+      "symbols": [ { "type": "support", "strength": 2, "damage_type": "magic" }, { "type": "attack", "strength": 2, "damage_type": "magic" }, { "type": "protection", "strength": 2 }, { "type": "remove_from_game", "strength": 0 } ],
+      "effect": { "de": "Magie-Verstärkung 2. Magie-Angriff 2. Schutz 2. Entferne diese Karte für den restlichen Bosskampf aus dem Spiel." }
+    },
+    {
+      "qr": "jAEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Raketenrucksack" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Fernkampf-Angriff 3. War der Fernkampf-Schild des Bosses bereits vorher zerstört: Nutze einen Gegenstand." },
+      "ability": "if_shield_broken",
+      "ability_values": { "kind": "ranged", "use_item": true }
+    },
+    {
+      "qr": "kAEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Helferlein" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Ein Held deiner Wahl darf die oberste Karte seines Nachziehstapels spielen. Führe 1 weitere Aktion aus." },
+      "ability": "play_top_cards",
+      "ability_values": { "cards": 1 }
+    },
+    {
+      "qr": "iwEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Dampfhammer-Wumme" },
+      "symbols": [ { "type": "support", "strength": 2, "damage_type": "ranged" }, { "type": "attack", "strength": 2, "damage_type": "ranged" } ],
+      "effect": { "de": "Fernkampf-Verstärkung 2. Fernkampf-Angriff 2." }
+    },
+    {
+      "qr": "jQEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Tick-Tick-Bumm" },
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "magic" }, { "type": "health_loss", "strength": 2 } ],
+      "effect": { "de": "Der Schaden dieser Karte wird zufällig bestimmt. Magie-Angriff 2-7. Du verlierst 2 Lebenspunkte." },
+      "ability": "random_strength",
+      "ability_values": { "type": "attack", "min": 2, "max": 7 }
+    },
+    {
+      "qr": "igEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Klingen-Jo-Jo" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Nahkampf-Angriff 3. Spielst du das Klingen-Jo-Jo zum ersten Mal in einer Runde, darfst du es sofort nach dem Ausspielen zurück auf deine Hand nehmen." },
+      "ability": "back_to_hand"
+    },
+    {
+      "qr": "kQEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Rundum-Rüstung" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 3. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "kwEAAA==",
+      "deck": "goblin",
+      "level": 1,
+      "title": { "de": "Aufziehbare Ratte" },
+      "symbols": [ { "type": "lightning", "strength": 1 }, { "type": "direct_damage", "strength": 4 } ],
+      "effect": { "de": "Diese Karte wechselt nach jedem Ausspielen zwischen nicht aufgezogen und aufgezogen. Nicht aufgezogen: Mische diese Karte nach dem Ausspielen zurück in deinen Nachziehstapel. Führe 1 weitere Aktion aus. Aufgezogen: Der Boss verliert 4 Leben." },
+      "ability": "wind_up"
     }
   ]
 }

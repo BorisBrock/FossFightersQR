@@ -175,9 +175,6 @@
 		"title": "Prevented!",
 		"body": "[b]{card}[/b] prevents the ability of [boss]{boss}[/boss]."
 	},
-	"robot_built": {
-		"body": "[player]{player}[/player] builds a battle robot."
-	},
 	"may_draw": {
 		"body": "[player]{player}[/player] may draw [heal]{count}[/heal] :card:."
 	},
@@ -198,9 +195,6 @@
 	},
 	"prompt_use_ward": {
 		"body": "[boss]{boss}[/boss] uses an @-ability against [player]{player}[/player]. Discard [b]{card}[/b] to prevent it?"
-	},
-	"prompt_robot_working": {
-		"body": "Does the battle robot of [player]{player}[/player] still work?"
 	},
 	"prompt_top_card_or_item": {
 		"body": "[player]{player}[/player], play the [b]top card of your deck[/b] :card: or use Grandpa's Glass Eye."
@@ -420,5 +414,20 @@
 	"totems_returned": {
 		"title": "Totems",
 		"body": "The round is over. Give back the totem tokens :totem:: [player]{players}[/player]."
+	},
+	"robot_built": {
+		"body": "[player]{player}[/player] flips the last part: the [b]battle robot[/b] stands! While it works, all attacks of [player]{player}[/player] are [damage]{bonus}[/damage] stronger. It has [heal]{health}[/heal] health."
+	},
+	"robot_part": {
+		"body": "[player]{player}[/player] flips a part of the battle robot ([b]{count}/{total}[/b])."
+	},
+	"robot_destroyed": {
+		"body": "The battle robot of [player]{player}[/player] is [damage]destroyed[/damage]! Flip its three parts back. With an attack, a support and a protection it can be built again."
+	},
+	"card_wound_up": {
+		"body": "[player]{player}[/player] shuffles [b]{card}[/b] back into their draw pile :card:. It is now wound up."
+	},
+	"card_back_to_hand": {
+		"body": "[player]{player}[/player] may take [b]{card}[/b] back into their hand and play it again this round."
 	}
 }

@@ -17,6 +17,7 @@ const ICONS := {
 	"ranged": "res://assets/fight/icon_ranged.svg",
 	"magic": "res://assets/fight/icon_magic.svg",
 	"totem": "res://assets/fight/icon_totem.svg",
+	"robot": "res://assets/fight/icon_robot.svg",
 }
 
 ## Whose it is, or null for one that is for everyone.
@@ -28,6 +29,10 @@ var text := ""
 ## How often it still works, such as the cards Muttis Nachtisch still boosts, shown small
 ## by the chip. 0 for no count.
 var count := 0
+## Something with health, such as the goblin's battle robot, shown as a small bar by the
+## chip: what is left of it, out of bar_max. bar_max 0 for no bar.
+var bar := 0
+var bar_max := 0
 ## A Totem: the hero has its totem token on the table until the round ends. Its chip is
 ## framed like one.
 var totem := false

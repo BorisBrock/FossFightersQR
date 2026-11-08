@@ -175,9 +175,6 @@
 		"title": "Verhindert!",
 		"body": "[b]{card}[/b] verhindert die Fähigkeit von [boss]{boss}[/boss]."
 	},
-	"robot_built": {
-		"body": "[player]{player}[/player] baut einen Kampfroboter."
-	},
 	"may_draw": {
 		"body": "[player]{player}[/player] darf [heal]{count}[/heal] :card: ziehen."
 	},
@@ -198,9 +195,6 @@
 	},
 	"prompt_use_ward": {
 		"body": "[boss]{boss}[/boss] setzt eine @-Fähigkeit gegen [player]{player}[/player] ein. [b]{card}[/b] ablegen, um sie zu verhindern?"
-	},
-	"prompt_robot_working": {
-		"body": "Funktioniert der Kampfroboter von [player]{player}[/player] noch?"
 	},
 	"prompt_top_card_or_item": {
 		"body": "[player]{player}[/player], spiele die [b]oberste Karte deines Decks[/b] :card: oder nutze Opas Glasauge."
@@ -420,5 +414,20 @@
 	"totems_returned": {
 		"title": "Totems",
 		"body": "Die Runde ist vorbei. Gebt die Totem-Marker :totem: zurück: [player]{players}[/player]."
+	},
+	"robot_built": {
+		"body": "[player]{player}[/player] dreht das letzte Teil um: Der [b]Kampfroboter[/b] steht! Solange er funktioniert, sind alle Angriffe von [player]{player}[/player] um [damage]{bonus}[/damage] erhöht. Er hat [heal]{health}[/heal] Leben."
+	},
+	"robot_part": {
+		"body": "[player]{player}[/player] dreht ein Teil des Kampfroboters um ([b]{count}/{total}[/b])."
+	},
+	"robot_destroyed": {
+		"body": "Der Kampfroboter von [player]{player}[/player] ist [damage]zerstört[/damage]! Dreht seine drei Teile zurück. Mit Angriff, Unterstützung und Schutz kann er neu gebaut werden."
+	},
+	"card_wound_up": {
+		"body": "[player]{player}[/player] mischt [b]{card}[/b] zurück in den Nachziehstapel :card:. Sie ist jetzt aufgezogen."
+	},
+	"card_back_to_hand": {
+		"body": "[player]{player}[/player] darf [b]{card}[/b] zurück auf die Hand nehmen und diese Runde noch einmal spielen."
 	}
 }

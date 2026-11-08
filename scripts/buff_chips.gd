@@ -2,11 +2,15 @@ class_name BuffChips
 extends HBoxContainer
 ## A row of chips, one per FightBuff: its icons, its text such as "+1", and a small count
 ## for one that works a few more times. A Totem's chip has a turquoise frame, like the
-## totem token on the table. New chips pop up, so that the players notice them.
+## totem token on the table. Something with health, such as the battle robot, has a small
+## bar. New chips pop up, so that the players notice them.
 
 const ICON_SIZE := 26
 const TOTEM_COLOR := Color(0.25, 0.75, 0.7)
 const TEXT_COLOR := Color(0.6, 0.95, 0.55)
+const BAR_WIDTH := 40
+const BAR_COLOR := Color(0.45, 0.85, 0.4)
+const BAR_LOW_COLOR := Color(0.9, 0.3, 0.2)
 
 ## The chips shown, by what they show, to tell which are new.
 var _shown: Array[String] = []
@@ -78,7 +82,33 @@ func _chip(buff: FightBuff, plate: StyleBox) -> Control:
 		var count := _label("×%d" % buff.count, 16, Color(0.98, 0.88, 0.62))
 		count.size_flags_vertical = Control.SIZE_SHRINK_END
 		row.add_child(count)
+	if buff.bar_max > 0:
+		row.add_child(_bar(buff))
 	return chip
+
+
+## A small health bar, with what is left as a number beneath it.
+func _bar(buff: FightBuff) -> Control:
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", 0)
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	var track := ColorRect.new()
+	track.color = Color(0.15, 0.08, 0.06)
+	track.custom_minimum_size = Vector2(BAR_WIDTH, 8)
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var fill := ColorRect.new()
+	var left := clampf(float(buff.bar) / buff.bar_max, 0.0, 1.0)
+	fill.color = BAR_COLOR if left > 0.25 else BAR_LOW_COLOR
+	fill.anchor_bottom = 1.0
+	fill.anchor_right = left
+	fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track.add_child(fill)
+	column.add_child(track)
+	var label := _label("%d/%d" % [buff.bar, buff.bar_max], 14, Color(0.98, 0.88, 0.62))
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(label)
+	return column
 
 
 func _label(text: String, font_size: int, color: Color) -> Label:

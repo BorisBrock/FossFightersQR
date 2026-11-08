@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 337
+const EXPECTED_CHECKS := 363
 
 var _failures := 0
 var _checks_run := 0
@@ -71,6 +71,8 @@ func _initialize() -> void:
 	_check_dryad_cards()
 	_check_paladin_cards()
 	_check_shaman_cards()
+	_check_battle_robot()
+	_check_goblin_cards()
 	_check_buffs()
 	_check_boss_poison()
 	_check_combos()
@@ -482,15 +484,7 @@ func _check_more_traits() -> void:
 	fight = _started(TestBoss.new())
 	rosie = fight.hero_at(1)
 	_give_trait(fight, catalog, "/gAAAA==", rosie)
-	_give_trait(fight, catalog, "hwEAAA==", rosie)
-	var robot := _card("ROBOT", [["lightning", 1]], "goblin")
-	robot.deck = "items"
-	robot.ability = "build_robot"
-	fight.scan(robot)
-	_check(_told[-1] == "robot_built" and rosie.notes.get("robot", false), "a goblin builds a battle robot")
-	_ready(fight)
 	fight.scan(_card("B1", [["attack", 1, "ranged"]], "halfling"))
-	_check(fight.health == 27, "with which the Goblin Genius's attacks are 2 stronger")
 	_check(_asks_card_of(fight, 1) and fight.request.prompt == "prompt_top_card_or_item", "the Troll Chieftain's first hit in a turn plays the top card")
 	fight.scan(_card("B2", [["attack", 1, "ranged"]], "halfling"))
 	_check(_asks_card_of(fight, 3), "but only the first")
@@ -1302,6 +1296,152 @@ func _check_shaman_cards() -> void:
 	fight.scan(_card("BOLT", [["attack", 1, "melee"], ["lightning", 2]], "dwarf"))
 	_check(_told[-1] == "remove_tokens" and _values[-1].player == "Borin" and _values[-1].count == 2, "Donner-Totem: 2 Lightning, 2 tokens")
 	fight.abandon()
+
+
+## The Goblin Genius's battle robot: built from an attack, a support and a protection, it
+## makes the goblin's attacks 2 stronger until its 8 health are gone.
+func _check_battle_robot() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var fight := _goblin_starts(TestBoss.new(), catalog)
+	var rosie := fight.hero_at(1)
+	var robot := func() -> FightBuff: return fight.buffs(rosie)[0]
+	_check(fight.buffs(rosie).size() == 1 and robot.call().text == "0/3" and robot.call().bar_max == 0, "the goblin's seat shows the robot, not built yet")
+	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	_check(fight.health == 29 and _told[-1] == "robot_part" and _values[-1].count == 1, "an attack flips its first part")
+	_check(robot.call().text == "1/3" and robot.call().icons == ["robot", "attack"], "which the seat shows")
+	_ready(fight)
+	var told_before := _told.size()
+	fight.scan(_card("ZAP2", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	_check(_told.size() == told_before and robot.call().text == "1/3", "another attack flips nothing more")
+	fight.scan(_card("HELP", [["support", 1, "ranged"], ["lightning", 1]], "goblin"))
+	_check(_told[-1] == "robot_part" and _values[-1].count == 2 and fight.health == 27, "a support the second")
+	_ready(fight)
+	fight.scan(_card("GUARD", [["protection", 1], ["lightning", 1]], "goblin"))
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "robot_built" and robot.call().text == "+2" and robot.call().bar == 8 and robot.call().bar_max == 8, "a protection the third: the robot works, with 8 health")
+	_ready(fight)
+	fight.scan(_card("ZAP3", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	_check(fight.health == 24 and robot.call().bar == 7, "the goblin's attacks are 2 stronger, and each card costs the robot 1 health")
+	fight.scan(_card("OUCH", [["health_loss", 3], ["lightning", 1]], "goblin"))
+	_check(_told[-1] == "health_loss" and robot.call().bar == 4, "when the goblin loses health, the robot loses as much")
+	_ready(fight)
+	_check(robot.call().bar == 3, "and the card costs it 1 after")
+	fight.scan(_card("OUCH2", [["health_loss", 3]], "goblin"))
+	_check(_told[-1] == "robot_destroyed" and robot.call().text == "0/3" and robot.call().bar_max == 0, "at 0 the robot is destroyed, to be built again")
+	_ready(fight)
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(_card("ZAP4", [["attack", 1, "ranged"]], "goblin"))
+	_check(fight.health == 23 and robot.call().text == "1/3", "without the bonus, and the first part is flipped again")
+	fight.abandon()
+
+	# Astraler Robo-Schrauber flips all three parts at once; the boss's attack wears it down.
+	fight = _goblin_starts(TestBoss.new(), catalog)
+	rosie = fight.hero_at(1)
+	fight.scan(catalog.find("jgEAAA=="))
+	_check(_told[-1] == "support_without_attack", "Astraler Robo-Schrauber: its support comes first, so without a magic attack before, it does nothing")
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_ready(fight)
+	_check(fight.health == 29 and _told.slice(-2) == ["card_removed", "robot_built"], "Astraler Robo-Schrauber: still, its three symbols build the robot at once")
+	_pass_until(fight, "phase_status")
+	_check(fight.buffs(rosie)[0].bar == 5, "the boss's attack of 3 on the goblin costs the robot 3 health")
+	fight.abandon()
+
+
+## The goblin's own cards from the catalog.
+func _check_goblin_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var goblin := catalog._cards_by_qr.values().filter(func(card: Card) -> bool: return card.deck == "goblin")
+	_check(goblin.size() == 10 and goblin.all(func(card: Card) -> bool: return card.ability != "todo"), "every goblin card has its ability")
+
+	# Aufziehbare Ratte: a Lightning and back into the pile, then 4 damage, then again.
+	var fight := _goblin_starts(TestBoss.new(), catalog, false)
+	var rosie := fight.hero_at(1)
+	fight.scan(catalog.find("kwEAAA=="))
+	_check(fight.health == 30 and _notices[-1] == "notice_lightning" and _told[-1] == "card_wound_up", "Aufziehbare Ratte: first a Lightning, and it goes back into the draw pile")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1) and not "kwEAAA==" in rosie.played, "Aufziehbare Ratte: so it can come again this round")
+	fight.scan(catalog.find("kwEAAA=="))
+	_check(fight.health == 26 and _asks_card_of(fight, 3) and "kwEAAA==" in rosie.played, "Aufziehbare Ratte: wound up, the boss loses 4, without a Lightning")
+	_pass_until(fight, "round_started")
+	_pass_until(fight, "phase_action")
+	_ready(fight)
+	fight.scan(catalog.find("kwEAAA=="))
+	_check(fight.health == 26 and _told[-1] == "card_wound_up", "Aufziehbare Ratte: then it is not wound up again")
+	fight.abandon()
+
+	# Klingen-Jo-Jo: back to the hand the first time in a round, not the second.
+	fight = _goblin_starts(TestBoss.new(), catalog, false)
+	rosie = fight.hero_at(1)
+	fight.scan(catalog.find("igEAAA=="))
+	_check(fight.health == 29 and _told[-1] == "card_back_to_hand" and not "igEAAA==" in rosie.played, "Klingen-Jo-Jo: melee 3, and back to the hand")
+	_ready(fight)
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(catalog.find("igEAAA=="))
+	_check(fight.health == 26 and _told.count("card_back_to_hand") == 1 and "igEAAA==" in rosie.played, "Klingen-Jo-Jo: the second time, it stays")
+	fight.abandon()
+
+	# Klauenstutzer: ranged support 5 with the ranged shield broken, else 3.
+	fight = _goblin_starts(TestBoss.new(), catalog, false)
+	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	fight.scan(catalog.find("jwEAAA=="))
+	_check(fight.health == 24, "Klauenstutzer: ranged support 5 when the ranged shield is broken")
+	fight.abandon()
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 5, "magic": 0 }
+	fight = _goblin_starts(boss, catalog, false)
+	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
+	fight.scan(catalog.find("jwEAAA=="))
+	_check(fight.shields.ranged == 1 and fight.health == 30, "Klauenstutzer: otherwise 3")
+	fight.abandon()
+
+	# Raketenrucksack: an item at once, if the ranged shield was already broken.
+	fight = _goblin_starts(TestBoss.new(), catalog, false)
+	fight.scan(catalog.find("jAEAAA=="))
+	_check(fight.health == 27 and _asks_card_of(fight, 1) and fight.request.prompt == "prompt_use_item", "Raketenrucksack: ranged 3, then an item, with the ranged shield broken")
+	fight.abandon()
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 3, "magic": 0 }
+	fight = _goblin_starts(boss, catalog, false)
+	fight.scan(catalog.find("jAEAAA=="))
+	_check(fight.shields.ranged == 0 and _asks_card_of(fight, 3), "Raketenrucksack: not if its own attack breaks it")
+	fight.abandon()
+
+	# Tick-Tick-Bumm: magic 2-7, and the goblin loses 2.
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _goblin_starts(boss, catalog, false)
+	fight.scan(catalog.find("jQEAAA=="))
+	_check(fight.health >= 23 and fight.health <= 28 and _told[-1] == "health_loss" and _values[-1].amount == 2, "Tick-Tick-Bumm: magic 2-7, then 2 health lost")
+	fight.abandon()
+
+	# Helferlein: a hero of the players' choice plays their top card, then another action.
+	fight = _goblin_starts(TestBoss.new(), catalog, false)
+	fight.scan(catalog.find("kAEAAA=="))
+	_check(fight.request != null and fight.request.prompt == "prompt_play_top_who", "Helferlein: for a hero of the players' choice")
+	fight.choose(fight.hero_at(3))
+	fight.scan(_card("TOP", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 29 and _asks_card_of(fight, 1), "Helferlein: Borin plays his top card, then Rosie acts again")
+	fight.abandon()
+
+
+## A fight up to the first card of round 1, with Rosie, a goblin, starting. With robot,
+## she is a Goblin Genius, with the battle robot.
+func _goblin_starts(boss: Boss, catalog: CardDatabase, robot := true) -> Fight:
+	var fight := _fight(boss)
+	fight.hero_at(1).hero.race = "goblin"
+	if robot:
+		_give_trait(fight, catalog, "hwEAAA==", fight.hero_at(1))
+	fight.start()
+	_ready(fight)
+	_ready(fight)
+	_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_ready(fight)
+	return fight
 
 
 ## What lasts a while shows on screen (Fight.buffs), and the fight says when that changes.

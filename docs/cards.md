@@ -102,7 +102,6 @@ serves many cards.
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
 | `raven_curse` | The card lies by the hero; the players may discard it to prevent an @-ability against them. | | Fluch des Raben |
 | `anti_boss` | Prevents the boss's next @-ability up to `strength`. | `strength` (5) | Anti-Boss-3000 |
-| `build_robot` | The hero builds a battle robot, for `battle_robot`. | | (the goblin's robot cards) |
 | `ignore_shield_effects` | The card's attacks do not set off what the boss's shields do besides absorbing. | | Arkanfalter |
 | `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
 | `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
@@ -114,12 +113,12 @@ serves many cards.
 | `remove_curse` | Tells the players to discard an active curse of a hero. | | Fluchbrecher |
 | `use_item` | The hero uses an item at once. | | Lianenschlange |
 | `card_to_pile` | Tells the hero to put `count` other hand cards on their draw pile first. | `count` (1) | Pestbote |
-| `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe, Improvisieren |
+| `play_top_cards` | A hero of the players' choice plays the top `cards` cards of their draw pile. | `cards` (3) | Wunderlampe, Improvisieren, Helferlein (1) |
 | `only_for` | Only a hero of `race` or `hero_class` can use the card, for items (other cards go by their deck). | `race`, `hero_class` | Opas Glasauge |
 | `not_here` | The card is not used in the app and is refused with a note, such as the items for one boss of the board game. | | Fackel, Machete |
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 | `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
-| `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer |
+| `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer, Tick-Tick-Bumm (2-7) |
 | `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7), `all` (false) | Explosivkristall, Hammer des Zorns, Pyro-Falle |
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
@@ -140,6 +139,9 @@ serves many cards.
 | `draw_and_return` | Tells each hero to draw `draw` cards, then put `back` of their hand cards face down on their draw pile. | `draw` (2), `back` (1) | Perfektes Zusammenspiel |
 | `boost_next_cards` | The next `cards` cards played, by anyone and over rounds, get `bonus` more on all attacks and supports; replays are not counted. With `random_token`, a random hero then takes one token of that kind. | `cards` (8), `bonus` (1), `random_token` | Muttis Nachtisch |
 | `remove_card` | After its other effects, the card is out of the game, as with the ripped card (`remove_from_game`), for cards that show it with `*`. | | Donnerspeer |
+| `wind_up` | The card switches after each play. Not wound up (how it starts each fight): only its Lightning works, and the hero shuffles it back into their draw pile, so it can come again this round. Wound up: only its other effects work. A replay takes effect as the play it repeats. | | Aufziehbare Ratte |
+| `back_to_hand` | The first time the hero plays the card in a round, they may take it back into their hand and play it again. | | Klingen-Jo-Jo |
+| `if_shield_broken` | Checks, before the card takes effect, whether the boss's shield of `kind` is already broken (0). If not, its effects of `type` have strength `otherwise`. If so, with `use_item`, the hero then uses an item at once. | `kind` (ranged), `type` (support), `otherwise`, `use_item` (false) | Klauenstutzer, Raketenrucksack |
 | `prevent_health_loss` | Tells the players the card lies by the hero and can be discarded to prevent a hero's health loss. Heroes lose health in ways the app does not see, such as from tokens, so the players handle it on the table. | | Träne des Mitleids |
 
 ### Totems
@@ -154,11 +156,12 @@ Soul Shaman (level 8) gives the first Totem the hero plays each round a Lightnin
 
 What lasts a while shows on the fight screen as small chips, such as a Totem or *Muttis Nachtisch*. Any rule can show
 one: its `buff()` (in `FightRule`) returns a `FightBuff` with icons (`FightBuff.ICONS`: symbols, damage types, `card`,
-`totem`), a short text such as `+1`, a `count` for something that runs out, such as the cards *Muttis Nachtisch* still
-boosts, and the hero it is for. A buff for a hero sits in their badge, a buff for everyone (no hero) at the top of the
-screen (see [The boss fight](boss_fight.md#what-is-on-screen)). The fight sends `buffs_changed` when a rule with a buff
-comes or goes; a rule whose buff changes, such as a count going down, sends it itself. The dryad's forms keep their own
-look at her portrait.
+`totem`, `robot`), a short text such as `+1`, a `count` for something that runs out, such as the cards *Muttis
+Nachtisch* still boosts, a health bar (`bar`, `bar_max`), such as the battle robot's, and the hero it is for. A buff
+for a hero sits in their badge, a buff for everyone (no hero) at the top of the screen (see
+[The boss fight](boss_fight.md#what-is-on-screen)). The fight sends `buffs_changed` when a rule with a buff comes or
+goes; a rule whose buff changes, such as a count going down, sends it itself. The dryad's forms keep their own look at
+her portrait.
 
 | Shows a buff | For |
 |--------------|-----|
@@ -166,6 +169,7 @@ look at her portrait.
 | `next_card` | the hero with `own`, otherwise everyone |
 | `heal_on_next_protection`, `attack_lowers_threat` | the hero |
 | `boost_next_cards` (with the count), `toxin` | everyone |
+| `battle_robot` | the goblin: the parts flipped while it is being built, `+2` and its health bar while it works |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions
@@ -199,11 +203,24 @@ rule for that hero (`CardAbility.owner`, `is_mine(play)`) and stays to the end. 
 | `draw_when_hurt` | The hero may draw when they lose health. | `count` (1) | Erzmagier |
 | `support_bonus_after_attack` | The hero's supports hit harder after their own attack of that type this round. | `bonus` (2) | Elfen-Bewahrerin |
 | `shield_breaker` | Breaking a shield costs the boss health at once. | `damage` (4) | Halbling-Glücksmeisterin |
-| `battle_robot` | While the hero's robot works (asked each round), their attacks are stronger. | `bonus` (2) | Goblin-Genie |
+| `battle_robot` | The hero's battle robot, see [The battle robot](#the-battle-robot). | `bonus` (2), `health` (8), `wear` (1) | Goblin-Genie |
 | `play_top_on_first_hit` | The first hit with an attack in the hero's turn plays the top card of their deck, or an item. | | Troll-Häuptling |
 | `act_on_full_block` | A Protection lowering an attack to 0 lets the hero play an attack card or an item at once. | | Zwergen-Schatzhüter |
 | `free_supports` | The hero's supports need no attack before them. | | Schurkenkönig |
 | `ignore_first_shield_effect` | The hero's first attack each round ignores what the shields do besides absorbing. | | Elitekrieger |
+
+### The battle robot
+
+The Goblin Genius (level 5, `battle_robot`) has a battle robot: three markers on the table, one each for Attack,
+Support and Protection. Each card the goblin plays with an effect of one of them flips that marker, and the app tells
+the players to (`robot_part`); a card with several, such as *Astraler Robo-Schrauber*, flips several. Flipped parts
+stay flipped over rounds. Once all three are flipped, the robot works (`robot_built`): the goblin's attacks are `bonus`
+(2) stronger, from the next card on. It has `health` (8): each card the goblin plays afterwards costs it `wear` (1),
+after the card has taken effect, and each time the goblin loses health, from the boss or a card, it loses as much. At 0
+it is destroyed (`robot_destroyed`), the bonus is gone, the markers are flipped back, and the goblin can build it
+again. Replays neither flip parts nor wear it. Health the goblin loses on the table, which the app does not see (such
+as from tokens), does not reach the robot. The goblin's badge shows its state as a chip (see
+[Buffs on screen](#buffs-on-screen)).
 
 ## Character and class cards
 
