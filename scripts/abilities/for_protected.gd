@@ -1,7 +1,9 @@
 extends CardAbility
 ## The card's Heal and Draw are for the heroes its Protection protected, instead of its
 ## hero, as with the Moosumhang and the Geweihte Rüstung. If it protected no one, no one
-## heals or draws.
+## heals or draws. With "action", each hero it protected may then take an action at once,
+## without using a turn, as with the Smaragdschild.
+## values: "action" (false).
 
 ## [type, strength] of the Heal and Draw effects taken from the card.
 var _effects: Array[Array] = []
@@ -26,3 +28,7 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 				fight.tell("heal", { "player": target.name, "amount": amount })
 			else:
 				fight.tell("draw_cards", { "player": target.name, "count": amount })
+	if not value("action", false):
+		return
+	for target in play.protected:
+		await fight.play_actions(target, 1, { "prompt": "prompt_free_play", "can_skip": true })

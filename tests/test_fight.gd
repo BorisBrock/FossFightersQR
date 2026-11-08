@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 364
+const EXPECTED_CHECKS := 402
 
 var _failures := 0
 var _checks_run := 0
@@ -66,6 +66,9 @@ func _initialize() -> void:
 	_check_magic_loot_cards()
 	_check_new_loot_cards()
 	_check_last_loot_cards()
+	_check_final_loot_cards()
+	_check_elf_cards()
+	_check_druid_cards()
 	_check_items()
 	_check_dryad_forms()
 	_check_dryad_cards()
@@ -965,6 +968,196 @@ func _check_last_loot_cards() -> void:
 	_check(fight.health == 22 and _told[-1] == "card_removed" and "MgEAAA==" in fight.removed, "Donnerspeer: 8 damage, then out of the game")
 	_ready(fight)
 	_check(fight.scan(catalog.find("MgEAAA==")) == "notice_removed", "Donnerspeer: no hero can play it again")
+	fight.abandon()
+
+
+## The last loot cards from the catalog, and the rooms.
+func _check_final_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Giftexplosion: 3 per poison token of the boss, then its poison is gone; its own poison symbol adds none.
+	var fight := _started(TestBoss.new())
+	fight.set_poison(2)
+	fight.scan(catalog.find("aQEAAA=="))
+	_check(_told[-1] == "poison_burst" and _values[-1].poison == 2 and _values[-1].damage == 6, "Giftexplosion: 2 poison, 6 damage")
+	_ready(fight)
+	_check(fight.health == 24 and fight.shields.melee == 2 and fight.poison == 0 and _told[-1] == "poison_cleared", "Giftexplosion: past the shields, then the poison is gone")
+	fight.abandon()
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("aQEAAA=="))
+	_check(_told[-1] == "poison_burst_none" and fight.poison == 0 and fight.health == 30, "Giftexplosion: without poison, nothing happens")
+	fight.abandon()
+
+	# Stab der Vergiftung: 1 per poison token, which stay, then another action.
+	fight = _started(TestBoss.new())
+	fight.set_poison(3)
+	fight.scan(catalog.find("agEAAA=="))
+	_ready(fight)
+	_check(fight.health == 27 and fight.poison == 3 and _asks_card_of(fight, 1), "Stab der Vergiftung: 3 poison, 3 damage, the poison stays, another action")
+	fight.abandon()
+
+	# Smaragdschild: Protection 2, and the protected hero acts at once.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("0QEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 1 and _asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "Smaragdschild: Borin protected by 2, and he acts at once")
+	fight.abandon()
+
+	# Waffengift: a shield of the players' choice goes down by 2; if it breaks, the boss gets 2 poison.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("ZwEAAA=="))
+	_check(fight.request.prompt == "prompt_lower_shield" and fight.request.values.amount == 2, "Waffengift: which shield?")
+	fight.choose_option(0)
+	_check(fight.shields.melee == 0 and fight.poison == 2 and _told[-1] == "shield_broken_poison", "Waffengift: the melee shield of 2 breaks, the boss gets 2 poison")
+	fight.abandon()
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 5 }
+	fight = _started(boss)
+	fight.scan(catalog.find("ZwEAAA=="))
+	_check(fight.shields.melee == 3 and fight.poison == 0 and _told[-1] == "shield_lowered", "Waffengift: a shield that holds gives no poison")
+	fight.abandon()
+
+	# Magische Haut: Protection as high as the round, then another action.
+	boss = TestBoss.new()
+	boss.threats = { 3: 6 }
+	fight = _started(boss)
+	fight.scan(catalog.find("FQEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 5, "Magische Haut: Protection 1 in round 1")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Magische Haut: and another action")
+	fight.abandon()
+
+	# Stiefel: Protection 1, and a hero of the players' choice draws 1.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("GQEAAA=="))
+	_check(fight.request.prompt == "prompt_chosen_hero", "Stiefel: who draws?")
+	fight.choose(fight.hero_at(5))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 2 and _told[-1] == "draw_cards" and _values[-1].player == "Sonja" and _values[-1].count == 1, "Stiefel: Borin protected, Sonja draws 1")
+	fight.abandon()
+
+	# Feenkokon: every hero heals 3.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("EwEAAA=="))
+	var healed := []
+	for i in _told.size():
+		if _told[i] == "heal" and _values[i].amount == 3:
+			healed.append(_values[i].player)
+	_check(healed.size() == 3 and "Rosie" in healed and "Borin" in healed and "Sonja" in healed, "Feenkokon: every hero heals 3")
+	fight.abandon()
+
+	# Voodoo-Puppe: random hand cards for the rest of the round, with a reminder at her turns; 3 more actions.
+	fight = _started(TestBoss.new())
+	var rosie := fight.hero_at(1)
+	fight.scan(catalog.find("2gEAAA=="))
+	_check(_told[-1] == "random_hand_cards" and _values[-1].player == "Rosie" and fight.buffs(rosie).size() == 1, "Voodoo-Puppe: Rosie plays random hand cards, her seat shows it")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1) and _actions(rosie).begins_with("BBB"), "Voodoo-Puppe: 3 more actions")
+	for i in 5:
+		fight.pass_action()
+	_check(_told[-1] == "random_hand_reminder" and _values[-1].player == "Rosie", "Voodoo-Puppe: reminded at her next turn")
+	_pass_until(fight, "round_started")
+	_check(fight.round_number == 2 and fight.buffs(rosie).is_empty(), "Voodoo-Puppe: over with the round")
+	fight.abandon()
+
+	# Phönixfeder: 2 fire for every hero, a hero's health back to their start, then out of the game.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("2wEAAA=="))
+	_check(_told[-1] == "tokens_everyone" and _values[-1].tokens.en == "2 fire", "Phönixfeder: every hero takes 2 fire")
+	_ready(fight)
+	_check(fight.request.prompt == "prompt_reset_health_who", "Phönixfeder: whose health?")
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "reset_health" and _values[-1].player == "Borin", "Phönixfeder: Borin back to his starting health")
+	_ready(fight)
+	_check(_told[-1] == "card_removed" and "2wEAAA==" in fight.removed, "Phönixfeder: then out of the game")
+	fight.abandon()
+
+	# Rooms are not played.
+	fight = _started(TestBoss.new())
+	_check(fight.scan(catalog.find("wwEAAA==")) == "notice_cannot_play_now" and _asks_card_of(fight, 1), "Ort: Empore cannot be played")
+	fight.abandon()
+
+
+## The elf's cards from the catalog, played by Rosie as an elf.
+func _check_elf_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Gezielter Schuss: a ranged attack as strong as the round, then another action.
+	var fight := _started(TestBoss.new())
+	fight.hero_at(1).hero.race = "elf"
+	fight.scan(catalog.find("VwEAAA=="))
+	_check(fight.health == 29 and _asks_card_of(fight, 1), "Gezielter Schuss: ranged 1 in round 1, another action")
+	fight.abandon()
+
+	# Gaias Bogen: ranged 4, and a hero of the players' choice draws 1.
+	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.race = "elf"
+	fight.scan(catalog.find("KAAAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(fight.health == 26 and _told[-1] == "draw_cards" and _values[-1].player == "Borin", "Gaias Bogen: 4 damage, Borin draws 1")
+	fight.abandon()
+
+	# Diadem der Unsichtbarkeit: her next attack, of any type, is 3 higher.
+	fight = _started(TestBoss.new())
+	var rosie := fight.hero_at(1)
+	rosie.hero.race = "elf"
+	fight.scan(catalog.find("WAEAAA=="))
+	_check(_asks_card_of(fight, 1) and fight.buffs(rosie).size() == 1, "Diadem der Unsichtbarkeit: another action, her seat shows it")
+	fight.scan(_card("BLADE", [["attack", 2, "melee"]], "elf"))
+	_check(fight.health == 27 and fight.buffs(rosie).is_empty(), "Diadem der Unsichtbarkeit: melee 2 is 5, 3 past the shield, and it is used up")
+	fight.abandon()
+
+	# Lyrias Ring: every hero heals 2.
+	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.race = "elf"
+	fight.scan(catalog.find("JgAAAA=="))
+	_check(_told.count("heal") == 3 and _values[-1].amount == 2, "Lyrias Ring: every hero heals 2")
+	fight.abandon()
+
+
+## The druid's cards from the catalog, played by Rosie as a druid.
+func _check_druid_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Pilzpulver: a hero of the players' choice heals 5 and acts at once.
+	var fight := _started(TestBoss.new())
+	fight.hero_at(1).hero.hero_class = "druid"
+	fight.scan(catalog.find("XQAAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "heal" and _values[-1].player == "Sonja" and _values[-1].amount == 5, "Pilzpulver: Sonja heals 5")
+	_ready(fight)
+	_check(_asks_card_of(fight, 5) and fight.request.prompt == "prompt_free_play", "Pilzpulver: and acts at once")
+	fight.abandon()
+
+	# Maske der Hellsicht: she plays one of her top 3 cards, its Lightning gives her an action, the other 2 go back.
+	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.hero_class = "druid"
+	fight.scan(catalog.find("VQAAAA=="))
+	_check(_asks_card_of(fight, 1) and fight.request.prompt == "prompt_play_from_top" and fight.request.values.look == 3, "Maske der Hellsicht: which of the top 3?")
+	fight.scan(_card("TOP", [["attack", 1, "ranged"], ["lightning", 1]], "druid"))
+	_check(fight.health == 29 and _told[-1] == "play_from_top_rest" and _values[-1].count == 2, "Maske der Hellsicht: it is played, the other 2 go back")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Maske der Hellsicht: its Lightning gives her another action")
+	fight.abandon()
+
+	# Phönix-Eule: her next attack heals a hero of the players' choice as much as it.
+	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.hero_class = "druid"
+	fight.scan(catalog.find("VgAAAA=="))
+	_check(_asks_card_of(fight, 1) and fight.buffs(fight.hero_at(1)).size() == 1, "Phönix-Eule: another action, her seat shows it")
+	fight.scan(_card("BOLT", [["attack", 3, "magic"]], "druid"))
+	_check(fight.health == 28 and fight.request.prompt == "prompt_heal_who" and fight.request.values.amount == 3, "Phönix-Eule: magic 3, who heals 3?")
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "heal" and _values[-1].player == "Borin" and _values[-1].amount == 3 and fight.buffs(fight.hero_at(1)).is_empty(), "Phönix-Eule: Borin heals 3, and it is used up")
+	fight.abandon()
+
+	# Antidot: a hero of the players' choice removes 2 tokens, then another action.
+	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.hero_class = "druid"
+	fight.scan(catalog.find("WwAAAA=="))
+	_check(fight.request.prompt == "prompt_remove_tokens_who", "Antidot: whose tokens?")
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "remove_tokens" and _values[-1].player == "Sonja" and _values[-1].count == 2, "Antidot: Sonja removes 2")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Antidot: and another action")
 	fight.abandon()
 
 

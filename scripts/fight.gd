@@ -311,8 +311,9 @@ func redirect_attack(from: FightHero, to: FightHero) -> void:
 ## way costs no turn, so abilities use it for cards played "right now".
 ## settings: "prompt" (a message id, with {player}), "can_skip" (the hero may decline,
 ## which ends it), "ignore_lightning", "limited" (what can be played is limited, such
-## as to the top card of the draw pile, which the screen shows), and "only" (a Callable
-## taking a Card, false for cards that cannot be played now).
+## as to the top card of the draw pile, which the screen shows), "only" (a Callable
+## taking a Card, false for cards that cannot be played now) and "values" (more values
+## for the prompt, besides {player}).
 ## Returns the cards played.
 func play_actions(hero: FightHero, count: int, settings := {}) -> Array[CardPlay]:
 	var plays: Array[CardPlay] = []
@@ -362,7 +363,8 @@ func _take_reserved(hero: FightHero, settings: Dictionary) -> CardPlay:
 	asked.hero = hero
 	asked.heroes = [hero]
 	asked.prompt = settings.get("prompt", "prompt_action")
-	asked.values = { "player": hero.name }
+	asked.values = settings.get("values", {}).duplicate()
+	asked.values.player = hero.name
 	asked.can_skip = settings.get("can_skip", false)
 	asked.settings = settings
 	var play: CardPlay = await _ask(asked)

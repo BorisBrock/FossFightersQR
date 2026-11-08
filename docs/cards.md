@@ -90,15 +90,15 @@ serves many cards.
 | `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | Banner des Mutes |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | Schlachtross |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring, Trommel der Ahnen |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring, Trommel der Ahnen, Antidot |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion; with `heroes`, that many different heroes. | `amount` (8), `heroes` (1) | Heiltrank, Drachenspeichel |
 | `empower` | A hero of the players' choice: their effects of `type` are `bonus` stronger until the end of the round. It comes first on the card, so if that is the hero who plays it, the card's own effects of that type are stronger too. With the tag `totem`, the hero gets its totem token (see [Totems](#totems)). | `bonus` (1), `type` (attack) | Vulkan-Totem, Sonnenwind-Totem (support), Eismond-Totem (protection) |
 | `tokens_per_lightning` | Until the end of the round, each hero the card's Protection protected may remove `count` of their status tokens for each Lightning on the cards they play afterwards. Lightning that gives no action, and replays, do not count. With the tag `totem`, they get its totem token. | `count` (1) | Donner-Totem |
-| `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier, Muschel-Talisman (draw) |
+| `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier, Muschel-Talisman (draw), Magische Haut (protection), Gezielter Schuss |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
-| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht, Vampirischer Sog |
-| `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs |
+| `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht, Vampirischer Sog, Stiefel, Gaias Bogen, Pilzpulver |
+| `every_hero` | The card's Heal and Draw are for every hero. | | Rune des Königs, Feenkokon, Lyrias Ring |
 | `clear_attack_effects` | Attacks the card's Protection lowered lose their extra effects. | | Rauchbombe, Geweihte Schulterplatten |
 | `knightly_aid` | The hero's attack is gone; an attack against another hero goes to them instead. | | Ritterlicher Beistand |
 | `raven_curse` | The card lies by the hero; the players may discard it to prevent an @-ability against them. | | Fluch des Raben |
@@ -107,7 +107,7 @@ serves many cards.
 | `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
 | `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
 | `bonus_per_symbol` | The card's effects of `symbol` are stronger for each card with that symbol the hero played this round. | `symbol` (support), `bonus` (2) | Geisterwolf, Zeitschnitter |
-| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). With `own`, only the next card of the hero who played it counts. | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2), `own` (false) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe, Astrale Linse, Kettenblitz, Rauchholzpulver |
+| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, or a hero of the players' choice heals as much as those effects (`heal`), if it has an effect of `symbol` (for attacks and supports, of `damage_type`; `any` for every type). With `own`, only the next card of the hero who played it counts. | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat`, `boost` or `heal`), `bonus` (2), `own` (false) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe, Astrale Linse, Kettenblitz, Rauchholzpulver, Diadem der Unsichtbarkeit, Phönix-Eule (heal) |
 | `delayed_attack` | The card's attacks only take effect at the start of the hero's first turn next round. | | Bombling |
 | `threat_hurts_boss` | The boss loses what is left of its attack against the heroes the card protected. | | Schleimiger Helm |
 | `halve_attack` | The attack against a hero of the players' choice is halved, rounded down, and loses its extra effect. | | Kultistenkette |
@@ -120,14 +120,14 @@ serves many cards.
 | `repeat_last_attack` | The last card with an attack played in the fight, by anyone, takes effect once more. | | Amulett der Zeit |
 | `play_discard_or_top` | The hero plays a card from their discard pile or the top card of their draw pile, which is then out of the game. | | Deja-Vu |
 | `random_strength` | The strength of each of the card's effects of `type` is rolled from `min` to `max`. Give them strength `0`. | `type` (attack), `min` (1), `max` (3) | Meteoritenschauer, Tick-Tick-Bumm (2-7) |
-| `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7), `all` (false) | Explosivkristall, Hammer des Zorns, Pyro-Falle |
+| `lower_shield` | A shield of the players' choice, or with `all` every shield, goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. With `poison`, the boss gets that much poison if the shield of the players' choice breaks from it. | `amount` (7), `all` (false), `poison` (0) | Explosivkristall, Hammer des Zorns, Pyro-Falle, Waffengift |
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
 | `dryad_form` | The dryad takes a form, which she keeps until she takes another (`FightHero.form`), and her seat shows it. `thorn`: her attacks and supports +1. `blossom`: she heals 3 each time her attack or support costs the boss health. `bark`: her Protection +1. Refused while she already has that form. | `form` (`thorn`, `blossom`, `bark`) | Stachelform, Blütenform, Borkenform |
 | `transfer_health` | Tells the hero they may give as much of their health as they like to exactly one other hero. | | Uralter Samen |
 | `stronger_each_play` | The card's effects of `type` are `bonus` stronger for each time its hero played it before in the fight. With `back_to_pile`, the players are reminded at the end of the round, before they discard, that the hero shuffles it back into their draw pile. | `type` (attack), `bonus` (1), `back_to_pile` (false) | Stachelfaust |
 | `heal_on_next_protection` | If the hero's next card has a Protection, each hero it protects heals as much as that Protection. | | Rindenmaske |
-| `for_protected` | The card's Heal and Draw are for the heroes its Protection protected, not for its hero. | | Moosumhang, Geweihte Rüstung |
+| `for_protected` | The card's Heal and Draw are for the heroes its Protection protected, not for its hero, who with `action` then act at once. | `action` (false) | Moosumhang, Geweihte Rüstung, Smaragdschild |
 | `tokens_on_full_block` | Each hero whose attack the card's Protection lowered to 0 may remove `count` of their tokens. | `count` (2) | Himmelsschild |
 | `attack_lowers_threat` | A hero of the players' choice: each time they play a card with an attack this round, the boss's attack against them is `amount` lower. | `amount` (2) | Segen des Gleichgewichts |
 | `redraw_hand` | A hero of the players' choice discards any number of hand cards, then draws up to their hand limit. | | Phönixbeere |
@@ -143,6 +143,10 @@ serves many cards.
 | `wind_up` | The card switches after each play. Not wound up (how it starts each fight): only its Lightning works, and the hero shuffles it back into their draw pile, so it can come again this round. Wound up: only its other effects work. A replay takes effect as the play it repeats. | | Aufziehbare Ratte |
 | `back_to_hand` | The first time the hero plays the card in a round, they may take it back into their hand and play it again. | | Klingen-Jo-Jo |
 | `if_shield_broken` | Checks, before the card takes effect, whether the boss's shield of `kind` is already broken (0). If not, its effects of `type` have strength `otherwise`. If so, with `use_item`, the hero then uses an item at once. | `kind` (ranged), `type` (support), `otherwise`, `use_item` (false) | Klauenstutzer, Raketenrucksack |
+| `poison_burst` | The boss loses `damage` health at once for each of its poison tokens, past its shields; with `clear`, its poison is gone afterwards. The card's poison symbol only shows what it is about and gives no poison. | `damage` (1), `clear` (false) | Stab der Vergiftung, Giftexplosion (3, clear) |
+| `play_from_top` | The hero looks at the top `look` cards of their draw pile and plays one of them at once, then puts the others back on top of or below the pile. Lightning on it gives the hero more actions. | `look` (3) | Maske der Hellsicht |
+| `random_hand_cards` | Until the end of the round, the hand cards the hero plays have to be random ones; the players are told, and reminded at the hero's turns. | | Voodoo-Puppe |
+| `reset_health` | Each hero takes `tokens`, then a hero of the players' choice sets their health back to their starting health. Before the card's symbols, so that its removal comes last. | `tokens` (token: count) | Phönixfeder |
 | `prevent_health_loss` | Tells the players the card lies by the hero and can be discarded to prevent a hero's health loss. Heroes lose health in ways the app does not see, such as from tokens, so the players handle it on the table. | | Träne des Mitleids |
 
 ### Totems
@@ -168,7 +172,7 @@ her portrait.
 |--------------|-----|
 | `empower`, `tokens_per_lightning` | the hero, with the totem frame for Totems |
 | `next_card` | the hero with `own`, otherwise everyone |
-| `heal_on_next_protection`, `attack_lowers_threat` | the hero |
+| `heal_on_next_protection`, `attack_lowers_threat`, `random_hand_cards` | the hero |
 | `boost_next_cards` (with the count), `toxin` | everyone |
 | `battle_robot` | the goblin: the parts flipped while it is being built, `+2` and its health bar while it works |
 

@@ -1692,7 +1692,8 @@
       "title": { "de": "Giftexplosion" },
       "symbols": [ { "type": "poison", "strength": 1 }, { "type": "special", "strength": 0 } ],
       "effect": { "de": "Der Boss verliert pro Giftsymbol sofort 3 Leben. Danach werden alle Giftsymbole des Bosses entfernt." },
-      "ability": "todo"
+      "ability": "poison_burst",
+      "ability_values": { "damage": 3, "clear": true }
     },
     {
       "qr": "IQEAAA==",
@@ -1709,7 +1710,8 @@
       "title": { "de": "Smaragdschild" },
       "symbols": [ { "type": "protection", "strength": 2 }, { "type": "special", "strength": 0 } ],
       "effect": { "de": "Schutz 2. Der geschützte Held darf sofort eine Aktion ausführen." },
-      "ability": "todo"
+      "ability": "for_protected",
+      "ability_values": { "action": true }
     },
     {
       "qr": "PQEAAA==",
@@ -1726,7 +1728,8 @@
       "title": { "de": "Waffengift" },
       "symbols": [ { "type": "special", "strength": 0 } ],
       "effect": { "de": "Senke einen Boss-Schild deiner Wahl um 2. Wird er dadurch zerstört, erhält der Boss 2 Gift." },
-      "ability": "todo"
+      "ability": "lower_shield",
+      "ability_values": { "amount": 2, "poison": 2 }
     },
     {
       "qr": "OAEAAA==",
@@ -1734,15 +1737,17 @@
       "level": 9,
       "title": { "de": "Zwillingsklinge" },
       "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" }, { "type": "attack", "strength": 3, "damage_type": "melee" } ],
-      "effect": { "de": "Nahkampf- Verstärkung 4. Nahkampf-Angriff 3." }
+      "effect": { "de": "Nahkampf-Verstärkung 4. Nahkampf-Angriff 3." }
     },
     {
       "qr": "FQEAAA==",
       "deck": "loot",
       "level": 4,
       "title": { "de": "Magische Haut" },
-      "symbols": [ { "type": "protection", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Schutz: Die Höhe des Schutzes entspricht der Runde (1l in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." }
+      "symbols": [ { "type": "protection", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz: Die Höhe des Schutzes entspricht der Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." },
+      "ability": "attack_by_round",
+      "ability_values": { "type": "protection" }
     },
     {
       "qr": "GQEAAA==",
@@ -1750,7 +1755,8 @@
       "level": 1,
       "title": { "de": "Stiefel" },
       "symbols": [ { "type": "protection", "strength": 1 }, { "type": "draw", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Schutz 1. Ein Held deiner Wahl zieht 1 Karte. Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Schutz 1. Ein Held deiner Wahl zieht 1 Karte. Führe 1 weitere Aktion aus." },
+      "ability": "for_chosen_hero"
     },
     {
       "qr": "EwEAAA==",
@@ -1758,7 +1764,8 @@
       "level": 3,
       "title": { "de": "Feenkokon" },
       "symbols": [ { "type": "heal", "strength": 3 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Alle Helden erhalten je 3 Lebenspunkte. Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Alle Helden erhalten je 3 Lebenspunkte. Führe 1 weitere Aktion aus." },
+      "ability": "every_hero"
     },
     {
       "qr": "agEAAA==",
@@ -1766,7 +1773,9 @@
       "level": 7,
       "title": { "de": "Stab der Vergiftung" },
       "symbols": [ { "type": "poison", "strength": 1 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Der Boss verliert pro Giftsymbol sofort 1 Leben. Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Der Boss verliert pro Giftsymbol sofort 1 Leben. Führe 1 weitere Aktion aus." },
+      "ability": "poison_burst",
+      "ability_values": { "damage": 1 }
     },
     {
       "qr": "IwAAAA==",
@@ -1789,8 +1798,9 @@
       "deck": "elf",
       "level": 1,
       "title": { "de": "Gezielter Schuss" },
-      "symbols": [ { "type": "attack", "strength": 1, "damage_type": "ranged" }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der aktuellen\nRunde (1 in Runde 1, 2 in Runde2, usw.). Führe 1 weitere Aktion aus." }
+      "symbols": [ { "type": "attack", "strength": 0, "damage_type": "ranged" }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Fernkampf-Angriff: Die Stärke des Angriffs entspricht der aktuellen\nRunde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." },
+      "ability": "attack_by_round"
     },
     {
       "qr": "KAAAAA==",
@@ -1798,7 +1808,8 @@
       "level": 1,
       "title": { "de": "Gaias Bogen" },
       "symbols": [ { "type": "attack", "strength": 4, "damage_type": "ranged" }, { "type": "draw", "strength": 1 } ],
-      "effect": { "de": "Fernkampf-Angriff 4. Ein Held deiner Wahl zieht 1 Karte." }
+      "effect": { "de": "Fernkampf-Angriff 4. Ein Held deiner Wahl zieht 1 Karte." },
+      "ability": "for_chosen_hero"
     },
     {
       "qr": "WAEAAA==",
@@ -1807,7 +1818,8 @@
       "title": { "de": "Diadem der Unsichtbarkeit" },
       "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
       "effect": { "de": "Spielst du als nächstes einen Angriff, erhöht sich dieser um 3. Führe 1 weitere Aktion aus." },
-      "ability": "todo"
+      "ability": "next_card",
+      "ability_values": { "symbol": "attack", "damage_type": "any", "then": "boost", "bonus": 3, "own": true }
     },
     {
       "qr": "JQAAAA==",
@@ -1839,7 +1851,8 @@
       "level": 1,
       "title": { "de": "Lyrias Ring" },
       "symbols": [ { "type": "heal", "strength": 2 }, { "type": "lightning", "strength": 1 } ],
-      "effect": { "de": "Alle Helden erhalten je 2 Lebenspunkte. Führe 1 weitere Aktion aus." }
+      "effect": { "de": "Alle Helden erhalten je 2 Lebenspunkte. Führe 1 weitere Aktion aus." },
+      "ability": "every_hero"
     },
     {
       "qr": "JAAAAA==",
@@ -1880,7 +1893,8 @@
       "title": { "de": "Pilzpulver" },
       "symbols": [ { "type": "heal", "strength": 5 }, { "type": "special", "strength": 0 } ],
       "effect": { "de": "Ein Held deiner Wahl erhält 5 Lebenspunkte. Dieser Held darf sofort eine Aktion ausführen." },
-      "ability": "todo"
+      "ability": "for_chosen_hero",
+      "ability_values": { "action": true }
     },
     {
       "qr": "VQAAAA==",
@@ -1889,7 +1903,8 @@
       "title": { "de": "Maske der Hellsicht" },
       "symbols": [ { "type": "special", "strength": 0 } ],
       "effect": { "de": "Schau dir die obersten 3 Karten deines Nachziehstapels an und spiele 1 davon aus. Lege die anderen 2 Karten in beliebiger Reihenfolge zurück auf oder unter deinen Nachziehstapel." },
-      "ability": "todo"
+      "ability": "play_from_top",
+      "ability_values": { "look": 3 }
     },
     {
       "qr": "XAAAAA==",
@@ -1913,7 +1928,7 @@
       "level": 1,
       "title": { "de": "Blaudornstab" },
       "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
-      "effect": { "de": "Magie-Angriff 3," }
+      "effect": { "de": "Magie-Angriff 3." }
     },
     {
       "qr": "VgAAAA==",
@@ -1922,7 +1937,8 @@
       "title": { "de": "Phönix-Eule" },
       "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
       "effect": { "de": "Spielst du als nächstes einen Angriff, heile einen Helden deiner Wahl in der Stärke des gespielten Angriffs. Führe 1 weitere Aktion aus." },
-      "ability": "todo"
+      "ability": "next_card",
+      "ability_values": { "symbol": "attack", "damage_type": "any", "then": "heal", "own": true }
     },
     {
       "qr": "WwAAAA==",
@@ -1931,7 +1947,8 @@
       "title": { "de": "Antidot" },
       "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
       "effect": { "de": "Entferne 2 Statusmarken von einem Helden deiner Wahl. Führe 1 weitere Aktion aus." },
-      "ability": "todo"
+      "ability": "remove_tokens",
+      "ability_values": { "count": 2, "choose": true }
     },
     {
       "qr": "2gEAAA==",
@@ -1940,7 +1957,7 @@
       "title": { "de": "Voodoo-Puppe" },
       "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 3 } ],
       "effect": { "de": "Für die restliche Runde gilt für dich: Möchtest du eine Handkarte spielen, musst du eine zufällige Handkarte spielen. Führe 3 weitere Aktionen aus." },
-      "ability": "todo"
+      "ability": "random_hand_cards"
     },
     {
       "qr": "2wEAAA==",
@@ -1949,14 +1966,15 @@
       "title": { "de": "Phönixfeder" },
       "symbols": [ { "type": "special", "strength": 0 }, { "type": "special", "strength": 0 }, { "type": "remove_from_game", "strength": 0 } ],
       "effect": { "de": "Jeder Held erhält 2 Feuermarken. Ein Held deiner Wahl setzt seine Lebenspunkte auf seinen Startwert. Entferne diese Karte für den restlichen Bosskampf aus dem Spiel." },
-      "ability": "todo"
+      "ability": "reset_health",
+      "ability_values": { "tokens": { "fire": 2 } }
     },
     {
       "qr": "3QEAAA==",
       "deck": "items",
       "level": 1,
       "title": { "de": "Passen" },
-      "effect": { "de": "Scanne diese Karte, wenn du eine Aktion nicht ausführen möchtest,oder kannst. Die Aktion verfällt." }
+      "effect": { "de": "Scanne diese Karte, wenn du eine Aktion nicht ausführen möchtest, oder kannst. Die Aktion verfällt." }
     }
   ]
 }

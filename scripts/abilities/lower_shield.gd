@@ -3,8 +3,10 @@ extends CardAbility
 ## Explosivkristall. It is no attack: what the shield does besides absorbing is not set
 ## off, and what is more than the shield has does not reach the boss (Fight.lower_shield).
 ## With "all", every shield goes down by "amount", as with the Hammer des Zorns, and
-## without shields nothing is said, as the card does something else too.
-## values: "amount" (7), "all" (false).
+## without shields nothing is said, as the card does something else too. With "poison",
+## the boss gets that many poison tokens if the shield breaks from it, as with the
+## Waffengift.
+## values: "amount" (7), "all" (false), "poison" (0).
 
 
 func after_effects(fight: Fight, play: CardPlay) -> void:
@@ -34,3 +36,7 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 		kind = kinds[index]
 	var lowered := await fight.lower_shield(kind, amount, play)
 	fight.tell("shield_lowered", { "boss": fight.boss.title, "kind": Fight.NAMES[kind], "amount": lowered })
+	var poison: int = value("poison", 0)
+	if poison > 0 and lowered > 0 and fight.shields.get(kind, 0) == 0:
+		await fight.poison_boss(poison, play)
+		fight.tell("shield_broken_poison", { "boss": fight.boss.title, "poison": poison })

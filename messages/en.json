@@ -452,5 +452,42 @@
 	},
 	"card_back_to_hand": {
 		"body": "[player]{player}[/player] may take [b]{card}[/b] back into their hand and play it again this round."
+	},
+	"poison_burst": {
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health: at once.",
+		"auto": true
+	},
+	"poison_burst_none": {
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has no poison :poison:, so nothing happens.",
+		"auto": true
+	},
+	"poison_cleared": {
+		"body": "All poison of [boss]{boss}[/boss] is gone :poison:.",
+		"auto": true
+	},
+	"shield_broken_poison": {
+		"body": "The shield breaks: [boss]{boss}[/boss] gets [poison]{poison} poison[/poison] :poison:.",
+		"auto": true
+	},
+	"prompt_play_from_top": {
+		"body": "[player]{player}[/player], look at the [b]top {look} cards[/b] of your draw pile and show one of them :card:."
+	},
+	"play_from_top_rest": {
+		"body": "[player]{player}[/player] puts the other [b]{count}[/b] :card: back on top of or below their draw pile, in any order."
+	},
+	"random_hand_cards": {
+		"body": "[b]{card}[/b]: for the rest of the round, whenever [player]{player}[/player] plays a hand card, it has to be a [b]random[/b] one :card:."
+	},
+	"random_hand_reminder": {
+		"body": "[i]Remember:[/i] [player]{player}[/player] plays a [b]random[/b] hand card this round :card:."
+	},
+	"tokens_everyone": {
+		"body": "Each hero takes [poison]{tokens}[/poison] tokens."
+	},
+	"prompt_reset_health_who": {
+		"body": "[b]Tap the hero[/b] whose health goes back to their starting health :health:."
+	},
+	"reset_health": {
+		"body": "[player]{player}[/player] sets their health back to their [heal]starting health[/heal] :health:."
 	}
 }

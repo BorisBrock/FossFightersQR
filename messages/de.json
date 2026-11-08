@@ -452,5 +452,42 @@
 	},
 	"card_back_to_hand": {
 		"body": "[player]{player}[/player] darf [b]{card}[/b] zurück auf die Hand nehmen und diese Runde noch einmal spielen."
+	},
+	"poison_burst": {
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert sofort [damage]{damage} Leben[/damage] :health:.",
+		"auto": true
+	},
+	"poison_burst_none": {
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat kein Gift :poison:, also passiert nichts.",
+		"auto": true
+	},
+	"poison_cleared": {
+		"body": "Das ganze Gift von [boss]{boss}[/boss] ist entfernt :poison:.",
+		"auto": true
+	},
+	"shield_broken_poison": {
+		"body": "Der Schild ist zerstört: [boss]{boss}[/boss] erhält [poison]{poison} Gift[/poison] :poison:.",
+		"auto": true
+	},
+	"prompt_play_from_top": {
+		"body": "[player]{player}[/player], schau dir die [b]obersten {look} Karten[/b] deines Nachziehstapels an und zeig eine davon :card:."
+	},
+	"play_from_top_rest": {
+		"body": "[player]{player}[/player] legt die anderen [b]{count}[/b] :card: in beliebiger Reihenfolge zurück auf oder unter den Nachziehstapel."
+	},
+	"random_hand_cards": {
+		"body": "[b]{card}[/b]: Für die restliche Runde gilt für [player]{player}[/player]: Jede Handkarte, die gespielt wird, muss eine [b]zufällige[/b] sein :card:."
+	},
+	"random_hand_reminder": {
+		"body": "[i]Denkt daran:[/i] [player]{player}[/player] spielt diese Runde eine [b]zufällige[/b] Handkarte :card:."
+	},
+	"tokens_everyone": {
+		"body": "Jeder Held erhält Statusmarken: [poison]{tokens}[/poison]."
+	},
+	"prompt_reset_health_who": {
+		"body": "[b]Tippt den Helden an[/b], dessen Lebenspunkte auf den Startwert zurückgehen :health:."
+	},
+	"reset_health": {
+		"body": "[player]{player}[/player] setzt die Lebenspunkte auf den [heal]Startwert[/heal] :health:."
 	}
 }
