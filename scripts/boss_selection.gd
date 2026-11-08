@@ -96,6 +96,7 @@ func _make_entry(id: String) -> Control:
 	# Lets the list scroll when the drag starts on an entry, which on a phone is always.
 	entry.mouse_filter = Control.MOUSE_FILTER_PASS
 	entry.button_down.connect(func() -> void: _scroll_at_press = _scroll.scroll_vertical)
+	ButtonSounds.silence(entry)
 	entry.pressed.connect(_on_entry_pressed.bind(id))
 
 	var picture := TextureRect.new()

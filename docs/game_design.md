@@ -110,7 +110,7 @@ frames like Android (`YCbCr`) or like a laptop (`deliver_rgb`). The native Andro
 **Assets**
 
 - `art/` is not imported by Godot, so it is the place for sources and scripts. `art/import_onboarding_art.sh <folder>`
-  brings in new artwork and `art/make_onboarding_sounds.py` makes the sounds.
+  brings in new artwork.
 - `ClassMagician.png` and `ClassWarrior.png` are still the same placeholder picture.
 - Fonts need their licence shipped with them, which `include_filter` in `export_presets.cfg` takes care of.
 

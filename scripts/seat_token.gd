@@ -47,6 +47,9 @@ var form := ""
 var totem := false
 var _hero: Party.Hero
 var _time := 0.0
+var _ring_radius := RING_RADIUS
+## The fight shows no class crest (use_fight_look).
+var _shows_crest := true
 
 @onready var _portrait: TextureRect = $Portrait
 @onready var _crest: TextureRect = $Crest
@@ -59,14 +62,40 @@ var _time := 0.0
 func _ready() -> void:
 	pivot_offset = size / 2.0
 	rotation_degrees = facing_degrees
-	var middle := _portrait.position + _portrait.size / 2.0
-	for picture: Control in [_portrait, _crest, _form]:
-		picture.pivot_offset = middle - picture.position
+	_center_pivots()
 	_portrait.material = PortraitMaterial.new(0.5, 0.05)
 	_crest.material = PortraitMaterial.new(0.5, 0.08)
 	_hit.pressed.connect(pressed.emit)
 	show_hero(null)
 	set_mode(Mode.IDLE)
+
+
+func _center_pivots() -> void:
+	var middle := _portrait.position + _portrait.size / 2.0
+	for picture: Control in [_portrait, _crest, _form]:
+		picture.pivot_offset = middle - picture.position
+
+
+## The fight's look (BossFight): the portrait factor times as large, its bottom staying
+## by the name plate, and no class crest. The seat itself keeps its size.
+func use_fight_look(factor: float) -> void:
+	_shows_crest = false
+	_crest.hide()
+	var old := Rect2(_portrait.position, _portrait.size)
+	var grown := old.size * factor
+	var rect := Rect2(Vector2(old.get_center().x - grown.x / 2.0, old.end.y - grown.y), grown)
+	_portrait.position = rect.position
+	_portrait.size = rect.size
+	# The form badge keeps its place at the portrait's upper left.
+	var form_size := _form.size * sqrt(factor)
+	var form_center := rect.get_center() + (_form.position + _form.size / 2.0 - old.get_center()) * factor
+	_form.position = form_center - form_size / 2.0
+	_form.size = form_size
+	_ring_radius = RING_RADIUS * factor
+	# The whole portrait can be tapped.
+	_hit.offset_top = minf(0.0, rect.position.y)
+	_center_pivots()
+	queue_redraw()
 
 
 func _process(delta: float) -> void:
@@ -93,22 +122,24 @@ func _draw() -> void:
 	if _hero != null:
 		if totem:
 			var glow := 0.5 + 0.5 * sin(_time * 2.0)
-			draw_circle(center, RING_RADIUS + 6.0 + glow * 4.0, Color(TOTEM_COLOR, 0.22 + glow * 0.18))
+			draw_circle(center, _ring_radius + 6.0 + glow * 4.0, Color(TOTEM_COLOR, 0.22 + glow * 0.18))
 		if mode == Mode.ACTIVE:
-			draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.3 + pulse * 0.25))
+			draw_circle(center, _ring_radius + 8.0 + pulse * 6.0, Color(GOLD, 0.3 + pulse * 0.25))
 		elif _pulsing():
 			var grown := 0.5 - 0.5 * cos(_time * PULSE_SPEED)
-			draw_circle(center, RING_RADIUS + 6.0 + grown * 10.0, Color(GOLD, 0.2 + grown * 0.3))
+			draw_circle(center, _ring_radius + 6.0 + grown * 10.0, Color(GOLD, 0.2 + grown * 0.3))
 		return
+	# A free seat sits in the middle of the space between the screen's edge and the panel.
+	center = size / 2.0
 	if selectable:
-		draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.14 + pulse * 0.14))
-	draw_circle(center, RING_RADIUS, Color(0.06, 0.03, 0.02, 0.72))
+		draw_circle(center, _ring_radius + 8.0 + pulse * 6.0, Color(GOLD, 0.14 + pulse * 0.14))
+	draw_circle(center, _ring_radius, Color(0.06, 0.03, 0.02, 0.72))
 
 	var ring_color := Color(GOLD, 1.0) if selectable else Color(GOLD, 0.45)
 	var spin := _time * TAU * SELECTABLE_TURNS_PER_SECOND if selectable else 0.0
 	for i in DASH_COUNT:
 		var start := spin + TAU * i / DASH_COUNT
-		draw_arc(center, RING_RADIUS, start, start + TAU / DASH_COUNT * 0.6, 8, ring_color, 3.0, true)
+		draw_arc(center, _ring_radius, start, start + TAU / DASH_COUNT * 0.6, 8, ring_color, 3.0, true)
 	var arm := 12.0 if selectable else 8.0
 	var mark_color := Color(GOLD, 0.6 + pulse * 0.4) if selectable else Color(GOLD, 0.3)
 	draw_line(center - Vector2(arm, 0), center + Vector2(arm, 0), mark_color, 4.0, true)
@@ -118,7 +149,7 @@ func _draw() -> void:
 func show_hero(hero: Party.Hero) -> void:
 	_hero = hero
 	_portrait.visible = hero != null
-	_crest.visible = hero != null
+	_crest.visible = hero != null and _shows_crest
 	_plate.visible = hero != null
 	if hero != null:
 		_portrait.texture = load(HeroOptions.RACES[hero.race].art)
@@ -173,6 +204,11 @@ func portrait_center() -> Vector2:
 
 func portrait_size() -> Vector2:
 	return _portrait.size
+
+
+## Where the portrait is, in the seat's own coordinates.
+func portrait_rect() -> Rect2:
+	return Rect2(_portrait.position, _portrait.size)
 
 
 func pop() -> void:

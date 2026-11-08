@@ -96,7 +96,7 @@
 		"body": "Who starts this round? [b]Tap a hero.[/b]"
 	},
 	"prompt_action": {
-		"body": "[player]{player}[/player], your turn: show a card :card:."
+		"body": "[player]{player}[/player], your turn: play a card :card:."
 	},
 	"prompt_protect": {
 		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :shield:. [b]Tap the hero to protect.[/b]"

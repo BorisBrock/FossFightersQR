@@ -15,13 +15,14 @@ const STILL_IN_VIEW_MSEC := 2000
 const NOTICE_SEC := 3.0
 ## How long the boss's health takes to count up at the start.
 const HEALTH_COUNT_SEC := 1.2
+## The heroes' portraits are this many times as large as at the table (SeatToken).
+const PORTRAIT_FACTOR := 1.6
 ## The marks beside each hero: the boss's attack on their left, what it does besides on
-## their right, in the seat's own coordinates (SeatToken), where the portrait is centred
-## at PORTRAIT_MIDDLE.
+## their right, MARK_GAP from the portrait, and the badge with their actions right above it.
 const THREAT_ICON_SIZE := 34
-const PORTRAIT_MIDDLE := 39.0
-const THREAT_RIGHT := 36.0
-const EFFECTS_LEFT := 144.0
+const MARK_GAP := 4.0
+const BADGE_GAP := 0.0
+const BADGE_HEIGHT := 44.0
 ## A shield above each attack type, both large.
 const SHIELD_SIZE := Vector2(92, 100)
 const ATTACK_STATE_SIZE := 76
@@ -128,7 +129,7 @@ var _attack_states := {}
 ## them one after the other, while its message says so (_animate_planning).
 var _revealed := {}
 var _camera_problem := ""
-## The style of the HUD's plates, for the badges and shields.
+## The style of the HUD's plates, for the buff chips and shields.
 var _plate: StyleBox
 ## What lasts a while for everyone, such as Muttis Nachtisch, at the top of the screen.
 var _global_buffs: BuffChips
@@ -220,6 +221,8 @@ func _ready() -> void:
 	# Over the boss, the heroes and the shields, under the prompt, messages and HUD.
 	move_child(_effects, _shields.get_index() + 1)
 	for token: SeatToken in _seats:
+		# A hero who can be chosen answers with "select" instead.
+		ButtonSounds.silence(token.get_node("Hit"))
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
 	_give_up.pressed.connect(go_back)
 	_scanner.code_read.connect(_on_code_read)
@@ -558,6 +561,7 @@ func _add_button(id: String, action: Callable) -> void:
 	button.text = Messages.find(id).get("body", id)
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(150, 64)
+	ButtonSounds.silence(button)
 	button.pressed.connect(_sfx.play.bind("select"))
 	button.pressed.connect(action)
 	_buttons.add_child(button)
@@ -587,15 +591,17 @@ func _make_badges() -> void:
 		var hero := fight.hero_at(token.seat)
 		if hero == null:
 			continue
+		token.use_fight_look(PORTRAIT_FACTOR)
+		var portrait := token.portrait_rect()
 		var badge := PanelContainer.new()
 		badge.name = "Badge"
-		badge.add_theme_stylebox_override("panel", _plate)
+		badge.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.anchor_left = 0.5
-		badge.anchor_right = 0.5
+		badge.anchor_left = portrait.get_center().x / token.size.x
+		badge.anchor_right = badge.anchor_left
 		badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
-		badge.offset_top = -50.0
-		badge.offset_bottom = -6.0
+		badge.offset_top = portrait.position.y - BADGE_GAP - BADGE_HEIGHT
+		badge.offset_bottom = portrait.position.y - BADGE_GAP
 		var row := HBoxContainer.new()
 		row.name = "Row"
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -603,7 +609,8 @@ func _make_badges() -> void:
 		badge.add_child(row)
 		var actions := ActionSpheres.new()
 		actions.name = "Actions"
-		actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		# Low in the badge, close to the portrait.
+		actions.size_flags_vertical = Control.SIZE_SHRINK_END
 		row.add_child(actions)
 		var buffs := BuffChips.new()
 		buffs.name = "Buffs"
@@ -613,7 +620,7 @@ func _make_badges() -> void:
 		_badges[token.seat] = badge
 		_revealed[token.seat] = true
 
-		var threat := _side_plate("Threat", token, THREAT_RIGHT, Control.GROW_DIRECTION_BEGIN)
+		var threat := _side_plate("Threat", token, portrait.position.x - MARK_GAP, Control.GROW_DIRECTION_BEGIN)
 		var column := VBoxContainer.new()
 		column.name = "Column"
 		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -626,7 +633,7 @@ func _make_badges() -> void:
 		column.add_child(value)
 		column.add_child(_icon("res://assets/fight/icon_claw.svg", THREAT_ICON_SIZE))
 		threat.add_child(column)
-		var effects := _side_plate("Effects", token, EFFECTS_LEFT, Control.GROW_DIRECTION_END)
+		var effects := _side_plate("Effects", token, portrait.end.x + MARK_GAP, Control.GROW_DIRECTION_END)
 		var effect_row := HBoxContainer.new()
 		effect_row.name = "Row"
 		effect_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -634,16 +641,16 @@ func _make_badges() -> void:
 		effects.add_child(effect_row)
 
 
-## A plate beside the portrait of a seat, its edge at x in the seat's coordinates and
-## growing away from it, centred on the portrait.
+## A mark beside the portrait of a seat, without a frame, its edge at x in the seat's
+## coordinates and growing away from it, centred on the portrait.
 func _side_plate(plate_name: String, token: SeatToken, x: float, grow: Control.GrowDirection) -> PanelContainer:
 	var plate := PanelContainer.new()
 	plate.name = plate_name
-	plate.add_theme_stylebox_override("panel", _plate)
+	plate.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate.anchor_left = x / token.size.x
 	plate.anchor_right = plate.anchor_left
-	plate.anchor_top = PORTRAIT_MIDDLE / token.size.y
+	plate.anchor_top = token.portrait_rect().get_center().y / token.size.y
 	plate.anchor_bottom = plate.anchor_top
 	plate.grow_horizontal = grow
 	plate.grow_vertical = Control.GROW_DIRECTION_BOTH

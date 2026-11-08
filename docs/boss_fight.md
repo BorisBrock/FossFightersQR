@@ -24,7 +24,8 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   a player taps them. See [Messages](messages.md).
 - **Marks at the seats,** facing each hero: on the hero's left the boss's attack against them this round, on their
   right the tokens it gives besides (such as 1 poison), each with its count. They appear one hero after the other
-  in the planning phase. Above the portrait, a badge shows the actions the hero has left. The heroes' own status
+  in the planning phase. Above the portrait, a badge shows the actions the hero has left. The portraits are 1.6 times as
+  large as at the table, without the class crest, and the marks have no frames. The heroes' own status
   tokens are not shown: they are real tokens on the table.
 - **Choosing a hero:** the heroes the players can tap pulse, growing and shrinking a little, with a golden glow.
 - **Buffs:** what lasts a while, as small chips with icons and a value such as `+1`

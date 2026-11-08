@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 67
+const EXPECTED_CHECKS := 69
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -76,6 +76,10 @@ func _run() -> void:
 	# The party's name takes the place of a title, and can be typed right there.
 	var party_name: LineEdit = _scene._party_name_edit
 	_check(party_name.visible and party_name.text.is_empty() and not party_name.placeholder_text.is_empty(), "an unnamed party is asked for its name")
+	party_name.grab_focus()
+	_check(party_name.placeholder_text.is_empty(), "the placeholder makes way for typing")
+	party_name.release_focus()
+	_check(not party_name.placeholder_text.is_empty(), "and comes back if nothing was typed")
 	party_name.text = " Furious Four "
 	party_name.text_changed.emit(" Furious Four ")
 	_check(Party.load_file(PARTY_PATH).party_name == "Furious Four", "the name of the party is saved as it is typed")
@@ -254,8 +258,10 @@ func _run() -> void:
 
 	# Two quick choices: the first reveal is cut short, but its choice must still show.
 	_scene.get_node("Seats/Seat0").pressed.emit()
-	_scene._on_tile_pressed("troll")
-	_scene._on_tile_pressed("shaman")
+	_scene._last_selection_msec = -_scene.SELECTION_DWELL_MSEC
+	_scene._select_race("troll")
+	_scene._last_selection_msec = -_scene.SELECTION_DWELL_MSEC
+	_scene._select_class("shaman")
 	await get_tree().create_timer(0.5).timeout
 	_check(_scene._portrait.texture.resource_path == HeroOptions.RACES.troll.art and _scene._badge.texture.resource_path == HeroOptions.CLASSES.shaman.art, "quick choices both show")
 	cancel.pressed.emit()
@@ -297,11 +303,11 @@ func _run() -> void:
 	_check(_scene._draft.race == "dwarf", "reads a card from colour frames, as on a laptop")
 
 	# Changing the language reaches what is on screen, in both views.
-	var caption: Label = _scene._tiles["dwarf"].get_node("Caption")
-	_check(cancel.text == "Abbrechen" and caption.text == "Kupfer-Zwerg", "the editor starts in German")
+	var prompt: Label = _scene._prompt
+	_check(cancel.text == "Abbrechen" and prompt.text == "Deine Klassenkarte", "the editor starts in German")
 	TranslationServer.set_locale("en")
 	await get_tree().process_frame
-	_check(cancel.text == "Cancel" and done.text == "Done" and caption.text == "Dwarf", "the open editor follows the language")
+	_check(cancel.text == "Cancel" and done.text == "Done" and prompt.text == "Your class card", "the open editor follows the language")
 	cancel.pressed.emit()
 	_check(done.text == "To Battle!", "the table stays in that language")
 	TranslationServer.set_locale("de")

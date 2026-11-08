@@ -1,8 +1,7 @@
 class_name Sfx
 extends Node
 ## Short sound effects by name, from assets/sounds/<name>.ogg, on the SFX bus, so the
-## settings' volume applies. The sounds are made by tools/make_sounds.py; which event
-## plays which is in docs/sounds.md.
+## settings' volume applies. Which event plays which is in docs/sounds.md.
 ##
 ## Each sound has its own player, so different sounds overlap, and the same one can
 ## overlap itself a few times, as hits that follow quickly do.

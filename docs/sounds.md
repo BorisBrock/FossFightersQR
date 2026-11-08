@@ -10,17 +10,12 @@ it like this:
 
 ## The fight's sound effects
 
-They are makeshift: synthesized by `tools/make_sounds.py` (standard library only, seeded, so the files come out the
-same each time) into `assets/sounds/`. Tune a sound there and run it again:
-
-    .venv/bin/python tools/make_sounds.py
-
-The fight screen plays them through `Sfx` (`scripts/sfx.gd`), a node with a player per sound. A sound added to the
-script also has to be added to `Sfx.NAMES`.
+They are in `assets/sounds/`. The fight screen plays them through `Sfx` (`scripts/sfx.gd`), a node with a player per
+sound. A sound added to the script also has to be added to `Sfx.NAMES`.
 
 | Sound          | When                                                                                     |
 |----------------|------------------------------------------------------------------------------------------|
-| `turn`         | A hero has to show a card: their turn starts, or they get another action (Lightning, a free card). |
+| `turn`         | A hero has to play a card: their turn starts, or they get another action (Lightning, a free card). |
 | `choose`       | The players have to choose: tap a hero (who starts, whom to protect or heal…) or a button. |
 | `select`       | A hero who can be chosen, or a button of the prompt, is tapped.                          |
 |                | Also each attack the boss plans pops up at a hero's seat.                                |
@@ -53,6 +48,9 @@ Some [messages](messages.md) have a sound of their own instead of the message bo
 
 ## Other sounds
 
+- `assets/sounds/click.ogg`: any button is pressed. The `ButtonSounds` autoload (`scripts/button_sounds.gd`)
+  connects every button that enters the tree. A button whose press plays a sound of its own calls
+  `ButtonSounds.silence(button)`: the fight's prompt buttons and seats (`select`) and the boss list's entries.
 - `assets/sounds/card_scanned.ogg`: a card was read by the camera, everywhere cards are scanned.
-- `assets/sounds/` (made by `art/make_onboarding_sounds.py`): `reveal` (a message, and the onboarding's reveals), `seat` (a hero takes a seat, a boss
+- `assets/sounds/`: `reveal` (a message, and the onboarding's reveals), `seat` (a hero takes a seat, a boss
   is chosen, the volume preview), `fanfare` (the party is complete, the boss overview, a won fight's game over screen).

@@ -14,15 +14,11 @@ const STILL_IN_VIEW_MSEC := 2000
 ## Two cards in view at once must not make the picture flip back and forth.
 const SELECTION_DWELL_MSEC := 800
 const DELETE_CONFIRM_SEC := 3.0
-## How much bigger the tile of the current choice stays.
-const TILE_SELECTED_SCALE := 1.08
 const TAKEN_NOTICE_SEC := 3.0
 ## Keeps the caret from pushing a name that just fits out of view.
 const PARTY_NAME_SPARE_WIDTH := 6.0
-const GOLD := Color(0.98, 0.82, 0.48)
-const CREAM := Color(0.95, 0.88, 0.74)
-const FAINT := Color(0.6, 0.53, 0.42)
 const TAKEN := Color(0.85, 0.5, 0.42)
+const FOOTER_BUTTON_PADDING := 12.0
 
 const TEXT := {
 	"hero": { "de": "Held %d", "en": "Hero %d" },
@@ -65,7 +61,6 @@ var _codes_to_ignore := {}
 ## Codes that have plinged and whose card waits for the pling to finish.
 var _codes_confirming := {}
 var _last_selection_msec := -SELECTION_DWELL_MSEC
-var _tiles := {}
 var _prompt_tween: Tween
 var _reveal_tween: Tween
 var _delete_armed := false
@@ -99,8 +94,6 @@ var _party_name_font_size := 0
 @onready var _hint: Label = $Stage/Margin/Layout/Views/Editor/Info/Hint
 @onready var _name_edit: LineEdit = $Stage/Margin/Layout/Views/Editor/Info/NameRow/NameEdit
 @onready var _dice: TextureButton = $Stage/Margin/Layout/Views/Editor/Info/NameRow/Dice
-@onready var _race_tiles: GridContainer = $Stage/Margin/Layout/Views/Editor/Info/RaceTiles
-@onready var _class_tiles: GridContainer = $Stage/Margin/Layout/Views/Editor/Info/ClassTiles
 @onready var _cancel: Button = $Stage/Margin/Layout/Footer/Cancel
 @onready var _delete: Button = $Stage/Margin/Layout/Footer/Delete
 @onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
@@ -128,6 +121,7 @@ func _ready() -> void:
 	_switch_camera.pressed.connect(_on_switch_camera_pressed)
 	_switch_camera.hide()
 
+	_slim_footer_buttons()
 	_primary.pressed.connect(_on_primary_pressed)
 	_cancel.pressed.connect(_on_cancel_pressed)
 	_delete.pressed.connect(_on_delete_pressed)
@@ -139,13 +133,14 @@ func _ready() -> void:
 	_cancel.text = _t("cancel")
 	_party_name_font_size = _party_name_edit.get_theme_font_size("font_size")
 	_party_name_edit.max_length = Party.MAX_PARTY_NAME_LENGTH
-	_party_name_edit.placeholder_text = _t("party_name_placeholder")
+	_refresh_party_name_placeholder()
 	_party_name_edit.text = _party.party_name
 	_party_name_edit.text_changed.connect(_on_party_name_changed)
 	_party_name_edit.text_submitted.connect(func(_text: String) -> void: _party_name_edit.release_focus())
+	_party_name_edit.focus_entered.connect(_refresh_party_name_placeholder)
+	_party_name_edit.focus_exited.connect(_refresh_party_name_placeholder)
 	_party_name_edit.resized.connect(_fit_party_name)
 	_fit_party_name()
-	_fill_tiles()
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
 
@@ -160,6 +155,17 @@ func _ready() -> void:
 	if not _cards.error.is_empty():
 		_camera_problem = _cards.error
 		_refresh_hint()
+
+
+## Three large buttons share the panel's width in the editor, which in German only works
+## with less room beside their text.
+func _slim_footer_buttons() -> void:
+	for button: Button in [_cancel, _delete, _primary]:
+		for state: StringName in [&"normal", &"hover", &"pressed"]:
+			var box: StyleBox = button.get_theme_stylebox(state).duplicate()
+			box.content_margin_left = FOOTER_BUTTON_PADDING
+			box.content_margin_right = FOOTER_BUTTON_PADDING
+			button.add_theme_stylebox_override(state, box)
 
 
 func _on_resized() -> void:
@@ -182,8 +188,7 @@ func _notification(what: int) -> void:
 func _refresh_language() -> void:
 	_name_edit.placeholder_text = _t("name_placeholder")
 	_cancel.text = _t("cancel")
-	_party_name_edit.placeholder_text = _t("party_name_placeholder")
-	_fit_party_name()
+	_refresh_party_name_placeholder()
 	_taken_notice = ""
 	_refresh_view()
 
@@ -279,12 +284,12 @@ func _may_change_selection() -> bool:
 # Choices -------------------------------------------------------------------------
 
 
-## card is the QR code of the character card shown, which says the hero's level. A tile
-## tapped has none: it keeps the card of the race already chosen, or starts at level 1.
+## card is the QR code of the character card shown, which says the hero's level. Without
+## one, the card of the race already chosen is kept, or the hero starts at level 1.
 func _select_race(race: String, card := "") -> void:
 	var owner_hero := _party.hero_with_race(race, _editing)
 	if owner_hero != null:
-		_show_taken(race, HeroOptions.RACES[race], owner_hero)
+		_show_taken(HeroOptions.RACES[race], owner_hero)
 		return
 	if race == _draft.race:
 		# The same race at another level, such as a level 5 card, needs no new choice.
@@ -297,14 +302,14 @@ func _select_race(race: String, card := "") -> void:
 	_draft.race_card = card
 	if _draft.name.is_empty() or _name_is_suggested:
 		_suggest_name()
-	_show_new_choice(race)
+	_show_new_choice()
 
 
 ## card as for _select_race().
 func _select_class(hero_class: String, card := "") -> void:
 	var owner_hero := _party.hero_with_class(hero_class, _editing)
 	if owner_hero != null:
-		_show_taken(hero_class, HeroOptions.CLASSES[hero_class], owner_hero)
+		_show_taken(HeroOptions.CLASSES[hero_class], owner_hero)
 		return
 	if hero_class == _draft.hero_class:
 		if not card.is_empty():
@@ -314,13 +319,11 @@ func _select_class(hero_class: String, card := "") -> void:
 		return
 	_draft.hero_class = hero_class
 	_draft.class_card = card
-	_show_new_choice(hero_class)
+	_show_new_choice()
 
 
-func _show_new_choice(id: String) -> void:
+func _show_new_choice() -> void:
 	_clear_taken_notice()
-	_refresh_tiles()
-	_pop_tile(id)
 	_refresh_controls()
 	_pop_control(_prompt)
 	_reveal()
@@ -328,12 +331,11 @@ func _show_new_choice(id: String) -> void:
 
 ## Says why nothing happens. The camera reads a held card over and over, so the shake
 ## only plays when the notice is new.
-func _show_taken(id: String, option: Dictionary, owner_hero: Party.Hero) -> void:
+func _show_taken(option: Dictionary, owner_hero: Party.Hero) -> void:
 	var notice := _t("taken") % [_title_of(option), owner_hero.name]
 	var now := Time.get_ticks_msec()
 	if notice != _taken_notice or now >= _taken_notice_until_msec:
-		if _tiles.has(id):
-			_shake(_tiles[id])
+		_shake(_frame)
 	_taken_notice = notice
 	_taken_notice_until_msec = now + int(TAKEN_NOTICE_SEC * 1000.0)
 	_refresh_hint()
@@ -381,6 +383,12 @@ func _on_party_name_changed(text: String) -> void:
 	if party_name != _party.party_name:
 		_party.party_name = party_name
 		_party.save()
+
+
+## The placeholder is only a hint: it makes way as soon as the name is being typed.
+func _refresh_party_name_placeholder() -> void:
+	_party_name_edit.placeholder_text = "" if _party_name_edit.has_focus() else _t("party_name_placeholder")
+	_fit_party_name()
 
 
 ## Long names get smaller instead of being cut off, as the title has to fit between the seats.
@@ -574,7 +582,6 @@ func _refresh_view() -> void:
 	if _view == View.EDITOR:
 		_title.text = _t("hero") % (_party.heroes.find(_editing) + 1 if _editing != null else _party.heroes.size() + 1)
 		_refresh_pictures()
-		_refresh_tiles()
 	else:
 		_build_party_view()
 	_refresh_controls()
@@ -716,98 +723,6 @@ func _refresh_seats() -> void:
 		elif has_room or hero != null:
 			mode = SeatToken.Mode.SELECTABLE
 		token.set_mode(mode)
-
-
-# Choice tiles --------------------------------------------------------------------
-
-
-func _fill_tiles() -> void:
-	for id: String in HeroOptions.RACES:
-		_tiles[id] = _make_tile(id, HeroOptions.RACES[id])
-		_race_tiles.add_child(_tiles[id])
-	for id: String in HeroOptions.CLASSES:
-		_tiles[id] = _make_tile(id, HeroOptions.CLASSES[id])
-		_class_tiles.add_child(_tiles[id])
-
-
-func _make_tile(id: String, option: Dictionary) -> Control:
-	var tile := Button.new()
-	tile.flat = true
-	tile.focus_mode = Control.FOCUS_NONE
-	tile.custom_minimum_size = Vector2(124, 104)
-	# Choosing happens with the cards. Debug builds also allow a tap, for trying out the
-	# screen without a camera or printed cards.
-	if OS.is_debug_build():
-		tile.pressed.connect(_on_tile_pressed.bind(id))
-	else:
-		tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tile.pivot_offset = tile.custom_minimum_size / 2.0
-
-	var picture := TextureRect.new()
-	picture.name = "Picture"
-	picture.texture = load(option.art)
-	picture.material = PortraitMaterial.new(0.14, 0.03)
-	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	picture.position = Vector2(30, 2)
-	picture.size = Vector2(64, 64)
-	tile.add_child(picture)
-
-	var caption := Label.new()
-	caption.name = "Caption"
-	caption.text = _title_of(option)
-	caption.add_theme_font_size_override("font_size", 16)
-	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	caption.position = Vector2(0, 67)
-	caption.size = Vector2(124, 36)
-	tile.add_child(caption)
-	return tile
-
-
-func _on_tile_pressed(id: String) -> void:
-	_last_selection_msec = -SELECTION_DWELL_MSEC
-	if HeroOptions.RACES.has(id):
-		_select_race(id)
-	else:
-		_select_class(id)
-
-
-func _refresh_tiles() -> void:
-	for id: String in _tiles:
-		var is_race := HeroOptions.RACES.has(id)
-		var tile: Button = _tiles[id]
-		var picture: TextureRect = tile.get_node("Picture")
-		var caption: Label = tile.get_node("Caption")
-		var selected := _draft.race if is_race else _draft.hero_class
-		var is_selected: bool = id == selected
-		var owner_hero := _party.hero_with_race(id, _editing) if is_race else _party.hero_with_class(id, _editing)
-		var material_of: ShaderMaterial = picture.material
-		var faded := owner_hero != null or (not selected.is_empty() and not is_selected)
-		material_of.set_shader_parameter("desaturate", 1.0 if owner_hero != null else (0.75 if faded else 0.0))
-		material_of.set_shader_parameter("brightness", 0.3 if owner_hero != null else (0.55 if faded else 1.0))
-		material_of.set_shader_parameter("ring_width", 0.07 if is_selected else 0.03)
-		# Taken options name their owner, so everyone can see what is still free.
-		var option: Dictionary = HeroOptions.RACES[id] if is_race else HeroOptions.CLASSES[id]
-		caption.text = owner_hero.name if owner_hero != null else _title_of(option)
-		var caption_color := CREAM
-		if owner_hero != null:
-			caption_color = TAKEN
-		elif is_selected:
-			caption_color = GOLD
-		elif faded:
-			caption_color = FAINT
-		caption.add_theme_color_override("font_color", caption_color)
-		tile.scale = Vector2(TILE_SELECTED_SCALE, TILE_SELECTED_SCALE) if is_selected else Vector2.ONE
-
-
-func _pop_tile(id: String) -> void:
-	var tile: Button = _tiles[id]
-	tile.scale = Vector2(1.3, 1.3)
-	var settled := Vector2(TILE_SELECTED_SCALE, TILE_SELECTED_SCALE)
-	create_tween().tween_property(tile, "scale", settled, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # Party view ----------------------------------------------------------------------

@@ -46,6 +46,7 @@ func _ready() -> void:
 		button.toggle_mode = true
 		button.button_group = group
 		button.focus_mode = Control.FOCUS_NONE
+		button.add_theme_font_size_override("font_size", 24)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(choose_difficulty.bind(id))
 		_difficulty_row.add_child(button)

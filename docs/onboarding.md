@@ -13,7 +13,7 @@ at the table:
 
 *To Battle!* appears once there is a hero, and leads to [choosing the boss](bosses.md). With 4 heroes, free seats can no longer be tapped.
 
-The name of the party is at the top of the screen. Tap it to type another one. It is optional, and long names get
+The name of the party is at the top of the screen. Tap it to type another one; the placeholder makes way while typing. It is optional, and long names get
 smaller so that they stay readable between the seats.
 
 ## Editor
@@ -43,12 +43,11 @@ group only needs one tap. A hero that is still in the editor is not saved.
 - Showing another card of the same kind replaces the choice.
 - The card shown is kept with the hero (`race_card`, `class_card` in the party file), as it says their level: a level 5
   or 8 card gives the hero its ability in the fight (see [Cards](cards.md#hero-levels)). Showing a card of the same
-  race or class at another level changes only the level. Tapping a tile keeps the card of the race or class already
-  chosen; a new one tapped is level 1.
+  race or class at another level changes only the level.
 - A card that was in view when the editor opened only counts after it has been out of view for 2 s. Otherwise a card
   a player is still holding would choose for the next hero, too.
-- Each race and each class can only be picked once. A taken one is refused, the hint says who has it, and its tile
-  shows that hero's name. A hero's own choices do not count as taken while changing them.
+- Each race and each class can only be picked once. A taken one is refused, the card frame shakes and the hint says
+  who has it. A hero's own choices do not count as taken while changing them.
 
 ## Seats
 
@@ -70,8 +69,6 @@ On a laptop, press F5 in the editor or run `godot --path .`. The window is scale
 - Debug builds show the camera picture, mirrored, in the frame while waiting for a card, because a laptop camera
   needs aiming. Laptop webcams have fixed focus: hold the code about 20 to 40 cm away, not closer.
 - If the picture is the wrong camera (some laptops also list an infrared one), use the camera button at the top right.
-- In debug builds, the small pictures of the options can also be clicked. This is for testing without a camera or
-  cards, and release builds do not have it.
 
 ## Replacing the placeholders
 
@@ -79,7 +76,6 @@ On a laptop, press F5 in the editor or run `godot --path .`. The window is scale
   the dummies. More than one card can stand for the same race or class.
 - **Artwork:** `art/import_onboarding_art.sh <folder>` takes the finished images from a folder, with the same file
   names as now (`CharacterDwarf.png`, `ClassThief.png`, `Table.png`, …).
-- **Sounds:** `art/make_onboarding_sounds.py` creates them.
 - **Music:** `music.tscn` is an autoload, so the track keeps playing from the onboarding into the game. It sets the
   track and its volume, which together with the default of the [music slider](settings.md) is kept low so that players
   can talk over it. New tracks need Loop on in their import settings.
