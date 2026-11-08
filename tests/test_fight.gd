@@ -1201,6 +1201,7 @@ func _check_items() -> void:
 
 	# Deja-Vu: a card from the discard pile or the top of the draw pile, then out of the game.
 	fight = _started(TestBoss.new())
+	fight.hero_at(1).hero.hero_class = "magician"
 	_check(fight.scan(catalog.find("SQAAAA==")) == "" and _asks_card_of(fight, 1) and fight.request.prompt == "prompt_discard_or_top", "Deja-Vu: which card?")
 	fight.scan(_card("AGAIN", [["attack", 2, "ranged"], ["lightning", 1]], "halfling"))
 	_check(fight.health == 28 and "AGAIN" in fight.removed and _told[-1] == "played_card_removed", "Deja-Vu: it is played, then out of the game")
