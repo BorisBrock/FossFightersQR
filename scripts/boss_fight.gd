@@ -48,6 +48,9 @@ const SHIELD_COUNT_MAX_SEC := 1.2
 const SHIELD_TREMBLE_SEC := 0.45
 const SHIELD_BROKEN_SEC := 0.9
 const BROKEN_ALPHA := 0.45
+## A shield the players can tap (Fight.Request.Kind.SHIELD) grows, shrinks and glows.
+const SHIELD_PULSE_SCALE := 1.12
+const SHIELD_PULSE_SEC := 0.45
 const DAMAGE_SEC := 0.25
 const HEALTH_STEP_SEC := 0.8
 ## Between the steps of a hit.
@@ -117,6 +120,8 @@ var _prompt_tween: Tween
 var _badges := {}
 ## By damage type: the plate of each shield.
 var _shield_plates := {}
+## The pulse of each shield the players can tap now, by damage type.
+var _shield_pulses := {}
 ## By damage type: whether it was attacked this round, a medallion each below its shield.
 var _attack_states := {}
 ## By seat: whether the attack planned against the hero has been shown yet. The boss plans
@@ -452,6 +457,7 @@ func _on_request_changed(request: Fight.Request) -> void:
 	if request != null:
 		_sfx.play("turn" if request.kind == Fight.Request.Kind.ACTION else "choose")
 	_refresh_seats()
+	_refresh_shields()
 	_refresh_prompt()
 	# The action being played glows.
 	for hero in fight.heroes:
@@ -474,6 +480,50 @@ func _refresh_seats() -> void:
 			mode = SeatToken.Mode.DIMMED
 		if token.mode != mode:
 			token.set_mode(mode)
+
+
+## Shields that can be chosen pulse and can be tapped, the others cannot.
+func _refresh_shields() -> void:
+	var request := fight.request
+	var kinds: Array[String] = []
+	if request != null and request.kind == Fight.Request.Kind.SHIELD:
+		kinds = request.kinds
+	for kind: String in _shield_plates:
+		var plate: Control = _shield_plates[kind]
+		var selectable := kind in kinds
+		plate.mouse_filter = Control.MOUSE_FILTER_STOP if selectable else Control.MOUSE_FILTER_IGNORE
+		plate.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if selectable else Control.CURSOR_ARROW
+		if selectable == _shield_pulses.has(kind):
+			continue
+		var picture: CanvasItem = plate.get_node("Icon")
+		if selectable:
+			plate.pivot_offset = plate.size / 2.0
+			var pulse := create_tween().set_loops()
+			pulse.tween_method(func(t: float) -> void:
+				plate.scale = Vector2.ONE.lerp(Vector2.ONE * SHIELD_PULSE_SCALE, t)
+				picture.self_modulate = Color.WHITE.lerp(Color(1.6, 1.4, 1.0), t), 0.0, 1.0, SHIELD_PULSE_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			pulse.tween_method(func(t: float) -> void:
+				plate.scale = Vector2.ONE.lerp(Vector2.ONE * SHIELD_PULSE_SCALE, t)
+				picture.self_modulate = Color.WHITE.lerp(Color(1.6, 1.4, 1.0), t), 1.0, 0.0, SHIELD_PULSE_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			_shield_pulses[kind] = pulse
+		else:
+			(_shield_pulses[kind] as Tween).kill()
+			_shield_pulses.erase(kind)
+			plate.scale = Vector2.ONE
+			picture.self_modulate = Color.WHITE
+
+
+func _on_shield_input(event: InputEvent, kind: String) -> void:
+	var tapped: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
+		or (event is InputEventScreenTouch and event.pressed)
+	if not tapped:
+		return
+	var request := fight.request
+	if request == null or request.kind != Fight.Request.Kind.SHIELD or not kind in request.kinds:
+		return
+	accept_event()
+	_sfx.play("select")
+	fight.choose_shield(kind)
 
 
 ## What the fight asks for, with buttons for what can be done besides tapping a hero or
@@ -574,7 +624,7 @@ func _make_badges() -> void:
 		value.add_theme_font_size_override("font_size", 32)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(value)
-		column.add_child(_icon("res://assets/fight/icon_damage.svg", THREAT_ICON_SIZE))
+		column.add_child(_icon("res://assets/fight/icon_claw.svg", THREAT_ICON_SIZE))
 		threat.add_child(column)
 		var effects := _side_plate("Effects", token, EFFECTS_LEFT, Control.GROW_DIRECTION_END)
 		var effect_row := HBoxContainer.new()
@@ -772,6 +822,7 @@ func _make_shields() -> void:
 		state.add_child(icon)
 		column.add_child(state)
 		_shields.add_child(column)
+		shield.gui_input.connect(_on_shield_input.bind(kind))
 		_shield_plates[kind] = shield
 		_attack_states[kind] = state
 	_on_attacked_changed(fight.attacked)

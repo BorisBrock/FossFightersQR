@@ -46,7 +46,7 @@ asks nothing of the players, so that it closes by itself:
 	"example_venomous_bite": {
 		"title": "Venomous Bite",
 		"body": [
-			"[boss]{boss}[/boss] bites [player]{player}[/player], dealing [damage]{damage} damage[/damage] :damage:.",
+			"[boss]{boss}[/boss] bites [player]{player}[/player], dealing [damage]{damage} damage[/damage] :claw:.",
 			"[player]{player}[/player] also takes [poison]{poison} poison markers[/poison] :poison:."
 		]
 	},
@@ -86,7 +86,8 @@ asks nothing of the players, so that it closes by itself:
   |--------|------|
   | `:health:` | `assets/fight/icon_health.svg` |
   | `:round:` | `assets/fight/icon_round.svg` |
-  | `:damage:` | `assets/fight/icon_damage.svg` |
+  | `:damage:` | `assets/fight/icon_damage.svg` (the heroes' attacks) |
+  | `:claw:` | `assets/fight/icon_claw.svg` (the boss's attacks) |
   | `:poison:` | `assets/fight/icon_poison.svg` |
   | `:card:` | `assets/fight/icon_card.svg` |
   | `:dice:` | `assets/onboarding/icons/dice.svg` |

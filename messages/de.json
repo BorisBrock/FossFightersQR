@@ -26,10 +26,10 @@
 		]
 	},
 	"part_hit": {
-		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :damage:"
+		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :claw:"
 	},
 	"part_hit_with_tokens": {
-		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :damage: und [poison]{tokens}[/poison]"
+		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :claw: und [poison]{tokens}[/poison]"
 	},
 	"phase_attack_blocked": {
 		"title": "Phase 4 · Angriff",
@@ -161,7 +161,7 @@
 		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :damage: trifft jetzt [player]{player}[/player].",
+		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :claw: trifft jetzt [player]{player}[/player].",
 		"auto": true
 	},
 	"ward_placed": {
@@ -258,7 +258,7 @@
 		"body": "[b]Tippt den Helden an[/b], dessen Angriff halbiert wird."
 	},
 	"attack_halved": {
-		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :damage: halbiert und verliert seinen Zusatzeffekt.",
+		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :claw: halbiert und verliert seinen Zusatzeffekt.",
 		"auto": true
 	},
 	"remove_curse": {
@@ -285,7 +285,7 @@
 		"body": "[i]Denkt daran:[/i] Vergiftete Helden verlieren am Ende jeder Runde [damage]1[/damage] :health:."
 	},
 	"prompt_lower_shield": {
-		"body": "[player]{player}[/player], wähle den Schild, der um [damage]{amount}[/damage] sinkt."
+		"body": "[player]{player}[/player], tippe auf den Schild, der um [damage]{amount}[/damage] sinken soll."
 	},
 	"option_shield_melee": {
 		"body": "Nahkampf"

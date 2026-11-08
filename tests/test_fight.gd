@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 469
+const EXPECTED_CHECKS := 470
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -572,8 +572,10 @@ func _check_magic_loot_cards() -> void:
 	var boss := TestBoss.new()
 	var fight := _started(boss)
 	fight.scan(catalog.find("OgEAAA=="))
-	_check(fight.request.kind == Fight.Request.Kind.OPTION and fight.request.options == ["option_shield_melee", "option_shield_magic"], "Explosivkristall: which shield?")
-	fight.choose_option(0)
+	_check(fight.request.kind == Fight.Request.Kind.SHIELD and fight.request.kinds == ["melee", "magic"], "Explosivkristall: which shield? The players tap it")
+	fight.choose_shield("ranged")
+	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.SHIELD, "Explosivkristall: a broken shield cannot be chosen")
+	fight.choose_shield("melee")
 	_check(fight.shields.melee == 0 and fight.shields.magic == 1 and fight.health == 30 and not "shield_hit melee" in boss.calls and _told[-1] == "shield_lowered", "Explosivkristall: the shield is down, without its effect or damage")
 	fight.abandon()
 	boss = TestBoss.new()
@@ -977,7 +979,7 @@ func _check_last_loot_cards() -> void:
 	fight = _started(boss)
 	fight.scan(catalog.find("FAEAAA=="))
 	_check(fight.request.prompt == "prompt_lower_shield" and fight.request.values.amount == 4, "Pyro-Falle: which shield?")
-	fight.choose_option(0)
+	fight.choose_shield("melee")
 	_check(fight.shields.melee == 0 and fight.health == 30 and not boss.calls.has("shield_hit melee") and _values[-1].amount == 2, "Pyro-Falle: the melee shield breaks, nothing beyond it")
 	fight.abandon()
 
@@ -1025,7 +1027,7 @@ func _check_final_loot_cards() -> void:
 	fight = _started(TestBoss.new())
 	fight.scan(catalog.find("ZwEAAA=="))
 	_check(fight.request.prompt == "prompt_lower_shield" and fight.request.values.amount == 2, "Waffengift: which shield?")
-	fight.choose_option(0)
+	fight.choose_shield("melee")
 	_check(fight.shields.melee == 0 and fight.poison == 2 and _told[-1] == "shield_broken_poison", "Waffengift: the melee shield of 2 breaks, the boss gets 2 poison")
 	fight.abandon()
 	var boss := TestBoss.new()
@@ -2051,7 +2053,7 @@ func _check_shield_breaks() -> void:
 	fight = _started(TestBoss.new())
 	_give_trait(fight, catalog, "AAEAAA==", fight.hero_at(1))
 	fight.scan(catalog.find("OgEAAA=="))
-	fight.choose_option(0)
+	fight.choose_shield("melee")
 	_pass_until_asked(fight)
 	_check(fight.shields.melee == 0 and fight.health == 26 and _told.count("shield_breaker") == 1, "Explosivkristall and the Luckmaster: the melee shield breaks, 4 to the boss")
 	fight.abandon()

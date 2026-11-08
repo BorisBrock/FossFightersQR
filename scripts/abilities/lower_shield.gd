@@ -1,6 +1,6 @@
 extends CardAbility
-## Lowers a shield of the boss of the players' choice by "amount", as with the
-## Explosivkristall. It is no attack: what the shield does besides absorbing is not set
+## Lowers a shield of the boss of the players' choice, which they tap, by "amount", as
+## with the Explosivkristall. It is no attack: what the shield does besides absorbing is not set
 ## off, and what is more than the shield has does not reach the boss (Fight.lower_shield).
 ## With "all", every shield goes down by "amount", as with the Hammer des Zorns, and
 ## without shields nothing is said, as the card does something else too. With "poison",
@@ -25,15 +25,9 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 	if kinds.is_empty():
 		fight.tell("no_shield_to_lower", { "boss": fight.boss.title, "player": play.hero.name, "card": play.card.title })
 		return
-	var kind := kinds[0]
-	if kinds.size() > 1:
-		var options: Array[String] = []
-		for each in kinds:
-			options.append("option_shield_%s" % each)
-		var index := await fight.choose_from(options, "prompt_lower_shield", { "player": play.hero.name, "amount": amount })
-		if index < 0:
-			return
-		kind = kinds[index]
+	var kind := await fight.choose_shield_from(kinds, "prompt_lower_shield", { "player": play.hero.name, "amount": amount })
+	if kind.is_empty():
+		return
 	var lowered := await fight.lower_shield(kind, amount, play)
 	fight.tell("shield_lowered", { "boss": fight.boss.title, "kind": Fight.NAMES[kind], "amount": lowered })
 	var poison: int = value("poison", 0)

@@ -85,6 +85,9 @@ class Request:
 		ACTION,
 		## One of options, answered with choose_option(), or skip() if can_skip.
 		OPTION,
+		## One of the boss's shields, by damage type, one of kinds. Answered with
+		## choose_shield(), or skip() if can_skip. The screen makes the shields tappable.
+		SHIELD,
 	}
 	var kind: Kind
 	## The message (see Messages) that says what to do. It needs no confirming.
@@ -95,6 +98,8 @@ class Request:
 	var hero: FightHero
 	## Message ids, one per option, for OPTION.
 	var options: Array[String] = []
+	## Damage types, one per shield that can be chosen, for SHIELD.
+	var kinds: Array[String] = []
 	var can_skip := false
 	## For ACTION, what the card gets: see Fight.take_action.
 	var settings := {}
@@ -208,6 +213,12 @@ func choose_option(index: int) -> void:
 		_answered.emit(index)
 
 
+## Answers a SHIELD request with the damage type of a shield.
+func choose_shield(kind: String) -> void:
+	if request != null and request.kind == Request.Kind.SHIELD and kind in request.kinds:
+		_answered.emit(kind)
+
+
 ## Declines a request that can be skipped.
 func skip() -> void:
 	if request != null and request.can_skip:
@@ -307,6 +318,24 @@ func choose_from(options: Array[String], prompt: String, values := {}, can_skip 
 	asked.can_skip = can_skip
 	var answer: Variant = await _ask(asked)
 	return -1 if answer == null else answer
+
+
+## Asks the players to tap one of the boss's shields, by damage type, one of kinds.
+## Returns it at once if only one fits and the players cannot skip, "" if none fits or
+## they skipped.
+func choose_shield_from(kinds: Array[String], prompt: String, values := {}, can_skip := false) -> String:
+	if kinds.is_empty() or over:
+		return ""
+	if kinds.size() == 1 and not can_skip:
+		return kinds[0]
+	var asked := Request.new()
+	asked.kind = Request.Kind.SHIELD
+	asked.kinds = kinds
+	asked.prompt = prompt
+	asked.values = values
+	asked.can_skip = can_skip
+	var answer: Variant = await _ask(asked)
+	return "" if answer == null else answer
 
 
 ## Asks the players a question with yes and no. Returns true for yes.

@@ -23,6 +23,7 @@ const SYMBOLS := {
 	"health": "res://assets/fight/icon_health.svg",
 	"round": "res://assets/fight/icon_round.svg",
 	"damage": "res://assets/fight/icon_damage.svg",
+	"claw": "res://assets/fight/icon_claw.svg",
 	"poison": "res://assets/fight/icon_poison.svg",
 	"card": "res://assets/fight/icon_card.svg",
 	"dice": "res://assets/onboarding/icons/dice.svg",

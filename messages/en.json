@@ -26,10 +26,10 @@
 		]
 	},
 	"part_hit": {
-		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :damage:"
+		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :claw:"
 	},
 	"part_hit_with_tokens": {
-		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :damage: and [poison]{tokens}[/poison]"
+		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :claw: and [poison]{tokens}[/poison]"
 	},
 	"phase_attack_blocked": {
 		"title": "Phase 4 · Attack",
@@ -161,7 +161,7 @@
 		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :damage: now hits [player]{player}[/player].",
+		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :claw: now hits [player]{player}[/player].",
 		"auto": true
 	},
 	"ward_placed": {
@@ -258,7 +258,7 @@
 		"body": "[b]Tap the hero[/b] whose attack is halved."
 	},
 	"attack_halved": {
-		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :damage: and loses its extra effect.",
+		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :claw: and loses its extra effect.",
 		"auto": true
 	},
 	"remove_curse": {
@@ -285,7 +285,7 @@
 		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1[/damage] :health: at the end of each round."
 	},
 	"prompt_lower_shield": {
-		"body": "[player]{player}[/player], choose the shield that goes down by [damage]{amount}[/damage]."
+		"body": "[player]{player}[/player], tap the shield you want to lower by [damage]{amount}[/damage]."
 	},
 	"option_shield_melee": {
 		"body": "Melee"

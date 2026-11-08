@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 93
+const EXPECTED_CHECKS := 98
 
 var _failures := 0
 var _checks_run := 0
@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _check_messages()
 	await _check_countdown()
 	await _check_round()
+	await _check_shield_choice()
 	await _check_give_up()
 	await _check_defeat()
 	await _check_game_over()
@@ -310,6 +311,40 @@ func _check_round() -> void:
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC + 0.1).timeout
 	_check(screen.get_node("Prompt/Layout/Notice").visible and screen.get_node("Prompt/Layout/Notice").get_parsed_text().contains("NOPE"), "an unknown card is pointed out, with its QR code")
 	_check(not screen.get_node("Prompt/Layout/Buttons").visible, "a card is asked for without a button to pass")
+	screen.queue_free()
+
+
+## A card that lowers a shield of the players' choice: they tap the shield, which pulses.
+func _check_shield_choice() -> void:
+	var screen := await _open()
+	var fight: Fight = screen.fight
+	var answers: Array = []
+	fight._answered.connect(func(value: Variant) -> void: answers.append(value))
+	var asked := Fight.Request.new()
+	asked.kind = Fight.Request.Kind.SHIELD
+	asked.kinds = ["melee", "magic"]
+	asked.prompt = "prompt_lower_shield"
+	asked.values = { "player": "Sonja", "amount": 2 }
+	fight.request = asked
+	fight.request_changed.emit(asked)
+	await get_tree().create_timer(0.3).timeout
+	var melee: Control = screen.get_node("Shields/Melee/Shield")
+	var ranged: Control = screen.get_node("Shields/Ranged/Shield")
+	var magic: Control = screen.get_node("Shields/Magic/Shield")
+	var text: RichTextLabel = screen.get_node("Prompt/Layout/Text")
+	_check(text.get_parsed_text().contains("tap the shield you want to lower by 2") and not screen.get_node("Prompt/Layout/Buttons").visible, "the players are asked to tap a shield, without buttons")
+	_check(melee.scale.x > 1.0 and magic.scale.x > 1.0 and ranged.scale.x == 1.0, "the shields to choose from pulse, the others do not")
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	tap.pressed = true
+	ranged.gui_input.emit(tap)
+	_check(answers.is_empty(), "a shield that cannot be chosen does nothing")
+	magic.gui_input.emit(tap)
+	_check(answers == ["magic"], "tapping a shield chooses it")
+	fight.request = null
+	fight.request_changed.emit(null)
+	await get_tree().create_timer(0.3).timeout
+	_check(magic.scale.x == 1.0 and melee.scale.x == 1.0 and magic.mouse_filter == Control.MOUSE_FILTER_IGNORE and not screen.get_node("Prompt").visible, "then the shields stop pulsing, and the prompt goes")
 	screen.queue_free()
 
 

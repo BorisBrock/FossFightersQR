@@ -104,6 +104,7 @@ var _party_name_font_size := 0
 @onready var _cancel: Button = $Stage/Margin/Layout/Footer/Cancel
 @onready var _delete: Button = $Stage/Margin/Layout/Footer/Delete
 @onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
+@onready var _footer_spacer: Control = $Stage/Margin/Layout/Footer/Spacer
 @onready var _switch_camera: TextureButton = $SwitchCamera
 @onready var _overlay: Control = $Overlay
 @onready var _sparks: CPUParticles2D = $Sparks
@@ -602,6 +603,8 @@ func _refresh_controls() -> void:
 	_dice.modulate.a = 0.35 if _dice.disabled else 1.0
 	_cancel.visible = editing
 	_delete.visible = editing and _editing != null
+	# The editor keeps "Done" on the right; alone, "To Battle!" sits centered.
+	_footer_spacer.visible = editing
 	_delete.text = _t("delete_confirm") if _delete_armed else _t("delete")
 	_party_hint.text = _t("party_hint") if _party.heroes.size() < Party.MAX_HEROES else _t("party_hint_full")
 	_primary.text = _t("done") if editing else _t("battle")
