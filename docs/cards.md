@@ -86,11 +86,11 @@ serves many cards.
 
 | Ability | Does | Values | Cards |
 |---------|------|--------|-------|
-| `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | |
+| `free_play` | Another hero may play cards right now, without using a turn. | `cards` (1) | Banner des Mutes |
 | `extra_turns` | The hero gets more turns, such as the Warhorse's 4th action. | `turns` (1), `now` (false: next round) | Schlachtross |
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
-| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung |
-| `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion. | `amount` (8) | Heiltrank |
+| `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring |
+| `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion; with `heroes`, that many different heroes. | `amount` (8), `heroes` (1) | Heiltrank, Drachenspeichel |
 | `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
 | `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
@@ -132,6 +132,10 @@ serves many cards.
 | `redraw_hand` | A hero of the players' choice discards any number of hand cards, then draws up to their hand limit. | | Phönixbeere |
 | `discard_random` | Tells the hero to discard `count` random hand cards, if they have any. | `count` (1) | Säuremottenschwarm |
 | `weaken_next_round` | Next round, every attack of the boss is `amount` lower. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `amount` (3), `chosen_hero` (false) | Magische Eruption |
+| `look_at_top` | Tells each hero to look at the top `look` cards of their draw pile, take `take` of them and put the others back in any order. | `look` (3), `take` (1) | Kompass der Verdammten |
+| `search_to_hand` | Tells the hero to take `count` cards of their choice from their draw pile into their hand and shuffle it. | `count` (1) | Verlorene Seele |
+| `take_token` | Tells the hero to take `count` status tokens of their choice from the supply. | `count` (1) | Geisterrüstung |
+| `draw_and_play` | A hero of the players' choice draws `draw` cards and plays `play` of them at once, then discards the rest; Lightning on them gives that hero more actions afterwards. | `draw` (5), `play` (2) | Güldis Angel |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions

@@ -355,5 +355,23 @@
 	},
 	"threat_lowered": {
 		"body": "The attack of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal]."
+	},
+	"remove_tokens_group": {
+		"body": "Together you remove up to [heal]{count}[/heal] tokens, from whoever you like."
+	},
+	"look_at_top_everyone": {
+		"body": "Each hero looks at the top [b]{look}[/b] :card: of their draw pile, takes [b]{take}[/b] of them into their hand and puts the other [b]{back}[/b] back in any order."
+	},
+	"search_to_hand": {
+		"body": "[player]{player}[/player] takes [b]{count}[/b] :card: of their choice from their draw pile into their hand and shuffles the pile."
+	},
+	"take_token": {
+		"body": "[player]{player}[/player] takes [damage]{count}[/damage] status token of their choice from the supply."
+	},
+	"draw_and_play": {
+		"body": "[player]{player}[/player] draws [b]{draw}[/b] :card:, plays [b]{play}[/b] of them at once and discards the other [b]{discard}[/b]."
+	},
+	"prompt_play_drawn": {
+		"body": "[player]{player}[/player], show one of the [b]cards you just drew[/b] :card:."
 	}
 }

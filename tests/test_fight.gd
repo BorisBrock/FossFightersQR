@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 277
+const EXPECTED_CHECKS := 300
 
 var _failures := 0
 var _checks_run := 0
@@ -64,6 +64,7 @@ func _initialize() -> void:
 	_check_loot_cards()
 	_check_more_loot_cards()
 	_check_magic_loot_cards()
+	_check_new_loot_cards()
 	_check_items()
 	_check_dryad_forms()
 	_check_dryad_cards()
@@ -780,6 +781,107 @@ func _check_loot_cards() -> void:
 	_check(_values[-1].poison == 3 and _values[-1].damage == 6, "at the end of the round, Toxikum doubles what the poison costs")
 	_ready(fight)
 	_check(fight.health == 19, "past the shields")
+	fight.abandon()
+
+
+## More loot cards from the catalog.
+func _check_new_loot_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	# Spinneneier: as many tokens as the attack cost the boss, from a hero of the players' choice.
+	var fight := _started(TestBoss.new())
+	fight.scan(catalog.find("zwEAAA=="))
+	_check(fight.health == 28 and fight.request.prompt == "prompt_remove_tokens_who" and fight.request.values.count == 2, "Spinneneier: 2 damage, so 2 tokens, from whom?")
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "remove_tokens" and _values[-1].player == "Sonja" and _values[-1].count == 2, "Spinneneier: Sonja removes 2 tokens")
+	fight.abandon()
+	var boss := TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 5, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("zwEAAA=="))
+	_check(fight.health == 30 and not _told.has("remove_tokens") and fight.request.prompt != "prompt_remove_tokens_who", "Spinneneier: none if the shield takes it all")
+	fight.abandon()
+
+	# Stachel des Frostskorpions: 3 straight to the boss's health, and 2 poison.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("YAEAAA=="))
+	_check(fight.health == 27 and fight.poison == 2, "Stachel des Frostskorpions: 3 damage and 2 poison")
+	fight.abandon()
+
+	# Drachenspeichel: two different heroes heal 6 each.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("LAEAAA=="))
+	_check(fight.request.prompt == "prompt_heal_who" and fight.request.heroes.size() == 3, "Drachenspeichel: who heals?")
+	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "heal" and _values[-1].player == "Sonja" and _values[-1].amount == 6, "Drachenspeichel: Sonja heals 6")
+	_ready(fight)
+	_check(fight.request.prompt == "prompt_heal_who" and fight.request.heroes.size() == 2 and not fight.hero_at(5) in fight.request.heroes, "Drachenspeichel: then another hero")
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "heal" and _values[-1].player == "Borin" and _values[-1].amount == 6 and _told.count("heal") == 2, "Drachenspeichel: Borin heals 6")
+	fight.abandon()
+
+	# Kompass der Verdammten: each hero looks at their top 3 and takes 1, then another action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("0gEAAA=="))
+	_check(_told[-1] == "look_at_top_everyone" and _values[-1].look == 3 and _values[-1].take == 1 and _values[-1].back == 2, "Kompass der Verdammten: everyone looks at 3 and takes 1")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Kompass der Verdammten: then another action")
+	fight.abandon()
+
+	# Verlorene Seele: a card of the hero's choice from the draw pile into the hand.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("ygEAAA=="))
+	_check(_told[-1] == "search_to_hand" and _values[-1].player == "Rosie" and _values[-1].count == 1, "Verlorene Seele: Rosie takes 1 card from her pile")
+	fight.abandon()
+
+	# Sonnenring: together, as many tokens as the round, then another action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("zQEAAA=="))
+	_check(_told[-1] == "remove_tokens_group" and _values[-1].count == 1, "Sonnenring: 1 token in round 1, together")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Sonnenring: then another action")
+	fight.abandon()
+
+	# Banner des Mutes: another hero acts at once, then another action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("CQEAAA=="))
+	_check(fight.request.prompt == "prompt_free_play_who" and not fight.hero_at(1) in fight.request.heroes, "Banner des Mutes: which other hero?")
+	fight.choose(fight.hero_at(3))
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "Banner des Mutes: Borin acts at once")
+	fight.skip()
+	_check(_asks_card_of(fight, 1), "Banner des Mutes: then Rosie's Lightning")
+	fight.abandon()
+
+	# Geflügelter Schild: protection 4, then another action.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("NwEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_check(fight.hero_at(5).threat == 0 and _asks_card_of(fight, 1), "Geflügelter Schild: protection 4, then another action")
+	fight.abandon()
+
+	# Güldis Angel: a hero of the players' choice draws 5, plays 2 of them, discards 3.
+	boss = TestBoss.new()
+	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
+	fight = _started(boss)
+	fight.scan(catalog.find("1wEAAA=="))
+	_check(fight.request.prompt == "prompt_chosen_hero", "Güldis Angel: for whom?")
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "draw_and_play" and _values[-1].player == "Borin" and _values[-1].draw == 5 and _values[-1].play == 2 and _values[-1].discard == 3, "Güldis Angel: Borin draws 5, plays 2, discards 3")
+	_ready(fight)
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_play_drawn", "Güldis Angel: Borin plays a drawn card")
+	fight.scan(_card("DRAWN1", [["attack", 2, "melee"], ["lightning", 1]], "dwarf"))
+	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_play_drawn", "Güldis Angel: and a second")
+	fight.scan(_card("DRAWN2", [["attack", 1, "melee"]], "dwarf"))
+	_ready(fight)
+	_check(fight.health == 27 and _asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "Güldis Angel: both hit, then the Lightning on them")
+	fight.abandon()
+
+	# Geisterrüstung: two protections of 3, and the hero takes a status token.
+	fight = _started(TestBoss.new())
+	fight.scan(catalog.find("HwEAAA=="))
+	fight.choose(fight.hero_at(5))
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(5).threat == 0 and fight.hero_at(3).threat == 0 and _told[-1] == "take_token" and _values[-1].player == "Rosie" and _values[-1].count == 1, "Geisterrüstung: Sonja and Borin protected, Rosie takes a token")
 	fight.abandon()
 
 

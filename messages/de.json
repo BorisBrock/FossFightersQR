@@ -355,5 +355,23 @@
 	},
 	"threat_lowered": {
 		"body": "Die Attacke von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal]."
+	},
+	"remove_tokens_group": {
+		"body": "Ihr entfernt als Gruppe insgesamt bis zu [heal]{count}[/heal] Marker, von wem ihr wollt."
+	},
+	"look_at_top_everyone": {
+		"body": "Jeder Held schaut sich die obersten [b]{look}[/b] :card: seines Nachziehstapels an, nimmt [b]{take}[/b] davon auf die Hand und legt die anderen [b]{back}[/b] in beliebiger Reihenfolge zurück."
+	},
+	"search_to_hand": {
+		"body": "[player]{player}[/player] nimmt [b]{count}[/b] :card: nach Wahl aus dem Nachziehstapel auf die Hand und mischt den Nachziehstapel."
+	},
+	"take_token": {
+		"body": "[player]{player}[/player] nimmt sich [damage]{count}[/damage] Statusmarke nach Wahl aus dem Vorrat."
+	},
+	"draw_and_play": {
+		"body": "[player]{player}[/player] zieht [b]{draw}[/b] :card:, spielt gleich [b]{play}[/b] davon und wirft die übrigen [b]{discard}[/b] ab."
+	},
+	"prompt_play_drawn": {
+		"body": "[player]{player}[/player], zeig eine der [b]gerade gezogenen Karten[/b] :card:."
 	}
 }

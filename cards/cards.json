@@ -1291,6 +1291,102 @@
       "symbols": [ { "type": "support", "strength": 3, "damage_type": "ranged" }, { "type": "draw", "strength": 1 } ],
       "effect": { "de": "Fernkampf-Verstärkung 3. Ein Held deiner Wahl darf 1 Karte ziehen." },
       "ability": "for_chosen_hero"
+    },
+    {
+      "qr": "zwEAAA==",
+      "deck": "loot",
+      "level": 4,
+      "title": { "de": "Spinneneier" },
+      "symbols": [ { "type": "attack", "strength": 2, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Fernkampf-Angriff 2. Verliert der Boss durch diesen Angriff Leben, entferne dieselbe Anzahl von Statusmarken von einem Helden deiner Wahl." },
+      "ability": "remove_tokens",
+      "ability_values": { "count_by": "damage", "choose": true }
+    },
+    {
+      "qr": "YAEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Stachel des Frostskorpions" },
+      "symbols": [ { "type": "direct_damage", "strength": 3 }, { "type": "poison", "strength": 2 } ],
+      "effect": { "de": "Der Boss verliert sofort 3 Leben. Der Boss erhält 2 Gift." }
+    },
+    {
+      "qr": "LAEAAA==",
+      "deck": "loot",
+      "level": 10,
+      "title": { "de": "Drachenspeichel" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Zwei unterschiedliche Helden deiner Wahl erhalten je 6 Lebenspunkte." },
+      "ability": "heal_hero",
+      "ability_values": { "amount": 6, "heroes": 2 }
+    },
+    {
+      "qr": "0gEAAA==",
+      "deck": "loot",
+      "level": 6,
+      "title": { "de": "Kompass der Verdammten" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Jeder Held schaut sich die obersten 3 Karten des eigenen Nachziehstapels an, nimmt 1 davon auf die Hand und legt die anderen 2 in beliebiger Reihenfolge zurück. Führe 1 weitere Aktion aus." },
+      "ability": "look_at_top",
+      "ability_values": { "look": 3, "take": 1 }
+    },
+    {
+      "qr": "ygEAAA==",
+      "deck": "loot",
+      "level": 2,
+      "title": { "de": "Verlorene Seele" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Durchsuche deinen Nachziehstapel nach 1 Karte deiner Wahl und nimm sie auf die Hand. Mische danach deinen Nachziehstapel." },
+      "ability": "search_to_hand",
+      "ability_values": { "count": 1 }
+    },
+    {
+      "qr": "zQEAAA==",
+      "deck": "loot",
+      "level": 3,
+      "title": { "de": "Sonnenring" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Entfernt als Gruppe insgesamt eine Anzahl Statusmarken entsprechend der aktuellen Runde (1 in Runde 1, 2 in Runde 2 usw.). Führe 1 weitere Aktion aus." },
+      "ability": "remove_tokens",
+      "ability_values": { "count_by": "round", "group": true }
+    },
+    {
+      "qr": "CQEAAA==",
+      "deck": "loot",
+      "level": 1,
+      "title": { "de": "Banner des Mutes" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Ein anderer Held deiner Wahl darf sofort 1 Aktion ausführen. Führe 1 weitere Aktion aus." },
+      "ability": "free_play",
+      "ability_values": { "cards": 1 }
+    },
+    {
+      "qr": "NwEAAA==",
+      "deck": "loot",
+      "level": 9,
+      "title": { "de": "Geflügelter Schild" },
+      "symbols": [ { "type": "protection", "strength": 4 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Schutz 4. Führe 1 weitere Aktion aus." }
+    },
+    {
+      "qr": "1wEAAA==",
+      "deck": "loot",
+      "level": 8,
+      "title": { "de": "Güldis Angel" },
+      "symbols": [ { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Ein Held deiner Wahl zieht 5 Karten, spielt davon 2 und wirft die restlichen 3 Karten ab." },
+      "ability": "draw_and_play",
+      "ability_values": { "draw": 5, "play": 2 }
+    },
+    {
+      "qr": "HwEAAA==",
+      "deck": "loot",
+      "level": 5,
+      "title": { "de": "Geisterrüstung" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "protection", "strength": 3 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 3. Schutz 3. Du musst dir 1 Statusmarke deiner Wahl aus dem Vorrat nehmen." },
+      "ability": "take_token",
+      "ability_values": { "count": 1 }
     }
   ]
 }
