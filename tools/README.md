@@ -44,4 +44,5 @@ The camera works on `http://127.0.0.1` (a secure context), not on a plain LAN ad
 save in place, Firefox downloads the file. In that mode **Scans folder…** shows photos while editing.
 
 Tests: `cd tools/ocr && python -m unittest` (text handling, and OCR of the card photos in `tools/ocr/fixtures`
-when tesseract is installed), `cd tools && python -m unittest` (catalog checks).
+when tesseract is installed; the photos show copyrighted cards and are kept out of the repository, so put them there
+locally under the names in `expected.json`, otherwise those tests are skipped), `cd tools && python -m unittest` (catalog checks).

@@ -9,3 +9,6 @@
 /scans/
 __pycache__/
 /.venv/
+
+# Photos of real cards for the OCR tests: copyrighted, keep them local
+/tools/ocr/fixtures/*.jpg

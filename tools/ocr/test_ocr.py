@@ -1,5 +1,8 @@
 """OCR of webcam photos of real cards (tools/ocr/fixtures), as the editor sends them: the dashed guide frame with
-its margin, JPEG at 1080p. Skipped when OpenCV, pytesseract or tesseract's German data are missing."""
+its margin, JPEG at 1080p. Skipped when OpenCV, pytesseract or tesseract's German data are missing.
+
+The photos show copyrighted cards, so they are not in the repository (see .gitignore): put them into
+tools/ocr/fixtures under the names in expected.json to run the photo tests; without them those are skipped."""
 
 import difflib
 import glob
@@ -21,18 +24,34 @@ except Exception:  # missing package or tesseract binary
     HAVE_OCR = False
 
 
+with open(os.path.join(FIXTURES, "expected.json"), encoding="utf-8") as f:
+    EXPECTED = json.load(f)
+HAVE_PHOTOS = all(os.path.exists(os.path.join(FIXTURES, name)) for name in EXPECTED)
+
+
 def normalised(text):
     return re.sub(r"\s+", " ", text).strip()
 
 
 @unittest.skipUnless(HAVE_OCR, "needs opencv, pytesseract and tesseract with German data")
+class QrSideTest(unittest.TestCase):
+    def test_no_effect_from_qr_side(self):
+        from ocr import read_front
+
+        for path in sorted(glob.glob(os.path.join(QR_FIXTURES, "*.png"))):
+            with self.subTest(os.path.basename(path)):
+                _, effect, ok = read_front(cv2.imread(path), "deu")[:3]
+                self.assertEqual((effect, ok), ("", False))
+
+
+@unittest.skipUnless(HAVE_OCR, "needs opencv, pytesseract and tesseract with German data")
+@unittest.skipUnless(HAVE_PHOTOS, "needs the card photos in tools/ocr/fixtures (not in the repository)")
 class OcrTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from ocr import read_front
 
-        with open(os.path.join(FIXTURES, "expected.json"), encoding="utf-8") as f:
-            cls.expected = json.load(f)
+        cls.expected = EXPECTED
         cls.read = {name: read_front(cv2.imread(os.path.join(FIXTURES, name)), "deu")[:3] for name in cls.expected}
 
     def test_titles(self):
@@ -55,14 +74,6 @@ class OcrTest(unittest.TestCase):
         for name in self.expected:
             with self.subTest(name):
                 self.assertIsNotNone(find_card(cv2.imread(os.path.join(FIXTURES, name))))
-
-    def test_no_effect_from_qr_side(self):
-        from ocr import read_front
-
-        for path in sorted(glob.glob(os.path.join(QR_FIXTURES, "*.png"))):
-            with self.subTest(os.path.basename(path)):
-                _, effect, ok = read_front(cv2.imread(path), "deu")[:3]
-                self.assertEqual((effect, ok), ("", False))
 
     def test_user_boxes(self):
         # boxes drawn around the text on the photo (the card lies at x 0.20-0.93, y 0.04-0.87) replace the found card
