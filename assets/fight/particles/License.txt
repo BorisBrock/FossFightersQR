@@ -1,0 +1,4 @@
+Particle Pack by Kenney (www.kenney.nl), CC0 1.0 Universal (public domain).
+https://kenney.nl/assets/particle-pack
+
+Scaled down to 256 x 256 for this game.

@@ -300,6 +300,55 @@ def boss_appears():
     mix(out, note(45, n, "sine", attack=0.6, decay=0.6), 0, 0.7)
     mix(out, note(67, n, "saw", attack=0.7, decay=0.5, vibrato=0.02), 0, 0.15)
     return lowpass(out, 600)
+
+def magic_hit():
+    """A bolt of magic hits the boss: a rising whoosh, then a sparkling splash."""
+    out = []
+    swell = lowpass(noise(0.16, 15, attack=0.12, decay=0.2), lambda t: 900 + 7000 * t / 0.16)
+    mix(out, swell, 0, 0.5)
+    mix(out, note(380, 0.18, "sine", attack=0.1, glide_to=1500), 0, 0.35)
+    # The splash: a hollow pop, a shimmering chord, and sparkles.
+    mix(out, note(900, 0.25, "sine", attack=0.001, decay=0.05, glide_to=260), 0.15, 0.8)
+    mix(out, highpass(noise(0.5, 16, decay=0.09), 2200), 0.15, 0.55)
+    for n, gain in (("E6", 0.5), ("B6", 0.35), ("G#6", 0.3)):
+        shimmer = note(hz(n), 0.7, "sine", attack=0.004, decay=0.22, vibrato=0.012)
+        mix(out, shimmer, 0.15, gain)
+    rng = random.Random(17)
+    for i in range(9):
+        mix(out, note(rng.uniform(3500, 9000), 0.08, decay=0.02, attack=0.001), 0.17 + rng.random() * 0.4, 0.18)
+    return out
+
+
+def arrow_hit():
+    """An arrow hits the boss: a short whistle, a wooden thunk and the shaft quivering."""
+    out = []
+    whistle = highpass(lowpass(noise(0.1, 18, attack=0.08, decay=0.2), lambda t: 2500 + 5000 * t / 0.1), 1500)
+    mix(out, whistle, 0, 0.45)
+    at = 0.09
+    mix(out, note(240, 0.18, "sine", attack=0.001, decay=0.035, glide_to=80), at, 1.0)
+    mix(out, lowpass(highpass(noise(0.05, 19, decay=0.01), 900), 5000), at, 0.9)
+    # The shaft quivering: a low twang that wobbles away.
+    twang = note(170, 0.35, "triangle", attack=0.002, decay=0.09, vibrato=0.05)
+    trem = [v * (0.6 + 0.4 * math.sin(2 * math.pi * 26 * i / RATE)) for i, v in enumerate(twang)]
+    mix(out, lowpass(trem, 1600), at + 0.01, 0.45)
+    return out
+
+
+def slash():
+    """A sword slashes across the boss: a fast swish, a ringing blade and a cut."""
+    out = []
+    n = 0.32
+    swish = noise(n, 20, attack=0.14, decay=0.12)
+    swish = lowpass(swish, lambda t: 600 + 9000 * math.sin(math.pi * min(1.0, t / n)) ** 2)
+    mix(out, highpass(swish, 400), 0, 1.0)
+    # The blade rings: high, inharmonic, long.
+    at = 0.13
+    for f, gain, d in ((2637, 0.5, 0.35), (3953, 0.35, 0.25), (5274, 0.25, 0.18), (6912, 0.15, 0.12)):
+        mix(out, note(f, 0.8, attack=0.002, decay=d, vibrato=0.002), at, gain)
+    # The cut: a tearing burst and a heavy thump.
+    mix(out, highpass(noise(0.18, 21, decay=0.04), 1200), at, 0.8)
+    mix(out, note(130, 0.3, "sine", attack=0.001, decay=0.07, glide_to=45), at, 0.9)
+    return out
 # endregion
 
 
@@ -322,11 +371,14 @@ SOUNDS = {
     "victory": victory,
     "defeat": defeat,
     "boss_appears": boss_appears,
+    "magic_hit": magic_hit,
+    "arrow_hit": arrow_hit,
+    "slash": slash,
 }
 
 
 # Quieter than the rest, as they come often.
-PEAKS = {"select": 0.4, "rejected": 0.6, "poison": 0.65}
+PEAKS = {"select": 0.4, "rejected": 0.6, "poison": 0.65, "magic_hit": 0.6, "arrow_hit": 0.65}
 
 
 if __name__ == "__main__":

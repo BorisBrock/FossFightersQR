@@ -11,9 +11,10 @@ const FOLDER := "res://assets/sounds/"
 const NAMES: Array[String] = [
 	"turn", "choose", "select", "rejected", "lightning", "hit", "shield_block",
 	"shield_break", "shields_up", "poison", "protect", "round", "boss_attack", "hurt",
-	"heal", "victory", "defeat", "boss_appears",
+	"heal", "victory", "defeat", "boss_appears", "magic_hit", "arrow_hit", "slash",
 ]
-const POLYPHONY := 3
+## Enough for a volley of arrows or bolts of magic, whose hits follow closely.
+const POLYPHONY := 6
 
 var _players := {}
 
@@ -30,11 +31,13 @@ func _ready() -> void:
 		_players[sound] = player
 
 
-func play(sound: String) -> void:
+## pitch varies a sound that plays again and again, such as the hits of a volley.
+func play(sound: String, pitch := 1.0) -> void:
 	var player: AudioStreamPlayer = _players.get(sound)
 	if player == null:
 		push_warning("Unknown sound '%s'" % sound)
 		return
+	player.pitch_scale = pitch
 	player.play()
 
 

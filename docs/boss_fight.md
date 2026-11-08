@@ -40,7 +40,16 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The prompt** in the upper half, between the seats at the sides, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
-- **Hits:** the boss lights up and the damage rises from it.
+- **Attacks:** a hero's attack plays a big effect over the boss, with a sound, before any number changes
+  (`AttackEffects`, `scripts/attack_effects.gd`): for **magic**, four or five bolts fly in from the heroes around
+  the table and splash on the boss in coloured rings, runes and sparks; for **melee**, a blade slashes across it,
+  more often for stronger attacks, each slash crossing the last, leaving a glowing cut and sparks; for **ranged**, a
+  volley of arrows from the bottom of the screen, each sticking in the boss with dust and splinters. Where they hit,
+  from where, in which colours and how many vary each time. They are particles (`CPUParticles2D`) and sprites from
+  `assets/fight/particles/` (the Kenney Particle Pack, CC0), and the boss lights up in their colour and shakes at
+  each hit.
+- **Hits,** step by step, each after the last (see [How a hit shows](#how-a-hit-shows)): the attack's effect, the
+  shield counting down, the shield breaking, and the damage left rising from the boss as its health counts down.
 - **Sounds:** what happens and what the players have to do, such as a hero's turn or choosing a hero, has a sound
   effect. See [Sounds](sounds.md).
 - **Top left:** end the fight. It asks first: *We have lost* (a hero has fallen) ends the fight as lost, *Stop the
@@ -61,11 +70,11 @@ on and take off themselves.
 2. **Each round:** *Round n: the boss is planning its attacks*, in one message without a check mark.
 3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`). While the message shows, the
    attack pops up at one seat after the other and counts up, and the tokens it gives besides pop up beside it.
-   Then the message closes by itself. Knowing the attacks, the players tap the hero who starts. With one hero,
-   nobody is asked.
+   Then the message closes by itself.
 4. **Shields:** the boss raises its shields (`Boss.raise_shields`). There is no message: a short *Shields* banner
    shows, the shields appear one after the other and count up to their values (`Fight.shields_raised`), and the
-   next message waits until they are done.
+   fight waits until they are done. Knowing the boss's attacks and shields, the players then tap the hero who
+   starts. With one hero, nobody is asked.
 5. **Actions:** curses are revealed, then the heroes take turns clockwise from the starter, three each. Each turn is one
    action: show a card, or *Pass*. Lightning gives another action within the same turn.
    Each hero's badge shows the actions they have left this round as spheres: **blue** for their three turns,
@@ -147,8 +156,29 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
   `MenuScreen.DIALOG_GROUP` while open, so that the back button is left to them.
 - Icons for the fight are in `assets/fight/`.
 
+## How a hit shows
+
+A hit on the boss shows in steps, one after the other, slowly enough to follow (`_show_step()` in the screen):
+
+1. **The attack:** its effect plays over the boss (`Fight.boss_attacked`, `AttackEffects.duration()`).
+2. **The shield** of its type, if it takes any of it, grows and counts down a point at a time, with a clank and a
+   spark each (`SHIELD_TICK_SEC`).
+3. **The shield breaks,** if it is now at 0: it trembles and glows, bursts into shards of its picture with a ring
+   of sparks, and then shows broken, grey and faint.
+4. **The damage left** rises from the boss as a red number, and its health counts down.
+
+Steps show the fight as it was when they were queued, so the screen keeps the boss's health and shields that it shows
+(`_shown_health`, `_shown_shields`) apart from the fight's. Meanwhile the fight waits: `_run_steps()` holds it with
+`Fight.hold_screen()` until the last step is done (`release_screen()`), as `Fight.until_read()` waits for the screen
+as for messages. So the next hero is asked for a card only once the hit has shown. Messages wait too
+(`MessageBox.hold()`), and the boss fades away when it is beaten only after the last hit.
+
+Damage past the shields (the broken heart, the boss's poison) has no effect of its own: the number rises and the
+health counts down. A shield lowered by an ability counts down and breaks the same way.
+
 ## Battery
 
-The background shader, the boss's movement and about 20 to 40 particles run all the time. The particles are cheap, and
+The background shader, the boss's movement and about 20 to 40 particles run all the time. An attack's effect adds a
+few hundred particles for a second or two. The particles are cheap, and
 the GPU is not where the power goes (see [Battery](qr_scanning.md#battery)), but measure again when the fight has its
 camera.

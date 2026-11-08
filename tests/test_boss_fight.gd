@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 89
+const EXPECTED_CHECKS := 93
 
 var _failures := 0
 var _checks_run := 0
@@ -109,6 +109,10 @@ func _check_screen() -> void:
 	_check(not get_tree().quit_on_go_back, "the back button of a phone does not quit the app")
 
 	screen.fight.deal_damage(7, "magic")
+	await get_tree().create_timer(0.5).timeout
+	_check(screen.is_showing_steps() and screen.get_node("AttackEffects").get_child_count() > 0, "an attack shows on the boss, with particles")
+	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard")), "before the health goes down")
+	await _until(func() -> bool: return not screen.is_showing_steps(), 6.0)
 	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard") - 7), "the health shown follows the fight")
 	_check(not screen.get_node("Hud/Poison").visible, "the boss's poison only shows once it has some")
 	screen.fight.poison_boss(2)
@@ -206,6 +210,7 @@ func _check_countdown() -> void:
 	while box.is_showing():
 		box._countdown_left = 0.1
 		await get_tree().create_timer(MessageBox.FADE_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
+	await _until(func() -> bool: return screen.fight.request != null, 4.0)
 	_check(not box.is_showing() and screen.fight.request != null, "when they have run down, they close, and the fight goes on")
 
 	screen.show_message("boss_poison", { "boss": "Toad", "poison": 1, "damage": 1 })
@@ -256,8 +261,12 @@ func _check_round() -> void:
 	_check(threats[0].visible and not threats[1].visible, "the boss plans them one hero after the other")
 	await _until(func() -> bool: return not box.is_showing(), 6.0)
 	_check(threats[1].visible and threats[0].get_node("Column/Value").text == str(screen.fight.hero_at(1).threat), "each hero sees the attack against them, beside their portrait")
-	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
+	await get_tree().process_frame
 	var prompt: Control = screen.get_node("Prompt")
+	var shield: Label = screen.get_node("Shields").get_child(0).get_node("Shield/Value")
+	_check(shield.text == "0" and not prompt.visible, "the boss's shields rise, and the players wait")
+	await get_tree().create_timer(1.6).timeout
+	_check(shield.text == "2", "they count up to the shields the boss raised")
 	_check(prompt.visible and tokens[1].mode == SeatToken.Mode.SELECTABLE and tokens[3].mode == SeatToken.Mode.SELECTABLE, "then the players are asked who starts")
 	await get_tree().create_timer(0.2).timeout
 	_check(tokens[1].get_node("Portrait").scale.x > 1.0, "the heroes to choose from pulse")
@@ -265,10 +274,7 @@ func _check_round() -> void:
 	await get_tree().process_frame
 	_check(screen.fight.starter.name == "Borin", "tapping a hero chooses them")
 	_check(tokens[1].get_node("Portrait").scale.x == 1.0, "and stop once one is chosen")
-	var shield: Label = screen.get_node("Shields").get_child(0).get_node("Shield/Value")
-	_check(box.current() == "phase_action" and not box.visible and shield.text == "0", "the boss's shields rise, and the next message waits")
-	await get_tree().create_timer(1.6).timeout
-	_check(shield.text == "2", "they count up to the shields the boss raised")
+	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	_check(box.current() == "phase_action" and box.visible, "then the action phase begins")
 	await _confirm(box)
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
@@ -284,16 +290,21 @@ func _check_round() -> void:
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0).timeout
 	_check(screen.fight.health == health, "the card waits for the pling")
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0 + 0.1).timeout
-	_check(screen.fight.health == health - 2 and screen.get_node("Hud/Health/Row/Value").text == str(health - 2), "after the pling, the card is played")
+	_check(screen.fight.health == health - 2 and screen.is_showing_steps(), "after the pling, the card is played, and its attack shows")
 	var melee: Control = screen.get_node("Shields/Melee/Attack")
 	var magic: Control = screen.get_node("Shields/Magic/Attack")
 	_check(melee.get_meta("open") and not magic.get_meta("open"), "the attack type it attacked with lights up, the others stay grey")
-	_check(text.get_parsed_text().contains("Sonja") and tokens[1].mode == SeatToken.Mode.ACTIVE, "then it is the next hero's turn")
 	pling.stop()
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())
 	_check(not pling.playing, "a card still in view does not pling again")
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC + 0.1).timeout
 	_check(not screen.get_node("Prompt/Layout/Notice").visible, "a card still in view does not count again")
+	var health_shown: Label = screen.get_node("Hud/Health/Row/Value")
+	_check(screen.fight.request == null and not prompt.visible and health_shown.text == str(health), "the next hero waits until the attack has shown, and the health too")
+	await _until(func() -> bool: return not screen.is_showing_steps(), 8.0)
+	await get_tree().process_frame
+	_check(shield.text == "0" and health_shown.text == str(health - 2), "the shield takes what it can, breaks, and the rest comes off the health")
+	_check(text.get_parsed_text().contains("Sonja") and tokens[1].mode == SeatToken.Mode.ACTIVE, "then it is the next hero's turn")
 	screen._on_code_read("NOPE", PackedVector2Array(), Vector2i())
 	_check(pling.playing, "an unknown card plings too, as it was read")
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC + 0.1).timeout

@@ -72,7 +72,7 @@ A hero has a name, a race, a class and a seat.
 | Message text is in files per language, with an id for each message | Text can be changed and languages added without touching code. The game only knows the ids and the placeholders. |
 | The text uses the device language unless changed in the settings, with German as the fallback | German is the language of the printed cards. |
 | The heroes' health and cards are not in the app | They are on the table, on the health counters and in the players' hands. The app keeps what only it can know: the boss's health and shields, its attacks and the tokens it gives. The heroes' status tokens are on the table too, so the app does not track or show them. |
-| Who starts is chosen after the boss has planned its attacks | Knowing the attacks, the players can plan their turns, such as letting a hero with Protection go first. |
+| Who starts is chosen after the boss has planned its attacks and raised its shields | Knowing the attacks and shields, the players can plan their turns, such as letting a hero with Protection go first, or one who can break a strong shield. |
 | Every phase is announced, also when nothing happens in it | The players always know where in the round they are. Phases that go together share a message. |
 | Card results that need no doing show on screen, not as a message | Damage and shields can be seen. Messages are for what players have to do (draw, heal, take tokens), so they do not tap through every attack. |
 | Boss, cards and hero abilities all are `FightRule`s with the same hooks | A special rule can come from anywhere, and each kind of moment needs only one hook for all of them. |

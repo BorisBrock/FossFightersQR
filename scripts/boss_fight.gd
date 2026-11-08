@@ -38,6 +38,20 @@ const SHIELD_APPEAR_SEC := 0.35
 const SHIELD_STAGGER_SEC := 0.2
 const SHIELD_COUNT_SEC := 0.6
 const SHIELD_BANNER_SEC := 1.4
+## A hit on the boss shows one step after the other, and the fight waits meanwhile (see
+## _show_step): the attack (AttackEffects), its shield counting down, the shield breaking,
+## and the damage that is left coming off its health.
+## The shield counts down a point each SHIELD_TICK_SEC, in SHIELD_COUNT_MAX_SEC at most.
+const SHIELD_TICK_SEC := 0.24
+const SHIELD_COUNT_MAX_SEC := 1.2
+## A breaking shield trembles and glows, bursts into shards, then shows broken.
+const SHIELD_TREMBLE_SEC := 0.45
+const SHIELD_BROKEN_SEC := 0.9
+const BROKEN_ALPHA := 0.45
+const DAMAGE_SEC := 0.25
+const HEALTH_STEP_SEC := 0.8
+## Between the steps of a hit.
+const STEP_PAUSE_SEC := 0.2
 const HIT_COLOR := Color(1.0, 0.36, 0.28)
 const TOKEN_ICONS := {
 	"poison": "res://assets/fight/icon_poison.svg",
@@ -115,6 +129,21 @@ var _plate: StyleBox
 var _global_buffs: BuffChips
 ## The sound effects of what happens in the fight. See docs/sounds.md.
 var _sfx: Sfx
+## The big effects of the heroes' attacks, over the boss.
+var _effects: AttackEffects
+## What the screen shows one after the other, as [what, seconds], such as the steps of a
+## hit on the boss. The fight and its messages wait meanwhile.
+var _steps: Array[Array] = []
+var _steps_running := false
+## When the steps waiting now will be done.
+var _steps_end_msec := 0
+## The boss's health and shields once the steps waiting now are done.
+var _shown_health := 0
+var _shown_shields := {}
+## The boss is raising its shields: they show all at once, when it is done.
+var _raising := false
+var _flash_tween: Tween
+var _shake_tween: Tween
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
@@ -156,6 +185,7 @@ func _ready() -> void:
 	fight.shields_changed.connect(_on_shields_changed)
 	fight.poison_changed.connect(_on_poison_changed)
 	fight.shields_raised.connect(_on_shields_raised)
+	fight.boss_attacked.connect(_on_boss_attacked)
 	fight.hero_changed.connect(_refresh_badge)
 	fight.hero_changed.connect(_refresh_form)
 	fight.phase_changed.connect(_on_phase_changed)
@@ -176,6 +206,14 @@ func _ready() -> void:
 	_make_badges()
 	_make_global_buffs()
 	_make_shields()
+	_shown_health = fight.health
+	_shown_shields = fight.shields.duplicate()
+	_effects = AttackEffects.new()
+	_effects.sfx = _sfx
+	_effects.impact.connect(_on_impact)
+	add_child(_effects)
+	# Over the boss, the heroes and the shields, under the prompt, messages and HUD.
+	move_child(_effects, _shields.get_index() + 1)
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
 	_give_up.pressed.connect(go_back)
@@ -338,9 +376,21 @@ func _on_round_changed(round_number: int) -> void:
 		_revealed[seat] = false
 
 
+## The health shown counts to the new value, after what the screen shows before it, such
+## as the attack that hurt the boss.
 func _on_health_changed(health: int, _max_health: int) -> void:
-	_health.text = str(health)
-	_pop(_health)
+	var old := _shown_health
+	_shown_health = health
+	if health != old:
+		_show_step(_count_health.bind(old, health), HEALTH_STEP_SEC)
+
+
+func _count_health(from: int, to: int) -> void:
+	var count := create_tween()
+	count.tween_method(func(value: int) -> void: _health.text = str(value), from, to, HEALTH_STEP_SEC * 0.6)
+	count.tween_callback(func() -> void:
+		_health.text = str(to)
+		_pop(_health))
 
 
 func _on_poison_changed(poison: int) -> void:
@@ -663,7 +713,9 @@ func _refresh_buffs() -> void:
 		token.show_totem(hero != null and fight.has_totem(hero))
 
 
-func _on_phase_changed(_phase: Fight.Phase) -> void:
+func _on_phase_changed(phase: Fight.Phase) -> void:
+	if phase == Fight.Phase.SHIELD:
+		_raising = true
 	for hero in fight.heroes:
 		_refresh_badge(hero)
 
@@ -761,28 +813,100 @@ func _on_attacked_changed(kinds: Array[String]) -> void:
 			state.modulate.a = 0.6
 
 
+## The shields shown follow the fight's, after what the screen shows before: a shield that
+## takes a hit counts down, and breaks at 0.
 func _on_shields_changed(shields: Dictionary) -> void:
 	# While the boss raises them, they appear once it is done (see _on_shields_raised).
-	if fight.phase == Fight.Phase.SHIELD:
+	if _raising:
 		return
+	for kind: String in _shield_plates:
+		var old: int = _shown_shields.get(kind, 0)
+		var new: int = shields.get(kind, 0)
+		if new == old:
+			continue
+		_shown_shields[kind] = new
+		if new > old:
+			_show_step(_set_shield.bind(kind, new), 0.35)
+			continue
+		_show_step(_count_shield.bind(kind, old, new), _shield_count_seconds(old - new) + STEP_PAUSE_SEC)
+		if new == 0:
+			_show_step(_break_shield.bind(kind), SHIELD_TREMBLE_SEC + SHIELD_BROKEN_SEC + STEP_PAUSE_SEC)
+
+
+func _set_shield(kind: String, value: int) -> void:
 	if _shields.modulate.a < 1.0:
 		create_tween().tween_property(_shields, "modulate:a", 1.0, 0.4)
-	for kind: String in _shield_plates:
-		var plate: Control = _shield_plates[kind]
-		var value: Label = plate.get_node("Value")
-		var text := "%d" % shields.get(kind, 0)
-		if value.text != text:
-			value.text = text
-			_pop(plate)
-		_show_shield_state(plate, shields.get(kind, 0))
+	var plate: Control = _shield_plates[kind]
+	(plate.get_node("Value") as Label).text = str(value)
+	_show_shield_state(plate, value)
+	_pop(plate)
+
+
+func _shield_count_seconds(points: int) -> float:
+	return 0.15 + points * _shield_tick(points) + 0.2
+
+
+func _shield_tick(points: int) -> float:
+	return minf(SHIELD_TICK_SEC, SHIELD_COUNT_MAX_SEC / maxi(1, points))
+
+
+## The shield takes the hit: it grows, and counts down a point at a time, clanking.
+func _count_shield(kind: String, from: int, to: int) -> void:
+	var plate: Control = _shield_plates[kind]
+	var value: Label = plate.get_node("Value")
+	var tick := _shield_tick(from - to)
+	plate.pivot_offset = plate.size / 2.0
+	var tween := create_tween()
+	tween.tween_property(plate, "scale", Vector2.ONE * 1.18, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	for shown in range(from - 1, to - 1, -1):
+		tween.tween_callback(func() -> void:
+			value.text = str(shown)
+			value.add_theme_color_override("font_color", HIT_COLOR)
+			plate.scale = Vector2.ONE * 1.3
+			_sfx.play("shield_block", 1.0 + 0.05 * (from - shown))
+			_effects.spark(plate))
+		tween.tween_property(plate, "scale", Vector2.ONE * 1.18, tick).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func() -> void:
+		value.text = str(to)
+		value.remove_theme_color_override("font_color")
+		if to > 0:
+			_show_shield_state(plate, to))
+	tween.tween_property(plate, "scale", Vector2.ONE, 0.2)
+
+
+## The shield at 0 breaks: it trembles and glows, bursts into shards, and shows broken.
+func _break_shield(kind: String) -> void:
+	var plate: Control = _shield_plates[kind]
+	var picture: TextureRect = plate.get_node("Icon")
+	plate.pivot_offset = plate.size / 2.0
+	var tween := create_tween()
+	tween.tween_method(func(t: float) -> void:
+		plate.rotation = sin(t * 48.0) * 0.12 * t
+		plate.scale = Vector2.ONE * (1.0 + 0.22 * t)
+		picture.self_modulate = Color.WHITE.lerp(Color(2.4, 2.1, 1.7), t), 0.0, 1.0, SHIELD_TREMBLE_SEC).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func() -> void:
+		_sfx.play("shield_break")
+		_effects.shatter(picture)
+		plate.rotation = 0.0
+		plate.scale = Vector2.ONE
+		picture.self_modulate = Color.WHITE
+		_show_shield_state(plate, 0)
+		plate.modulate.a = 0.0)
+	tween.tween_interval(SHIELD_BROKEN_SEC - 0.4)
+	tween.tween_property(plate, "modulate:a", BROKEN_ALPHA, 0.4)
 
 
 ## Instead of a message: the shields appear one after the other and count up to their
-## values. The next message waits until they are done.
+## values. The fight and the next message wait until they are done.
 func _on_shields_raised(shields: Dictionary) -> void:
+	_raising = false
+	_shown_shields = shields.duplicate()
+	var seconds := SHIELD_APPEAR_SEC + SHIELD_STAGGER_SEC * (_shield_plates.size() - 1) + SHIELD_COUNT_SEC
+	_show_step(_raise_shields.bind(shields.duplicate()), seconds + 0.2)
+
+
+func _raise_shields(shields: Dictionary) -> void:
 	var kinds: Array = _shield_plates.keys()
-	var seconds := SHIELD_APPEAR_SEC + SHIELD_STAGGER_SEC * (kinds.size() - 1) + SHIELD_COUNT_SEC
-	messages.hold(seconds + 0.2)
 	var none := not shields.values().any(func(value: int) -> bool: return value > 0)
 	if not none:
 		_sfx.play("shields_up")
@@ -815,31 +939,98 @@ func _on_shields_raised(shields: Dictionary) -> void:
 			_show_shield_state(plate, to))
 
 
-func _on_boss_hit(kind: String, absorbed: int, dealt: int) -> void:
-	if absorbed > 0:
-		_sfx.play("shield_break" if fight.shields.get(kind, 0) == 0 else "shield_block")
-	if dealt <= 0:
-		return
+## A hero attacks: the big effect of the attack's kind plays over the boss first.
+func _on_boss_attacked(kind: String, amount: int) -> void:
+	var seconds := AttackEffects.duration(kind, amount)
+	if seconds > 0.0:
+		_show_step(func() -> void: _effects.play(kind, amount, _boss_area()), seconds)
+
+
+func _on_boss_hit(_kind: String, _absorbed: int, dealt: int) -> void:
+	if dealt > 0:
+		_show_step(_show_damage.bind(dealt), DAMAGE_SEC)
+
+
+## The damage that reaches the boss's health rises from it, before the health counts down.
+func _show_damage(dealt: int) -> void:
 	_sfx.play("hit")
-	var material := _figure.material as ShaderMaterial
-	var flash := create_tween()
-	flash.tween_method(func(value: float) -> void: material.set_shader_parameter("flash", value), 0.8, 0.0, 0.45)
+	_on_impact(Vector2.ZERO, 0.7, Color.WHITE)
 	var number := Label.new()
 	number.text = "-%d" % dealt
 	number.theme_type_variation = &"Title"
-	number.add_theme_font_size_override("font_size", 72)
+	number.add_theme_font_size_override("font_size", 84)
 	number.add_theme_color_override("font_color", HIT_COLOR)
 	number.add_theme_color_override("font_outline_color", Color(0.1, 0.02, 0.0))
-	number.add_theme_constant_override("outline_size", 10)
+	number.add_theme_constant_override("outline_size", 12)
 	number.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(number)
-	move_child(number, _figure.get_index() + 1)
+	move_child(number, _effects.get_index() + 1)
 	number.reset_size()
+	number.pivot_offset = number.size / 2.0
 	number.position = _figure.position + _figure.size * Vector2(0.5, 0.4) - number.size / 2.0
+	number.scale = Vector2.ONE * 0.4
 	var rise := create_tween().set_parallel()
-	rise.tween_property(number, "position:y", number.position.y - 120.0, 1.1).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	rise.tween_property(number, "modulate:a", 0.0, 0.5).set_delay(0.6)
+	rise.tween_property(number, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	rise.tween_property(number, "position:y", number.position.y - 140.0, 1.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	rise.tween_property(number, "modulate:a", 0.0, 0.5).set_delay(0.9)
 	rise.chain().tween_callback(number.queue_free)
+
+
+## Something hit the boss: it lights up in the colour of the hit, and shakes.
+func _on_impact(_point: Vector2, strength: float, color: Color) -> void:
+	var material := _figure.material as ShaderMaterial
+	material.set_shader_parameter("flash_color", color.lerp(Color.WHITE, 0.5))
+	if _flash_tween != null:
+		_flash_tween.kill()
+	_flash_tween = create_tween()
+	_flash_tween.tween_method(func(value: float) -> void: material.set_shader_parameter("flash", value), 0.45 * strength, 0.0, 0.35)
+	if _shake_tween != null:
+		_shake_tween.kill()
+	var phase := randf() * TAU
+	_shake_tween = create_tween()
+	_shake_tween.tween_method(func(t: float) -> void:
+		material.set_shader_parameter("shake", Vector2(sin(phase + t * 55.0), cos(phase + t * 41.0)) * 18.0 * strength * (1.0 - t)), 0.0, 1.0, 0.35)
+
+
+## Where the boss's picture is drawn, in the screen's coordinates.
+func _boss_area() -> Rect2:
+	var area := Rect2(_figure.position, _figure.size)
+	if _figure.texture == null:
+		return area
+	var texture_size := _figure.texture.get_size()
+	var fit := minf(area.size.x / texture_size.x, area.size.y / texture_size.y)
+	var drawn := texture_size * fit
+	return Rect2(area.position + (area.size - drawn) / 2.0, drawn)
+
+
+## Shows what step does, after the steps before it are done. It takes seconds, which the
+## fight waits for (Fight.hold_screen), and the messages too.
+func _show_step(step: Callable, seconds: float) -> void:
+	_steps.append([step, seconds])
+	var now := Time.get_ticks_msec()
+	_steps_end_msec = maxi(_steps_end_msec, now) + roundi(seconds * 1000.0)
+	messages.hold((_steps_end_msec - now) / 1000.0)
+	if not _steps_running:
+		_run_steps()
+
+
+## Whether the screen is still showing steps (_show_step), such as a hit on the boss.
+func is_showing_steps() -> bool:
+	return _steps_running
+
+
+func _run_steps() -> void:
+	_steps_running = true
+	fight.hold_screen()
+	while not _steps.is_empty():
+		var step: Array = _steps.pop_front()
+		(step[0] as Callable).call()
+		if step[1] > 0.0:
+			await get_tree().create_timer(step[1]).timeout
+		if not is_inside_tree():
+			return
+	_steps_running = false
+	fight.release_screen()
 
 
 func _on_message_shown(id: String) -> void:
@@ -898,10 +1089,12 @@ func _reveal_threat(hero: FightHero) -> void:
 		tween.tween_property(effects, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## Once the last hit has shown, the boss fades away.
 func _on_won() -> void:
-	var fade := create_tween().set_parallel()
-	fade.tween_property(_figure, "modulate:a", 0.0, 1.6).set_delay(0.3)
-	fade.tween_property(_shields, "modulate:a", 0.0, 0.5)
+	_show_step(func() -> void:
+		var fade := create_tween().set_parallel()
+		fade.tween_property(_figure, "modulate:a", 0.0, 1.6).set_delay(0.3)
+		fade.tween_property(_shields, "modulate:a", 0.0, 0.5), 0.0)
 #endregion
 
 

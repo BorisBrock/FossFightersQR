@@ -22,8 +22,11 @@ script also has to be added to `Sfx.NAMES`.
 | `rejected`     | A card shown cannot be played now (any notice but Lightning's).                          |
 | `lightning`    | Lightning gives another action.                                                          |
 | `hit`          | Damage reaches the boss's health.                                                        |
-| `shield_block` | A shield takes damage, or is lowered.                                                    |
-| `shield_break` | A shield is brought to 0.                                                                |
+| `shield_block` | A shield takes damage, or is lowered: once for each point it counts down.                |
+| `shield_break` | A shield is brought to 0, as it bursts.                                                  |
+| `magic_hit`    | A bolt of a magic attack splashes on the boss, at a slightly different pitch each time.  |
+| `slash`        | A melee attack's blade slashes across the boss.                                          |
+| `arrow_hit`    | An arrow of a ranged attack hits the boss, at a slightly different pitch each time.     |
 | `shields_up`   | The boss raises its shields (not when it has none).                                      |
 | `poison`       | The boss gets poison tokens; its poison hurts it at the end of a round. A planned attack that poisons pops up its poison token. |
 | `protect`      | An attack against a hero is lowered in the action phase, or every attack was blocked.    |

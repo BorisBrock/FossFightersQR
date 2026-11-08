@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 466
+const EXPECTED_CHECKS := 469
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -110,11 +110,18 @@ func _check_round() -> void:
 	_check(_told[-1] == "round_started" and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins")
 	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in the same message")
 	_check(fight.hero_at(1).threat == 4 and fight.hero_at(5).threat_effects == { "poison": 1 }, "against each hero")
+	var attacked := []
+	fight.boss_attacked.connect(func(kind: String, amount: int) -> void: attacked.append([kind, amount]))
+	# The screen shows the shields rising, and the fight waits for it.
+	fight.shields_raised.connect(func(_shields: Dictionary) -> void: fight.hold_screen(), CONNECT_ONE_SHOT)
 	_ready(fight)
-	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "knowing them, the players choose who starts")
-	fight.choose(fight.hero_at(3))
-	_check(fight.starter == fight.hero_at(3) and fight.shields == { "melee": 2, "ranged": 0, "magic": 1 }, "and raises its shields")
+	_check(fight.phase == Fight.Phase.SHIELD and fight.shields == { "melee": 2, "ranged": 0, "magic": 1 }, "then the boss raises its shields")
 	_check(not _told.has("phase_shield") and _raised == [fight.shields], "shown as they rise, without a message")
+	_check(fight.request == null, "and the players wait while the screen shows them")
+	fight.release_screen()
+	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "knowing the attacks and shields, the players choose who starts")
+	fight.choose(fight.hero_at(3))
+	_check(fight.starter == fight.hero_at(3), "tapping a hero chooses them")
 	_check(_told[-1] == "phase_action" and _values[-1].player == "Borin", "the action phase starts with the chosen hero")
 	_ready(fight)
 	_check(_asks_card_of(fight, 3), "whose card is asked for first")
@@ -122,6 +129,7 @@ func _check_round() -> void:
 	# Borin: a melee attack breaks the shield first.
 	_check(fight.scan(_card("AXE", [["attack", 5, "melee"]], "dwarf")) == "", "a card is played")
 	_check(fight.shields.melee == 0 and fight.health == 27, "its damage breaks the shield of its kind, then hurts")
+	_check(attacked == [["melee", 5]], "the screen hears of the attack, to show it")
 	_check(boss.calls.slice(-2) == ["hurt 30 27", "played AXE"], "the boss hears of it")
 	_check(_asks_card_of(fight, 5), "the next hero clockwise follows")
 

@@ -5,7 +5,8 @@ extends RefCounted
 ##
 ## The fight runs by itself from start() on, round after round, phase after phase, and
 ## waits for the players whenever it needs them:
-## - until they have read its messages (players_ready()),
+## - until they have read its messages (players_ready()), and seen what the screen shows
+##   (hold_screen(), release_screen()), such as a hit on the boss,
 ## - for an answer to what it asks (request, request_changed): a hero to choose
 ##   (choose()), a card to play (scan(), pass_action()) or an option (choose_option()).
 ## The screen shows all of it and passes on what the players do, so the rules can run
@@ -34,6 +35,9 @@ signal request_changed(request: Request)
 signal message(id: String, values: Dictionary)
 ## A short note that needs no confirming, such as why a card cannot be played now.
 signal notice(id: String, values: Dictionary)
+## A hero attacks the boss with amount of kind, one of DAMAGE_TYPES, before its shield
+## takes any of it (see boss_hit). The screen shows the attack.
+signal boss_attacked(kind: String, amount: int)
 ## Damage went to the boss: absorbed by its shield of kind, and dealt to its health.
 signal boss_hit(kind: String, absorbed: int, dealt: int)
 ## The damage types attacked this round changed (attacked): one was attacked for the first
@@ -134,12 +138,15 @@ var rng := RandomNumberGenerator.new()
 
 var _round_rules: Array[FightRule] = []
 var _unread := 0
+## How many things the screen is showing that the fight waits for, see hold_screen().
+var _screen_holds := 0
 ## The boss's hits in this attack phase, as [hero, damage, effects], told together.
 var _hits: Array[Array] = []
 ## Where what happens now comes from, innermost last, see source().
 var _sources: Array[Dictionary] = []
 
 signal _read
+signal _screen_released
 signal _answered(value: Variant)
 
 
@@ -171,6 +178,22 @@ func players_ready() -> void:
 	if _unread > 0:
 		_unread = 0
 		_read.emit()
+
+
+## The screen shows something the players should see before the fight goes on, such as
+## a hit on the boss: until_read() waits for it, as for messages. Each call needs a
+## release_screen().
+func hold_screen() -> void:
+	_screen_holds += 1
+
+
+## The screen is done with what hold_screen() waited for.
+func release_screen() -> void:
+	if _screen_holds <= 0:
+		return
+	_screen_holds -= 1
+	if _screen_holds == 0:
+		_screen_released.emit()
 
 
 ## Answers a HERO request.
@@ -245,10 +268,14 @@ func source() -> Dictionary:
 	return _sources.back() if not _sources.is_empty() else {}
 
 
-## Waits until the players have read every message so far.
+## Waits until the players have read every message so far, and the screen has shown what
+## happened (hold_screen()).
 func until_read() -> void:
-	if _unread > 0 and not over:
-		await _read
+	while not over and (_unread > 0 or _screen_holds > 0):
+		if _unread > 0:
+			await _read
+		else:
+			await _screen_released
 
 
 ## Asks the players for a hero. Returns it at once if only one fits and the players
@@ -474,6 +501,8 @@ func play_again(original: CardPlay, by: CardPlay) -> CardPlay:
 func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if over or amount <= 0:
 		return 0
+	if kind in DAMAGE_TYPES:
+		boss_attacked.emit(kind, amount)
 	var absorbed := mini(amount, shields.get(kind, 0))
 	if absorbed > 0:
 		shields[kind] -= absorbed
@@ -718,10 +747,6 @@ func _play_round() -> void:
 	await until_read()
 	if over:
 		return
-	# Knowing the boss's attacks, the players choose who starts.
-	await _choose_starter()
-	if over:
-		return
 
 	await _phase(Phase.SHIELD)
 	await _rule_hook(boss, "raise_shields")
@@ -730,6 +755,10 @@ func _play_round() -> void:
 	if over:
 		return
 	shields_raised.emit(shields)
+	# Knowing the boss's attacks and shields, the players choose who starts.
+	await _choose_starter()
+	if over:
+		return
 
 	await _phase(Phase.ACTION)
 	tell("phase_action", { "player": starter.name if starter != null else "" })
@@ -1055,3 +1084,4 @@ func _release() -> void:
 		request_changed.emit(null)
 	_answered.emit(null)
 	_read.emit()
+	_screen_released.emit()
