@@ -55,7 +55,8 @@ What the fight reads from a card (see [The boss fight](boss_fight.md#how-a-fight
   `ability_values` for it. Left out for cards that only have symbols.
 - **`uses_per_fight`:** how often each hero can use the card in a fight, such as a potion. Left out for no limit.
 - **`tags`:** what kind of card it is, for rules that care, such as `totem` or `form` (the Soul Shaman's first totem
-  each round gets a Lightning). Left out for none.
+  each round gets a Lightning). Left out for none. Cards tagged `form`, the dryad's forms, lie by her character card
+  like items: they never go to the play area and can be played again in the same round (`Card.stays_on_table()`).
 - **`deck`:** cards of a race's or class's deck can only be played by the hero of that race or class. Cards of
   `items` can be used again in the same round.
 
@@ -121,6 +122,7 @@ serves many cards.
 | `lower_shield` | A shield of the players' choice goes down by `amount`, without its effect; nothing beyond the shield reaches the boss. | `amount` (7) | Explosivkristall |
 | `shield_break_damage` | If the card's attack breaks a shield, the boss loses `damage` health at once. | `damage` (3) | Kristallorb |
 | `poison_on_attack` | For the rest of the fight, the boss gets `poison` poison each time its attack strikes a hero of the players' choice with `threshold` or more. With `remove_card`, the card is then out of the game. | `threshold` (4), `poison` (1), `remove_card` (false) | Krone des Prinzen |
+| `dryad_form` | The dryad takes a form, which she keeps until she takes another (`FightHero.form`), and her seat shows it. `thorn`: her attacks and supports +1. `blossom`: she heals 3 each time her attack or support costs the boss health. `bark`: her Protection +1. Refused while she already has that form. | `form` (`thorn`, `blossom`, `bark`) | Stachelform, Blütenform, Borkenform |
 | `weaken_next_round` | Next round, every attack of the boss is `amount` lower. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `amount` (3), `chosen_hero` (false) | Magische Eruption |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its

@@ -38,6 +38,9 @@ var pending: Array[Action] = []
 var played: Array[String] = []
 ## How often this hero used each card in the fight, by QR code, for cards with a limit.
 var uses := {}
+## The form the dryad has taken (dryad_form), such as "thorn", or empty for none. It stays
+## until she takes another.
+var form := ""
 ## For rules that need to remember something about a hero.
 var notes := {}
 

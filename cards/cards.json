@@ -1079,6 +1079,36 @@
       "effect": { "de": "Entferne 1 Statusmarke von einem Helden deiner Wahl. Entferne je 1 Statusmarke von jedem Helden." },
       "ability": "remove_tokens",
       "ability_values": { "count": 1, "choose": true, "every_hero": 1 }
+    },
+    {
+      "qr": "vQEAAA==",
+      "deck": "dryad",
+      "level": 3,
+      "title": { "de": "Stachelform" },
+      "effect": { "de": "In der Stachelform sind alle deine Angriffe und Verstärkungen um 1 erhöht. Die Dryade kann als Aktion diese Form annehmen." },
+      "ability": "dryad_form",
+      "ability_values": { "form": "thorn" },
+      "tags": [ "form" ]
+    },
+    {
+      "qr": "vgEAAA==",
+      "deck": "dryad",
+      "level": 3,
+      "title": { "de": "Blütenform" },
+      "effect": { "de": "In der Blütenform erhältst du jedes Mal 3 Lebenspunkte, wenn der Boss durch deine Angriffe oder Verstärkungen Leben verliert. Die Dryade kann als Aktion diese Form annehmen." },
+      "ability": "dryad_form",
+      "ability_values": { "form": "blossom" },
+      "tags": [ "form" ]
+    },
+    {
+      "qr": "vAEAAA==",
+      "deck": "dryad",
+      "level": 3,
+      "title": { "de": "Borkenform" },
+      "effect": { "de": "In der Borkenform sind alle deine Schutz-Effekte um 1 erhöht. Die Dryade kann als Aktion diese Form annehmen." },
+      "ability": "dryad_form",
+      "ability_values": { "form": "bark" },
+      "tags": [ "form" ]
     }
   ]
 }

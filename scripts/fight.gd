@@ -392,7 +392,7 @@ func play_card(play: CardPlay) -> void:
 	var hero := play.hero
 	play.round_number = round_number
 	if not play.replay:
-		if not play.card.is_item():
+		if not play.card.stays_on_table():
 			hero.played.append(play.card.qr)
 		hero.uses[play.card.qr] = hero.uses.get(play.card.qr, 0) + 1
 		history.append(play)

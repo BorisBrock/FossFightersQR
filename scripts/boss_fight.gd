@@ -129,6 +129,7 @@ func _ready() -> void:
 	fight.poison_changed.connect(_on_poison_changed)
 	fight.shields_raised.connect(_on_shields_raised)
 	fight.hero_changed.connect(_refresh_badge)
+	fight.hero_changed.connect(_refresh_form)
 	fight.phase_changed.connect(_on_phase_changed)
 	fight.turn_changed.connect(func(_hero: FightHero) -> void: _refresh_seats())
 	fight.request_changed.connect(_on_request_changed)
@@ -468,6 +469,14 @@ func _make_badges() -> void:
 		badge.hide()
 		token.add_child(badge)
 		_badges[token.seat] = badge
+
+
+## The dryad's seat shows the form she has taken.
+func _refresh_form(hero: FightHero) -> void:
+	for token: SeatToken in _seats:
+		if token.seat == hero.seat and token.form != hero.form:
+			token.show_form(hero.form)
+			token.pop()
 
 
 func _refresh_badge(hero: FightHero) -> void:

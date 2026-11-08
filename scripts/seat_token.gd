@@ -22,17 +22,28 @@ const DASH_COUNT := 16
 const RING_RADIUS := 36.0
 const GOLD := Color(0.98, 0.82, 0.45)
 const SELECTABLE_TURNS_PER_SECOND := 0.08
+## The forms the dryad can take (FightHero.form): a badge by her portrait, and the colour
+## of its ring and of her picture.
+const FORMS := {
+	"thorn": { "icon": "res://assets/fight/icon_form_thorn.svg", "ring": Color(0.88, 0.3, 0.18), "tint": Color(1.0, 0.86, 0.8) },
+	"blossom": { "icon": "res://assets/fight/icon_form_blossom.svg", "ring": Color(0.94, 0.54, 0.69), "tint": Color(1.0, 0.92, 0.94) },
+	"bark": { "icon": "res://assets/fight/icon_form_bark.svg", "ring": Color(0.55, 0.36, 0.18), "tint": Color(0.92, 0.84, 0.74) },
+}
+const RING_COLOR := Color(0.85, 0.66, 0.3)
 
 @export_range(0, 6) var seat := 0
 ## How far the token is turned: 0 faces the bottom edge, 90 the left and -90 the right.
 @export var facing_degrees := 0.0
 
 var mode := Mode.IDLE
+## The form the hero here has taken, see FORMS. Empty for none.
+var form := ""
 var _hero: Party.Hero
 var _time := 0.0
 
 @onready var _portrait: TextureRect = $Portrait
 @onready var _crest: TextureRect = $Crest
+@onready var _form: TextureRect = $Form
 @onready var _plate: Control = $NamePlate
 @onready var _name: Label = $NamePlate/Name
 @onready var _hit: Button = $Hit
@@ -85,7 +96,21 @@ func show_hero(hero: Party.Hero) -> void:
 		_portrait.texture = load(HeroOptions.RACES[hero.race].art)
 		_crest.texture = load(HeroOptions.CLASSES[hero.hero_class].art)
 		_name.text = hero.name
+	show_form("")
 	queue_redraw()
+
+
+## Shows the form the hero has taken, see FORMS, or none for "".
+func show_form(new_form: String) -> void:
+	form = new_form if FORMS.has(new_form) else ""
+	var look: Dictionary = FORMS.get(form, {})
+	_form.visible = not look.is_empty()
+	_form.texture = load(look.icon) if not look.is_empty() else null
+	_portrait.self_modulate = look.get("tint", Color.WHITE)
+	(_portrait.material as ShaderMaterial).set_shader_parameter("ring_color", look.get("ring", RING_COLOR))
+	if _form.visible:
+		_form.scale = Vector2(0.2, 0.2)
+		create_tween().tween_property(_form, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func set_mode(new_mode: Mode) -> void:

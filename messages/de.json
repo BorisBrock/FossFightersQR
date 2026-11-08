@@ -316,5 +316,20 @@
 	},
 	"remove_tokens_everyone": {
 		"body": "Jeder Held entfernt bis zu [heal]{count}[/heal] eigene Marker."
+	},
+	"form_thorn": {
+		"title": "Stachelform",
+		"body": "[player]{player}[/player] nimmt die Stachelform an: Alle ihre Angriffe und Verstärkungen bekommen [heal]+1[/heal]."
+	},
+	"form_blossom": {
+		"title": "Blütenform",
+		"body": "[player]{player}[/player] nimmt die Blütenform an: Jedes Mal, wenn ihre Angriffe oder Verstärkungen den Boss Leben kosten, heilt sie [heal]3 Lebenspunkte[/heal] :health:."
+	},
+	"form_bark": {
+		"title": "Borkenform",
+		"body": "[player]{player}[/player] nimmt die Borkenform an: Jeder ihrer Schutz-Effekte :shield: bekommt [heal]+1[/heal]."
+	},
+	"notice_form_already": {
+		"body": "[player]{player}[/player] hat diese Form schon."
 	}
 }

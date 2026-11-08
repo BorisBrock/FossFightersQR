@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 241
+const EXPECTED_CHECKS := 250
 
 var _failures := 0
 var _checks_run := 0
@@ -65,6 +65,7 @@ func _initialize() -> void:
 	_check_more_loot_cards()
 	_check_magic_loot_cards()
 	_check_items()
+	_check_dryad_forms()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -842,6 +843,65 @@ func _check_items() -> void:
 		kept = kept and meteors.effects[3].strength == 2
 	_check(rolls.keys().all(func(n: int) -> bool: return n >= 1 and n <= 3) and rolls.size() == 3 and kept, "Meteoritenschauer: attacks of 1 to 3, the health loss kept")
 	fight.abandon()
+
+
+## The dryad's form cards: they lie by her, can be played again and again, and give her
+## the perk of the form until she takes another.
+func _check_dryad_forms() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var thorn := catalog.find("vQEAAA==")
+	var blossom := catalog.find("vgEAAA==")
+	var bark := catalog.find("vAEAAA==")
+	var fight := _dryad_starts()
+	var sonja := fight.hero_at(5)
+	_check(sonja.form == "" and fight.scan(thorn) == "" and sonja.form == "thorn" and _told[-1] == "form_thorn", "Stachelform: the dryad takes the thorn form")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1) and fight.scan(thorn) == "notice_not_your_card", "Stachelform: only for the dryad")
+	fight.pass_action()
+	fight.pass_action()
+	_check(_asks_card_of(fight, 5) and fight.scan(thorn) == "notice_form_already" and _asks_card_of(fight, 5), "Stachelform: not again while she has it, which costs no action")
+	fight.scan(_card("THORN_HIT", [["attack", 2, "ranged"], ["lightning", 1]], "dryad"))
+	fight.scan(_card("THORN_SUP", [["support", 1, "ranged"], ["lightning", 1]], "dryad"))
+	_check(fight.health == 25, "Stachelform: her attacks and supports +1")
+	_check(fight.scan(bark) == "" and sonja.form == "bark" and fight.rules.filter(func(rule: FightRule) -> bool: return rule.get("form") != null).size() == 1, "Borkenform: a new form replaces the old one")
+	_ready(fight)
+	fight.pass_action()
+	fight.pass_action()
+	_check(_asks_card_of(fight, 5) and fight.scan(thorn) == "" and sonja.form == "thorn", "the forms can be played again in the same round")
+	fight.abandon()
+
+	fight = _dryad_starts()
+	fight.scan(bark)
+	_ready(fight)
+	fight.pass_action()
+	fight.pass_action()
+	fight.scan(_card("BARK_GUARD", [["protection", 2]], "dryad"))
+	fight.choose(fight.hero_at(1))
+	_check(fight.hero_at(1).threat == 0, "Borkenform: her protection +1")
+	fight.abandon()
+
+	fight = _dryad_starts()
+	fight.scan(blossom)
+	_ready(fight)
+	fight.scan(_card("OTHER_HIT", [["attack", 2, "ranged"]], "halfling"))
+	_check(not _told.has("heal"), "Blütenform: not from the attacks of others")
+	fight.pass_action()
+	fight.scan(_card("BLOSSOM_HIT", [["attack", 2, "ranged"], ["attack", 1, "melee"], ["direct_damage", 1]], "dryad"))
+	_check(fight.health == 25 and _told.count("heal") == 1 and _values[_told.find("heal")].amount == 3 and _values[_told.find("heal")].player == "Sonja", "Blütenform: she heals 3 each time her attack costs the boss health")
+	fight.abandon()
+
+
+## A fight up to the first card of round 1, with Sonja, the dryad, starting.
+func _dryad_starts() -> Fight:
+	var fight := _fight(TestBoss.new())
+	fight.start()
+	_ready(fight)
+	_ready(fight)
+	_ready(fight)
+	fight.choose(fight.hero_at(5))
+	_ready(fight)
+	_ready(fight)
+	return fight
 
 
 ## The boss's poison: kept for the whole fight, and it hurts the boss at the end of each round.

@@ -38,6 +38,13 @@ func is_item() -> bool:
 	return deck == "items"
 
 
+## Cards that lie on the table instead of being drawn and discarded, such as items and
+## the dryad's forms: they never go to the play area, so they can be played again in the
+## same round.
+func stays_on_table() -> bool:
+	return is_item() or "form" in tags
+
+
 func has_symbol(type: String) -> bool:
 	return symbols.any(func(symbol: Symbol) -> bool: return symbol.type == type)
 

@@ -316,5 +316,20 @@
 	},
 	"remove_tokens_everyone": {
 		"body": "Each hero removes up to [heal]{count}[/heal] of their tokens."
+	},
+	"form_thorn": {
+		"title": "Thorn Form",
+		"body": "[player]{player}[/player] takes the Thorn Form: their attacks and supports get [heal]+1[/heal]."
+	},
+	"form_blossom": {
+		"title": "Blossom Form",
+		"body": "[player]{player}[/player] takes the Blossom Form: each time their attacks or supports cost the boss health, they heal [heal]3 health[/heal] :health:."
+	},
+	"form_bark": {
+		"title": "Bark Form",
+		"body": "[player]{player}[/player] takes the Bark Form: their protection :shield: gets [heal]+1[/heal]."
+	},
+	"notice_form_already": {
+		"body": "[player]{player}[/player] already has this form."
 	}
 }
