@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 317
+const EXPECTED_CHECKS := 337
 
 var _failures := 0
 var _checks_run := 0
@@ -70,6 +70,8 @@ func _initialize() -> void:
 	_check_dryad_forms()
 	_check_dryad_cards()
 	_check_paladin_cards()
+	_check_shaman_cards()
+	_check_buffs()
 	_check_boss_poison()
 	_check_combos()
 	_check_actions()
@@ -1225,9 +1227,103 @@ func _check_paladin_cards() -> void:
 	fight.abandon()
 
 
-## A fight up to the first card of round 1, with Rosie, as a paladin, starting.
-func _paladin_starts(boss: Boss) -> Fight:
-	var fight := _fight(boss, "normal", false, "paladin")
+func _check_shaman_cards() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var totems := ["nwEAAA==", "ngEAAA==", "oQEAAA==", "oAEAAA=="]
+	_check(totems.all(func(qr: String) -> bool: return "totem" in catalog.find(qr).tags), "the four totems are tagged as totems, for the Soul Shaman")
+
+	# Muschel-Talisman: draw as many as the round, then another action.
+	var fight := _paladin_starts(TestBoss.new(), "shaman")
+	fight.scan(catalog.find("ogEAAA=="))
+	_check(_told[-1] == "draw_cards" and _values[-1].player == "Rosie" and _values[-1].count == 1, "Muschel-Talisman: Rosie draws 1 in round 1")
+	_ready(fight)
+	_check(_asks_card_of(fight, 1), "Muschel-Talisman: and acts again")
+	fight.abandon()
+
+	# Rauchholzpulver: Rosie's next card, a Protection, is 3 higher.
+	var boss := TestBoss.new()
+	boss.threats = { 3: 6 }
+	fight = _paladin_starts(boss, "shaman")
+	fight.scan(catalog.find("pwEAAA=="))
+	_check(fight.buffs(fight.hero_at(1)).size() == 1, "Rauchholzpulver: Rosie's seat shows it")
+	_ready(fight)
+	fight.scan(_card("GUARD", [["protection", 2]], "shaman"))
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 1 and fight.buffs(fight.hero_at(1)).is_empty(), "Rauchholzpulver: her Protection 2 lowers the attack on Borin by 5, and it is used up")
+	fight.abandon()
+
+	# Vulkan-Totem: for herself, its own attack is 1 higher too, and so are her others this round.
+	fight = _paladin_starts(TestBoss.new(), "shaman")
+	fight.scan(catalog.find("ngEAAA=="))
+	_check(fight.request != null and fight.request.prompt == "prompt_empower_who", "Vulkan-Totem: for a hero of the players' choice")
+	fight.choose(fight.hero_at(1))
+	var rosie := fight.hero_at(1)
+	_check(_told[-1] == "totem_attack" and _values[-1].player == "Rosie" and fight.has_totem(rosie), "Vulkan-Totem: Rosie gets the totem token")
+	_check(fight.health == 28, "Vulkan-Totem: its melee attack 3 is 4, 2 of it through the shield")
+	_ready(fight)
+	fight.scan(_card("AXE", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.health == 27 and not fight.has_totem(fight.hero_at(3)), "Vulkan-Totem: Borin's attack is not boosted")
+	_ready(fight)
+	fight.pass_action()
+	fight.scan(_card("SLING", [["attack", 1, "ranged"]], "shaman"))
+	_check(fight.health == 25, "Vulkan-Totem: Rosie's next attack is")
+	_pass_until(fight, "totems_returned")
+	_check(_told[-1] == "totems_returned" and _values[-1].players == "Rosie" and not fight.has_totem(rosie) and fight.buffs().is_empty(), "Vulkan-Totem: at the end of the round, Rosie gives the token back")
+	fight.abandon()
+
+	# Sonnenwind-Totem: for Borin, so Rosie's own support is not boosted.
+	fight = _paladin_starts(TestBoss.new(), "shaman")
+	fight.scan(catalog.find("nwEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(_told.has("totem_support") and fight.has_totem(fight.hero_at(3)) and not fight.has_totem(fight.hero_at(1)), "Sonnenwind-Totem: Borin gets the totem token")
+	_ready(fight)
+	fight.scan(_card("AXE", [["attack", 1, "melee"], ["support", 2, "melee"]], "dwarf"))
+	_check(fight.health == 28, "Sonnenwind-Totem: Borin's melee support 2 is 3, 2 through the shield with his attack")
+	fight.abandon()
+
+	# Eismond-Totem: for herself, its own Protection 3 is 4.
+	boss = TestBoss.new()
+	boss.threats = { 3: 6 }
+	fight = _paladin_starts(boss, "shaman")
+	fight.scan(catalog.find("oAEAAA=="))
+	fight.choose(fight.hero_at(1))
+	_check(_told[-1] == "totem_protection" and fight.has_totem(fight.hero_at(1)), "Eismond-Totem: Rosie gets the totem token")
+	_ready(fight)
+	fight.choose(fight.hero_at(3))
+	_check(fight.hero_at(3).threat == 2, "Eismond-Totem: its Protection 3 lowers the attack on Borin by 4")
+	fight.abandon()
+
+	# Donner-Totem: the protected hero may remove a token for each Lightning they play this round.
+	fight = _paladin_starts(TestBoss.new(), "shaman")
+	fight.scan(catalog.find("oQEAAA=="))
+	fight.choose(fight.hero_at(3))
+	_check(_told[-1] == "totem_lightning" and _values[-1].player == "Borin" and fight.has_totem(fight.hero_at(3)) and not fight.has_totem(fight.hero_at(1)), "Donner-Totem: Borin, whom it protected, gets the totem token")
+	_ready(fight)
+	fight.scan(_card("BOLT", [["attack", 1, "melee"], ["lightning", 2]], "dwarf"))
+	_check(_told[-1] == "remove_tokens" and _values[-1].player == "Borin" and _values[-1].count == 2, "Donner-Totem: 2 Lightning, 2 tokens")
+	fight.abandon()
+
+
+## What lasts a while shows on screen (Fight.buffs), and the fight says when that changes.
+func _check_buffs() -> void:
+	var catalog := CardDatabase.load_file("res://cards/cards.json")
+	var fight := _started(TestBoss.new())
+	var changes := [0]
+	fight.buffs_changed.connect(func() -> void: changes[0] += 1)
+	fight.scan(catalog.find("0AEAAA=="))
+	var global := fight.buffs(null, true)
+	_check(global.size() == 1 and global[0].hero == null and global[0].count == 8 and global[0].text == "+1" and changes[0] == 1, "Muttis Nachtisch shows for everyone, with 8 cards to go")
+	_ready(fight)
+	_ready(fight)
+	fight.scan(_card("ARROW", [["attack", 1, "ranged"]], "dwarf"))
+	_check(fight.buffs(null, true)[0].count == 7 and changes[0] == 2, "and counts down")
+	_check(fight.buffs(fight.hero_at(1)).is_empty(), "a hero's own buffs leave it out")
+	fight.abandon()
+
+
+## A fight up to the first card of round 1, with Rosie, as a paladin or hero_class, starting.
+func _paladin_starts(boss: Boss, hero_class := "paladin") -> Fight:
+	var fight := _fight(boss, "normal", false, hero_class)
 	fight.start()
 	_ready(fight)
 	_ready(fight)

@@ -66,6 +66,7 @@ Each message has an id, by which the game shows it, a `body` and, if it needs on
   | `:melee:`, `:ranged:`, `:magic:` | `assets/fight/icon_melee.svg` and so on |
   | `:shield:`, `:lightning:` | `assets/fight/icon_shield.svg`, `assets/fight/icon_lightning.svg` |
   | `:fire:`, `:panic:`, `:paralysis:` | `assets/fight/icon_fire.svg` and so on |
+  | `:totem:` | `assets/fight/icon_totem.svg` |
 
 Keep messages short. They have to be read out at a table, and a long one does not fit the screen.
 

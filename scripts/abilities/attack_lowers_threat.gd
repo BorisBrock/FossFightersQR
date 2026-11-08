@@ -12,6 +12,9 @@ class LowerOnAttack extends FightRule:
 	var by: FightHero
 	var amount: int
 
+	func buff() -> FightBuff:
+		return FightBuff.new(hero, ["attack", "protection"], "-%d" % amount)
+
 	func card_played(fight: Fight, play: CardPlay) -> void:
 		if play.replay or play.hero != hero or not play.has_effect("attack") or hero.threat <= 0:
 			return

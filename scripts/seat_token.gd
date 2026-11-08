@@ -30,6 +30,8 @@ const FORMS := {
 	"bark": { "icon": "res://assets/fight/icon_form_bark.svg", "ring": Color(0.55, 0.36, 0.18), "tint": Color(0.92, 0.84, 0.74) },
 }
 const RING_COLOR := Color(0.85, 0.66, 0.3)
+## The glow around a hero who has a totem token (Fight.has_totem), as on the totem chip.
+const TOTEM_COLOR := Color(0.25, 0.75, 0.7)
 
 @export_range(0, 6) var seat := 0
 ## How far the token is turned: 0 faces the bottom edge, 90 the left and -90 the right.
@@ -38,6 +40,8 @@ const RING_COLOR := Color(0.85, 0.66, 0.3)
 var mode := Mode.IDLE
 ## The form the hero here has taken, see FORMS. Empty for none.
 var form := ""
+## The hero here has a totem token, so their portrait glows.
+var totem := false
 var _hero: Party.Hero
 var _time := 0.0
 
@@ -69,6 +73,9 @@ func _draw() -> void:
 	var selectable := mode == Mode.SELECTABLE or mode == Mode.ACTIVE
 	var pulse := 0.5 + 0.5 * sin(_time * 4.0) if selectable else 0.0
 	if _hero != null:
+		if totem:
+			var glow := 0.5 + 0.5 * sin(_time * 2.0)
+			draw_circle(center, RING_RADIUS + 6.0 + glow * 4.0, Color(TOTEM_COLOR, 0.22 + glow * 0.18))
 		if mode == Mode.ACTIVE:
 			draw_circle(center, RING_RADIUS + 8.0 + pulse * 6.0, Color(GOLD, 0.3 + pulse * 0.25))
 		return
@@ -97,6 +104,7 @@ func show_hero(hero: Party.Hero) -> void:
 		_crest.texture = load(HeroOptions.CLASSES[hero.hero_class].art)
 		_name.text = hero.name
 	show_form("")
+	show_totem(false)
 	queue_redraw()
 
 
@@ -113,14 +121,26 @@ func show_form(new_form: String) -> void:
 		create_tween().tween_property(_form, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+func show_totem(has_totem: bool) -> void:
+	if totem == has_totem:
+		return
+	totem = has_totem
+	_update_process()
+	queue_redraw()
+
+
 func set_mode(new_mode: Mode) -> void:
 	mode = new_mode
 	_hit.mouse_filter = MOUSE_FILTER_STOP if mode == Mode.SELECTABLE or mode == Mode.QUIET_SELECTABLE else MOUSE_FILTER_IGNORE
-	# The tokens only need redrawing while their dashes are moving.
-	set_process(mode == Mode.SELECTABLE or mode == Mode.ACTIVE)
+	_update_process()
 	var target := Color(0.72, 0.72, 0.72, 0.7) if mode == Mode.DIMMED else Color.WHITE
 	create_tween().tween_property(self, "modulate", target, 0.25)
 	queue_redraw()
+
+
+## The tokens only need redrawing while something on them moves.
+func _update_process() -> void:
+	set_process(mode == Mode.SELECTABLE or mode == Mode.ACTIVE or totem)
 
 
 ## Where the portrait is on screen, for pictures flying to this seat.

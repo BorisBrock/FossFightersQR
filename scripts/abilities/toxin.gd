@@ -11,6 +11,9 @@ class Toxin extends FightRule:
 	func poison_damage(fight: Fight, amount: int) -> int:
 		return amount + fight.poison * damage
 
+	func buff() -> FightBuff:
+		return FightBuff.new(null, ["poison"], "%+d" % damage)
+
 
 func after_effects(fight: Fight, play: CardPlay) -> void:
 	var toxin := Toxin.new()

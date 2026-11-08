@@ -19,6 +19,13 @@ class Boost extends FightRule:
 		left -= 1
 		if left <= 0:
 			fight.remove_rule(self)
+		else:
+			fight.buffs_changed.emit()
+
+	func buff() -> FightBuff:
+		var shown := FightBuff.new(null, ["card"], "%+d" % bonus)
+		shown.count = left
+		return shown
 
 
 func after_effects(fight: Fight, _play: CardPlay) -> void:

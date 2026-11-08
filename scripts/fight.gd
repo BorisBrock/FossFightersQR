@@ -37,6 +37,9 @@ signal notice(id: String, values: Dictionary)
 ## Damage went to the boss: absorbed by its shield of kind, and dealt to its health.
 signal boss_hit(kind: String, absorbed: int, dealt: int)
 signal card_played(play: CardPlay)
+## A rule that shows on screen (FightRule.buff) came or went, or its buff changed. See
+## buffs().
+signal buffs_changed
 signal won
 signal lost
 
@@ -561,11 +564,37 @@ func add_rule(rule: FightRule, for_round := false) -> void:
 	rules.append(rule)
 	if for_round:
 		_round_rules.append(rule)
+	if rule.buff() != null:
+		buffs_changed.emit()
 
 
 func remove_rule(rule: FightRule) -> void:
+	if not rule in rules:
+		return
+	var shown := rule.buff() != null
 	rules.erase(rule)
 	_round_rules.erase(rule)
+	if shown:
+		buffs_changed.emit()
+
+
+## What the rules in the fight show on screen (FightRule.buff), in the order they came.
+## With hero, only that hero's; with everyone, only those for everyone.
+func buffs(hero: FightHero = null, everyone := false) -> Array[FightBuff]:
+	var result: Array[FightBuff] = []
+	for rule in rules:
+		var buff := rule.buff()
+		if buff == null:
+			continue
+		if (hero != null and buff.hero != hero) or (everyone and buff.hero != null):
+			continue
+		result.append(buff)
+	return result
+
+
+## Whether hero has a totem token on the table: a Totem played this round is for them.
+func has_totem(hero: FightHero) -> bool:
+	return buffs(hero).any(func(buff: FightBuff) -> bool: return buff.totem)
 
 
 ## The heroes in turn order, starting with first.
@@ -724,13 +753,28 @@ func _play_round() -> void:
 	if over:
 		return
 	await _each_rule("round_ended")
-	for rule in _round_rules:
-		rules.erase(rule)
-	_round_rules.clear()
+	await _end_round_rules()
 	stats.round_ended(health)
 	await until_read()
 	if over:
 		return
+
+
+## The rules for the round leave the fight. The heroes with a Totem give back its token.
+func _end_round_rules() -> void:
+	var holders := PackedStringArray()
+	var shown := false
+	for rule in _round_rules:
+		var buff := rule.buff()
+		shown = shown or buff != null
+		if buff != null and buff.totem and buff.hero != null and not buff.hero.name in holders:
+			holders.append(buff.hero.name)
+		rules.erase(rule)
+	_round_rules.clear()
+	if shown:
+		buffs_changed.emit()
+	if not holders.is_empty():
+		tell("totems_returned", { "players": ", ".join(holders) })
 
 
 ## At the end of the round, the boss's poison hurts it, past its shields.

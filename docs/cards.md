@@ -91,8 +91,9 @@ serves many cards.
 | `lucky_charm` | The hero plays the top card of their draw pile, its lightning ignored. | | Glücksbringer |
 | `remove_tokens` | Tells a hero to remove some of their tokens from the table, then with `every_hero` each hero that many more. With `count` 0, only each hero. `count_by` sets the count instead: `damage`, the health the card cost the boss (nothing if none), or `round`, the round. With `group`, the heroes remove them together, from whoever they like. | `count` (2), `choose` (false: the hero who plays it), `every_hero` (0), `count_by`, `group` (false) | Gardehelm, Borax’ Kriegshammer, Medizintasche, Elixier der Sorglosigkeit, Aura der Reinigung, Spinneneier, Sonnenring, Trommel der Ahnen |
 | `heal_hero` | A hero of the players' choice heals, such as with a Healing Potion; with `heroes`, that many different heroes. | `amount` (8), `heroes` (1) | Heiltrank, Drachenspeichel |
-| `empower` | A hero's cards get stronger until the end of the round, such as a Totem. | `bonus` (1), `type` (attack) | |
-| `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier |
+| `empower` | A hero of the players' choice: their effects of `type` are `bonus` stronger until the end of the round. It comes first on the card, so if that is the hero who plays it, the card's own effects of that type are stronger too. With the tag `totem`, the hero gets its totem token (see [Totems](#totems)). | `bonus` (1), `type` (attack) | Vulkan-Totem, Sonnenwind-Totem (support), Eismond-Totem (protection) |
+| `tokens_per_lightning` | Until the end of the round, each hero the card's Protection protected may remove `count` of their status tokens for each Lightning on the cards they play afterwards. Lightning that gives no action, and replays, do not count. With the tag `totem`, they get its totem token. | `count` (1) | Donner-Totem |
+| `attack_by_round` | The effects of `type` are as strong as the round. With `chosen_hero`, the card's Heal and Draw are for a hero of the players' choice. | `type` (attack), `chosen_hero` (false) | Krawumm, Runenstein, Lichtelixier, Muschel-Talisman (draw) |
 | `attack_by_threat` | The attack is as strong as the boss's attack against the hero; from `threshold` damage on, the hero loses `health_loss`. | `threshold`, `health_loss` | Rune der Rache |
 | `if_healthy` | Asks whether the hero has `health` or more; if so, they heal, draw or remove tokens. | `health` (15), `heal`, `draw`, `remove_tokens` | Schulterramme, Omas Helm, Knochenkeule |
 | `for_chosen_hero` | The card's Heal and Draw are for a hero of the players' choice, who with `action` then acts at once. | `action` (false) | Krötensmoothie, Horn des Häuptlings, Anspornen, Energiesog, Himmelsrune, Gleißendes Licht, Vampirischer Sog |
@@ -106,7 +107,7 @@ serves many cards.
 | `search_pile` | The hero plays a card from their draw pile, which is then out of the game, and shuffles it. | | Magmahorn |
 | `toxin` | From now on, each of the boss's poison tokens costs it `damage` health more at the end of the round. | `damage` (1) | Toxikum |
 | `bonus_per_symbol` | The card's effects of `symbol` are stronger for each card with that symbol the hero played this round. | `symbol` (support), `bonus` (2) | Geisterwolf, Zeitschnitter |
-| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe, Astrale Linse, Kettenblitz |
+| `next_card` | The next card played, by anyone, gets a Lightning, takes effect twice or gets `bonus` more on those effects, if it has an effect of `symbol` (for attacks and supports, of `damage_type`). With `own`, only the next card of the hero who played it counts. | `symbol` (attack), `damage_type` (ranged), `then` (`lightning`, `repeat` or `boost`), `bonus` (2), `own` (false) | Lichtpfeile, Stachelbola, Schwelende Keule, Drachenschuppe, Astrale Linse, Kettenblitz, Rauchholzpulver |
 | `delayed_attack` | The card's attacks only take effect at the start of the hero's first turn next round. | | Bombling |
 | `threat_hurts_boss` | The boss loses what is left of its attack against the heroes the card protected. | | Schleimiger Helm |
 | `halve_attack` | The attack against a hero of the players' choice is halved, rounded down, and loses its extra effect. | | Kultistenkette |
@@ -140,6 +141,31 @@ serves many cards.
 | `boost_next_cards` | The next `cards` cards played, by anyone and over rounds, get `bonus` more on all attacks and supports; replays are not counted. With `random_token`, a random hero then takes one token of that kind. | `cards` (8), `bonus` (1), `random_token` | Muttis Nachtisch |
 | `remove_card` | After its other effects, the card is out of the game, as with the ripped card (`remove_from_game`), for cards that show it with `*`. | | Donnerspeer |
 | `prevent_health_loss` | Tells the players the card lies by the hero and can be discarded to prevent a hero's health loss. Heroes lose health in ways the app does not see, such as from tokens, so the players handle it on the table. | | Träne des Mitleids |
+
+### Totems
+
+The shaman's Totems (tag `totem`) strengthen one hero until the end of the round. On the table, that hero takes the
+Totem's token; the app tells the players to hand it over, keeps track of it (`Fight.has_totem()`) and shows it: the
+hero's portrait glows turquoise and their badge has a chip with a turquoise frame. When the round ends, after the draw
+phase, the rule leaves the fight and the app tells everyone who holds a token to give it back (`totems_returned`). The
+Soul Shaman (level 8) gives the first Totem the hero plays each round a Lightning (`first_gets_lightning`, `tag: totem`).
+
+### Buffs on screen
+
+What lasts a while shows on the fight screen as small chips, such as a Totem or *Muttis Nachtisch*. Any rule can show
+one: its `buff()` (in `FightRule`) returns a `FightBuff` with icons (`FightBuff.ICONS`: symbols, damage types, `card`,
+`totem`), a short text such as `+1`, a `count` for something that runs out, such as the cards *Muttis Nachtisch* still
+boosts, and the hero it is for. A buff for a hero sits in their badge, a buff for everyone (no hero) at the top of the
+screen (see [The boss fight](boss_fight.md#what-is-on-screen)). The fight sends `buffs_changed` when a rule with a buff
+comes or goes; a rule whose buff changes, such as a count going down, sends it itself. The dryad's forms keep their own
+look at her portrait.
+
+| Shows a buff | For |
+|--------------|-----|
+| `empower`, `tokens_per_lightning` | the hero, with the totem frame for Totems |
+| `next_card` | the hero with `own`, otherwise everyone |
+| `heal_on_next_protection`, `attack_lowers_threat` | the hero |
+| `boost_next_cards` (with the count), `toxin` | everyone |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions

@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 69
+const EXPECTED_CHECKS := 72
 
 var _failures := 0
 var _checks_run := 0
@@ -112,6 +112,27 @@ func _check_screen() -> void:
 	_check(not screen.get_node("Hud/Poison").visible, "the boss's poison only shows once it has some")
 	screen.fight.poison_boss(2)
 	_check(screen.get_node("Hud/Poison").visible and screen.get_node("Hud/Poison/Row/Value").text == "2", "then how much")
+
+	# What lasts a while: a Totem by its hero's seat, Muttis Nachtisch for everyone.
+	var borin: FightHero = screen.fight.hero_at(3)
+	var seat: SeatToken = screen.get_node("Seats/Seat3")
+	var chips: BuffChips = seat.get_node("Badge/Row/Buffs")
+	var totem: FightRule = load("res://scripts/abilities/empower.gd").Boost.new()
+	totem.hero = borin
+	totem.type = "attack"
+	totem.bonus = 1
+	totem.totem = true
+	screen.fight.add_rule(totem, true)
+	_check(chips.visible and chips.get_child_count() == 1 and seat.get_node("Badge").visible and seat.totem, "a Totem shows by its hero, whose portrait glows")
+	var dessert: FightRule = load("res://scripts/abilities/boost_next_cards.gd").Boost.new()
+	dessert.left = 8
+	dessert.bonus = 1
+	screen.fight.add_rule(dessert)
+	var global: BuffChips = screen.get_node("Hud/Buffs")
+	_check(global.visible and global.get_child_count() == 1 and chips.get_child_count() == 1, "a buff for everyone shows at the top, not by a seat")
+	screen.fight.remove_rule(totem)
+	screen.fight.remove_rule(dessert)
+	_check(not chips.visible and not global.visible and not seat.totem, "and both go once they are over")
 	screen.queue_free()
 
 

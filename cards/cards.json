@@ -1478,6 +1478,101 @@
       "symbols": [ { "type": "attack", "strength": 8, "damage_type": "ranged" }, { "type": "special", "strength": 0 } ],
       "effect": { "de": "Fernkampf-Angriff 8. Entferne den Donnerspeer für den restlichen Bosskampf aus dem Spiel." },
       "ability": "remove_card"
+    },
+    {
+      "qr": "pgEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Knochen der Weissagung" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Verstärkung 4." }
+    },
+    {
+      "qr": "pAEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Raptorkralle" },
+      "symbols": [ { "type": "support", "strength": 4, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Verstärkung 4." }
+    },
+    {
+      "qr": "ogEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Muschel-Talisman" },
+      "symbols": [ { "type": "draw", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Ziehe eine Anzahl Karten entsprechend der aktuellen Runde (1 in Runde 1, 2 in Runde 2, usw.). Führe 1 weitere Aktion aus." },
+      "ability": "attack_by_round",
+      "ability_values": { "type": "draw" }
+    },
+    {
+      "qr": "pwEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Rauchholzpulver" },
+      "symbols": [ { "type": "special", "strength": 0 }, { "type": "lightning", "strength": 1 } ],
+      "effect": { "de": "Spielst du als Nächstes einen Schutz, ist dieser um 3 erhöht. Führe 1 weitere Aktion aus." },
+      "ability": "next_card",
+      "ability_values": { "symbol": "protection", "then": "boost", "bonus": 3, "own": true }
+    },
+    {
+      "qr": "pQEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Granithammer" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" } ],
+      "effect": { "de": "Nahkampf-Angriff 3." }
+    },
+    {
+      "qr": "owEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Azurit-Klinge" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "magic" } ],
+      "effect": { "de": "Magie-Angriff 3." }
+    },
+    {
+      "qr": "nwEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Sonnenwind-Totem" },
+      "symbols": [ { "type": "support", "strength": 3, "damage_type": "magic" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Bis zum Ende der Runde sind alle Verstärkungen eines Helden deiner Wahl um 1 erhöht. Magie-Verstärkung 3." },
+      "ability": "empower",
+      "ability_values": { "type": "support" },
+      "tags": [ "totem" ]
+    },
+    {
+      "qr": "ngEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Vulkan-Totem" },
+      "symbols": [ { "type": "attack", "strength": 3, "damage_type": "melee" }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Bis zum Ende der Runde sind alle Angriffe eines Helden deiner Wahl um 1 erhöht.\nNahkampf-Angriff 3." },
+      "ability": "empower",
+      "ability_values": { "type": "attack" },
+      "tags": [ "totem" ]
+    },
+    {
+      "qr": "oQEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Donner-Totem" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Schutz 3.\nBis zum Ende der Runde darf der geschützte Held für jeden von ihm gespielten Blitz 1 seiner Statusmarken entfernen." },
+      "ability": "tokens_per_lightning",
+      "tags": [ "totem" ]
+    },
+    {
+      "qr": "oAEAAA==",
+      "deck": "shaman",
+      "level": 1,
+      "title": { "de": "Eismond-Totem" },
+      "symbols": [ { "type": "protection", "strength": 3 }, { "type": "special", "strength": 0 } ],
+      "effect": { "de": "Bis zum Ende der Runde sind alle Schutz-Effekte eines Helden deiner Wahl um 1 erhöht. Schutz 3." },
+      "ability": "empower",
+      "ability_values": { "type": "protection" },
+      "tags": [ "totem" ]
     }
   ]
 }

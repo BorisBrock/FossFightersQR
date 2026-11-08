@@ -385,5 +385,40 @@
 	},
 	"random_token": {
 		"body": "Chosen at random: [player]{player}[/player] takes a status token, [poison]{tokens}[/poison]."
+	},
+	"totem_attack": {
+		"title": "{card}",
+		"body": [
+			"Give [player]{player}[/player] the totem token :totem:.",
+			"Until the end of the round, every attack of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
+		]
+	},
+	"totem_support": {
+		"title": "{card}",
+		"body": [
+			"Give [player]{player}[/player] the totem token :totem:.",
+			"Until the end of the round, every support of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
+		]
+	},
+	"totem_protection": {
+		"title": "{card}",
+		"body": [
+			"Give [player]{player}[/player] the totem token :totem:.",
+			"Until the end of the round, every protection :shield: of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
+		]
+	},
+	"totem_lightning": {
+		"title": "{card}",
+		"body": [
+			"Give [player]{player}[/player] the totem token :totem:.",
+			"Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play."
+		]
+	},
+	"tokens_per_lightning": {
+		"body": "Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play."
+	},
+	"totems_returned": {
+		"title": "Totems",
+		"body": "The round is over. Give back the totem tokens :totem:: [player]{players}[/player]."
 	}
 }

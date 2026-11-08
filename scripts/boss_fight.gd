@@ -91,6 +91,8 @@ var _shield_plates := {}
 var _camera_problem := ""
 ## The style of the HUD's plates, for the badges and shields.
 var _plate: StyleBox
+## What lasts a while for everyone, such as Muttis Nachtisch, at the top of the screen.
+var _global_buffs: BuffChips
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
@@ -137,12 +139,14 @@ func _ready() -> void:
 	fight.notice.connect(show_notice)
 	fight.boss_hit.connect(_on_boss_hit)
 	fight.won.connect(_on_won)
+	fight.buffs_changed.connect(_refresh_buffs)
 	messages.all_confirmed.connect(_on_messages_read)
 
 	_show_boss(fight.boss)
 	_show_party(party)
 	_plate = ($Hud/Round as PanelContainer).get_theme_stylebox("panel")
 	_make_badges()
+	_make_global_buffs()
 	_make_shields()
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
@@ -426,8 +430,8 @@ func _fade_prompt(shown: bool) -> void:
 
 #region What the fight shows
 ## A badge by each hero, facing them: the boss's attack against them, with what it does
-## besides, and the actions they have left this round. Their own status tokens are on
-## the table.
+## besides, the actions they have left this round, and what lasts a while for them, such
+## as a Totem (FightBuff). Their own status tokens are on the table.
 func _make_badges() -> void:
 	for token: SeatToken in _seats:
 		var hero := fight.hero_at(token.seat)
@@ -466,6 +470,9 @@ func _make_badges() -> void:
 		actions.name = "Actions"
 		actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(actions)
+		var buffs := BuffChips.new()
+		buffs.name = "Buffs"
+		row.add_child(buffs)
 		badge.hide()
 		token.add_child(badge)
 		_badges[token.seat] = badge
@@ -503,7 +510,8 @@ func _refresh_badge(hero: FightHero) -> void:
 		left = hero.actions()
 	actions.show_actions(left, playing)
 	var was_visible := badge.visible
-	badge.visible = planned or actions.visible
+	var buffs: BuffChips = badge.get_node("Row/Buffs")
+	badge.visible = planned or actions.visible or buffs.visible
 	# Size the badge to what it holds now, centred over the seat.
 	badge.offset_left = 0.0
 	badge.offset_right = 0.0
@@ -511,6 +519,32 @@ func _refresh_badge(hero: FightHero) -> void:
 	if badge.visible and (not was_visible or old != value.text or actions.actions().size() > old_actions.size()):
 		badge.pivot_offset = badge.size / 2.0
 		_pop(badge)
+
+
+## The chips for everyone at the top of the screen, between the buttons.
+func _make_global_buffs() -> void:
+	_global_buffs = BuffChips.new()
+	_global_buffs.name = "Buffs"
+	_global_buffs.anchor_left = 0.5
+	_global_buffs.anchor_right = 0.5
+	_global_buffs.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_global_buffs.offset_top = 28.0
+	_global_buffs.offset_bottom = 80.0
+	$Hud.add_child(_global_buffs)
+
+
+## Shows what lasts a while (Fight.buffs), for everyone and at each hero's seat. A hero
+## with a totem token has a glow around their portrait too.
+func _refresh_buffs() -> void:
+	_global_buffs.show_buffs(fight.buffs(null, true), _plate)
+	for hero in fight.heroes:
+		var badge: Control = _badges.get(hero.seat)
+		if badge != null:
+			(badge.get_node("Row/Buffs") as BuffChips).show_buffs(fight.buffs(hero), _plate)
+			_refresh_badge(hero)
+	for token: SeatToken in _seats:
+		var hero := fight.hero_at(token.seat)
+		token.show_totem(hero != null and fight.has_totem(hero))
 
 
 func _on_phase_changed(_phase: Fight.Phase) -> void:

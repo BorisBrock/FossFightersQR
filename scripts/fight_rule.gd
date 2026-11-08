@@ -7,9 +7,18 @@ extends RefCounted
 ## the order they were added. The defaults do nothing, so a rule only overrides what it
 ## needs. Every hook gets the fight, which a rule can read and change.
 ##
+## A rule that lasts a while, such as a Totem, can show on screen through buff().
+##
 ## A hook may wait for the players, such as `await fight.choose_hero(...)`: the fight
 ## waits for it. A hook that changes a value returns it, and the fight passes the result
 ## on to the next rule.
+
+## What the screen shows of this rule while it is in the fight, or null for nothing (see
+## FightBuff). A rule whose buff changes, such as a count going down, says so with
+## Fight.buffs_changed.
+func buff() -> FightBuff:
+	return null
+
 
 #region The fight and its rounds
 func fight_started(_fight: Fight) -> void:

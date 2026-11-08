@@ -24,6 +24,10 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **Badges at the seats,** facing each hero: the boss's attack against them this round, with an icon for what it does
   besides (such as poison). They appear in the planning phase. The heroes' own status tokens are not shown: they are
   real tokens on the table.
+- **Buffs:** what lasts a while, as small chips with icons and a value such as `+1`
+  ([Buffs on screen](cards.md#buffs-on-screen)). Those for one hero, such as a Totem, are in their badge, which then
+  shows outside the planning phase too; a hero with a totem token also has a turquoise glow around their portrait.
+  Those for everyone, such as *Muttis Nachtisch* with the cards it still boosts, are at the top, between the buttons.
 - **The boss's poison** at the bottom right, next to its health, once it has any (`Fight.poison_changed`).
 - **The shields** at the bottom, below the boss: melee, ranged and magic, from the shield phase on. A broken shield is dimmed.
 - **The prompt** above the table head, while the fight waits for the players: whose turn it is, or which hero to tap,

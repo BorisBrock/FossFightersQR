@@ -385,5 +385,40 @@
 	},
 	"random_token": {
 		"body": "Zufällig getroffen: [player]{player}[/player] erhält eine Statusmarke, [poison]{tokens}[/poison]."
+	},
+	"totem_attack": {
+		"title": "{card}",
+		"body": [
+			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
+			"Bis zum Ende der Runde sind alle Angriffe von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
+		]
+	},
+	"totem_support": {
+		"title": "{card}",
+		"body": [
+			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
+			"Bis zum Ende der Runde sind alle Verstärkungen von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
+		]
+	},
+	"totem_protection": {
+		"title": "{card}",
+		"body": [
+			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
+			"Bis zum Ende der Runde ist jeder Schutz :shield: von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
+		]
+	},
+	"totem_lightning": {
+		"title": "{card}",
+		"body": [
+			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
+			"Bis zum Ende der Runde darf [player]{player}[/player] für jeden gespielten Blitz :lightning: [heal]{count}[/heal] eigene Statusmarke entfernen."
+		]
+	},
+	"tokens_per_lightning": {
+		"body": "Bis zum Ende der Runde darf [player]{player}[/player] für jeden gespielten Blitz :lightning: [heal]{count}[/heal] eigene Statusmarke entfernen."
+	},
+	"totems_returned": {
+		"title": "Totems",
+		"body": "Die Runde ist vorbei. Gebt die Totem-Marker :totem: zurück: [player]{players}[/player]."
 	}
 }

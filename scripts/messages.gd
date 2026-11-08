@@ -30,6 +30,7 @@ const SYMBOLS := {
 	"fire": "res://assets/fight/icon_fire.svg",
 	"panic": "res://assets/fight/icon_panic.svg",
 	"paralysis": "res://assets/fight/icon_paralysis.svg",
+	"totem": "res://assets/fight/icon_totem.svg",
 }
 
 ## Tags for what comes up again and again, so that it looks the same in every message.

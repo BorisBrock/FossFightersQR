@@ -18,6 +18,9 @@ class NextProtection extends FightRule:
 		else:
 			fight.remove_rule(self)
 
+	func buff() -> FightBuff:
+		return FightBuff.new(hero, ["card", "protection", "heal"])
+
 	func protection(_fight: Fight, amount: int, target: FightHero, play: CardPlay) -> int:
 		if play != null and play == _watched and amount > 0:
 			_heals.append([target, amount])
