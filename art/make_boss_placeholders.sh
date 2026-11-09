@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Draws stand-in pictures for the dummy bosses in scripts/bosses/. Replace them with
-# art/import_boss_art.sh. Requires ImageMagick 7.
+# Draws stand-in pictures for new bosses until their art is made: add a line for each
+# below. Replace them with art/import_boss_art.sh. Requires ImageMagick 7.
 #   Boss<Name>.png        the boss list and overview: a coloured glow with the initial
 #   Figure<Name>.png      the boss in the fight: a silhouette on transparent ground
 #   Background<Name>.png  behind the boss in the fight: sky, horizon and ground
@@ -35,7 +35,4 @@ while read -r name inner outer letter sky ground; do
 		-font "$font" -gravity south -pointsize 30 -fill '#ffffff44' -annotate +0+60 'PLACEHOLDER BACKGROUND' \
 		-depth 8 -strip "Background$name.png"
 done <<'LIST'
-Mirefang #4f7a3a #0d1a0b M #6f8f73 #2b3a1c
-Ashwing #c4561d #2a0905 A #a8553a #2a1410
-Colossus #8a6a2e #15110a C #8d8a7c #3a2f22
 LIST

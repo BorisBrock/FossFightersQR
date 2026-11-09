@@ -62,6 +62,12 @@ const HEALTH_STEP_SEC := 0.8
 ## Between the steps of a hit.
 const STEP_PAUSE_SEC := 0.2
 const HIT_COLOR := Color(1.0, 0.36, 0.28)
+## The boss goes out of reach (Fight.boss_away): it sinks, and comes back up fast.
+const SINK_SEC := 1.4
+const SURFACE_SEC := 0.5
+const SPLASH_COLOR := Color(0.78, 0.92, 0.82)
+## When the boss strikes, it lunges at the heroes.
+const LUNGE_SEC := 0.55
 const TOKEN_ICONS := {
 	"poison": "res://assets/fight/icon_poison.png",
 	"panic": "res://assets/fight/icon_panic.png",
@@ -195,6 +201,7 @@ func _ready() -> void:
 	fight.health_changed.connect(_on_health_changed)
 	fight.shields_changed.connect(_on_shields_changed)
 	fight.poison_changed.connect(_on_poison_changed)
+	fight.boss_away_changed.connect(_on_boss_away_changed)
 	fight.shields_raised.connect(_on_shields_raised)
 	fight.boss_attacked.connect(_on_boss_attacked)
 	fight.hero_changed.connect(_refresh_badge)
@@ -336,14 +343,8 @@ func _show_boss(boss: Boss) -> void:
 	_background.texture = load(boss.background)
 	(_background.material as ShaderMaterial).set_shader_parameter("mist_color", boss.mist_color)
 	_figure.texture = load(boss.figure)
-	var figure_material := _figure.material as ShaderMaterial
-	figure_material.set_shader_parameter("seconds", boss.motion_seconds)
-	var parameter: String = {
-		Boss.Motion.BREATHE: "breathe",
-		Boss.Motion.HOVER: "hover",
-		Boss.Motion.SWAY: "sway",
-	}[boss.motion]
-	figure_material.set_shader_parameter(parameter, boss.motion_amount)
+	_show_look(boss)
+	boss.look_changed.connect(_show_look.bind(boss))
 
 	var preset: Dictionary = AMBIENCES[boss.ambience]
 	_ambience.amount = preset.amount
@@ -363,6 +364,30 @@ func _show_boss(boss: Boss) -> void:
 		Color(boss.ambience_color, 0.6), Color(boss.ambience_color, 0.0),
 	])
 	_ambience.color_ramp = ramp
+
+
+## How the boss moves and how its eyes glow, which can change during the fight
+## (Boss.look_changed).
+func _show_look(boss: Boss) -> void:
+	var figure_material := _figure.material as ShaderMaterial
+	figure_material.set_shader_parameter("seconds", boss.motion_seconds)
+	var motions := {
+		Boss.Motion.BREATHE: "breathe",
+		Boss.Motion.HOVER: "hover",
+		Boss.Motion.SWAY: "sway",
+		Boss.Motion.SLITHER: "slither",
+	}
+	for motion: Boss.Motion in motions:
+		figure_material.set_shader_parameter(motions[motion], boss.motion_amount if motion == boss.motion else 0.0)
+	var none := Vector2(-1.0, -1.0)
+	figure_material.set_shader_parameter("eye_left", boss.eyes[0] if boss.eyes.size() > 0 else none)
+	figure_material.set_shader_parameter("eye_right", boss.eyes[1] if boss.eyes.size() > 1 else none)
+	figure_material.set_shader_parameter("eye_radius", boss.eye_radius)
+	figure_material.set_shader_parameter("eye_color", boss.eye_color)
+	figure_material.set_shader_parameter("eye_glow", boss.eye_glow)
+	figure_material.set_shader_parameter("waterline", 1.0 if boss.waterline else 0.0)
+	if is_node_ready() and fight != null and fight.round_number > 0:
+		_on_impact(Vector2.ZERO, 1.0, boss.eye_color)
 
 
 ## The particles fill the area of their preset on any shape of screen.
@@ -881,6 +906,10 @@ func _on_shields_changed(shields: Dictionary) -> void:
 	# While the boss raises them, they appear once it is done (see _on_shields_raised).
 	if _raising:
 		return
+	# Out of reach, the boss has no shields to show: they are gone with it.
+	if fight.boss_away:
+		_shown_shields = shields.duplicate()
+		return
 	for kind: String in _shield_plates:
 		var old: int = _shown_shields.get(kind, 0)
 		var new: int = shields.get(kind, 0)
@@ -969,6 +998,12 @@ func _on_shields_raised(shields: Dictionary) -> void:
 
 func _raise_shields(shields: Dictionary) -> void:
 	var kinds: Array = _shield_plates.keys()
+	# A boss may change its shields from round to round, such as which one is poisonous.
+	for kind: String in kinds:
+		var picture: TextureRect = (_shield_plates[kind] as Control).get_node("Icon")
+		var path := fight.boss.shield_icon(kind)
+		if picture.texture == null or picture.texture.resource_path != path:
+			picture.texture = load(path)
 	var none := not shields.values().any(func(value: int) -> bool: return value > 0)
 	if not none:
 		_sfx.play("shields_up")
@@ -1096,6 +1131,8 @@ func _run_steps() -> void:
 
 
 func _on_message_shown(id: String) -> void:
+	if id == "boss_attacks":
+		_lunge()
 	if not Messages.is_animated(id):
 		return
 	if id == "round_started":
@@ -1149,6 +1186,71 @@ func _reveal_threat(hero: FightHero) -> void:
 		effects.scale = Vector2.ZERO
 		tween.tween_callback(_sfx.play.bind("poison" if hero.threat_effects.has("poison") else "select"))
 		tween.tween_property(effects, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+## The boss goes out of reach and sinks, its shields and attack types fading, or comes back
+## up with a splash. The fight waits until it is done.
+func _on_boss_away_changed(away: bool) -> void:
+	if away:
+		_show_step(_sink, SINK_SEC + STEP_PAUSE_SEC)
+	else:
+		_show_step(_surface, SURFACE_SEC + STEP_PAUSE_SEC)
+
+
+func _sink() -> void:
+	var material := _figure.material as ShaderMaterial
+	_splash(0.6)
+	var tween := create_tween().set_parallel()
+	tween.tween_method(func(value: float) -> void: material.set_shader_parameter("sink", value), 0.0, 1.0, SINK_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(_shields, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(_splash.bind(1.0)).set_delay(SINK_SEC * 0.6)
+
+
+func _surface() -> void:
+	var material := _figure.material as ShaderMaterial
+	_sfx.play("boss_appears")
+	_splash(1.4)
+	var tween := create_tween()
+	tween.tween_method(func(value: float) -> void: material.set_shader_parameter("sink", value), 1.0, 0.0, SURFACE_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(_on_impact.bind(Vector2.ZERO, 1.0, fight.boss.eye_color))
+
+
+## Water bursts up along the bottom of the boss, where it goes under or comes up.
+func _splash(strength: float) -> void:
+	var area := _boss_area()
+	var splash := CPUParticles2D.new()
+	splash.texture = load("res://assets/fight/particles/circle_05.png")
+	splash.one_shot = true
+	splash.explosiveness = 0.85
+	splash.amount = roundi(60 * strength)
+	splash.lifetime = 1.1
+	splash.position = Vector2(area.get_center().x, area.end.y - area.size.y * 0.04)
+	splash.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	splash.emission_rect_extents = Vector2(area.size.x * 0.32, 6.0)
+	splash.direction = Vector2(0, -1)
+	splash.spread = 28.0
+	splash.initial_velocity_min = 260.0 * strength
+	splash.initial_velocity_max = 620.0 * strength
+	splash.gravity = Vector2(0, 1300)
+	splash.scale_amount_min = 0.04
+	splash.scale_amount_max = 0.16
+	var ramp := Gradient.new()
+	ramp.colors = PackedColorArray([Color(SPLASH_COLOR, 0.9), Color(SPLASH_COLOR, 0.0)])
+	splash.color_ramp = ramp
+	add_child(splash)
+	move_child(splash, _figure.get_index() + 1)
+	splash.emitting = true
+	splash.finished.connect(splash.queue_free)
+
+
+## The boss strikes: it rears back, then lunges at the heroes and settles again.
+func _lunge() -> void:
+	var area := _boss_area()
+	_figure.pivot_offset = Vector2(_figure.size.x / 2.0, area.end.y - _figure.position.y)
+	var tween := create_tween()
+	tween.tween_property(_figure, "scale", Vector2(0.96, 0.96), LUNGE_SEC * 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_figure, "scale", Vector2(1.12, 1.12), LUNGE_SEC * 0.2).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_figure, "scale", Vector2.ONE, LUNGE_SEC * 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 ## Once the last hit has shown, the boss fades away.

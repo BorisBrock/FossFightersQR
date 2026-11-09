@@ -36,6 +36,8 @@ var targets: Array[FightHero] = []
 ## heroes its Protection was for.
 var shield_damage := 0
 var damage := 0
+## Whether its damage or poison missed the boss, which was out of reach (Fight.boss_away).
+var missed := false
 var protected: Array[FightHero] = []
 ## The round it was played in.
 var round_number := 0

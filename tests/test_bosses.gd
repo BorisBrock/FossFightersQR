@@ -65,11 +65,11 @@ func _check_selection() -> void:
 	_check(screen.get_node("Stage/Margin/Layout/Footer/Back").text == "Back", "the screen is in English")
 	_check(not get_tree().quit_on_go_back, "the back button of a phone does not quit the app here")
 
-	var second: Button = list.get_child(1)
+	var second: Button = list.get_child(0)
 	second.button_down.emit()
 	second.pressed.emit()
 	await _until_left(screen)
-	_check(Encounter.boss == names[1], "tapping a boss chooses it")
+	_check(Encounter.boss == names[0], "tapping a boss chooses it")
 	_check(_next != null and _next.scene_file_path == "res://boss_overview.tscn", "and shows its overview")
 	_next.free()
 	_next = null
@@ -84,7 +84,7 @@ func _check_selection() -> void:
 	screen = await _open("res://boss_selection.tscn")
 	list = screen.get_node("Stage/Margin/Layout/Scroll/List")
 	var frame_of := func(index: int) -> StyleBoxFlat: return list.get_child(index).get_child(3).get_theme_stylebox("panel")
-	_check(frame_of.call(1).border_color != frame_of.call(0).border_color, "the last boss chosen stands out")
+	_check(frame_of.call(0).border_color == screen.CHOSEN_FRAME_COLOR, "the last boss chosen stands out")
 	screen.go_back()
 	await _until_left(screen)
 	_check(_next != null and _next.scene_file_path == "res://onboarding.tscn", "Back leads to the table")
@@ -95,16 +95,16 @@ func _check_selection() -> void:
 
 
 func _check_overview() -> void:
-	Encounter.boss = "ashwing"
+	Encounter.boss = "mirefang"
 	Encounter.difficulty = Bosses.DEFAULT_DIFFICULTY
-	var ashwing := Bosses.create("ashwing")
+	var mirefang := Bosses.create("mirefang")
 	var screen := await _open("res://boss_overview.tscn")
 	var layout := screen.get_node("Stage/Margin/Layout")
-	_check(layout.get_node("Header/Titles/Name").text == "Ashwing", "the overview shows the chosen boss")
-	_check(layout.get_node("Scroll/Content/Story").text == ashwing.story.en, "and its story")
+	_check(layout.get_node("Header/Titles/Name").text == "Mirefang", "the overview shows the chosen boss")
+	_check(layout.get_node("Scroll/Content/Story").text == mirefang.story.en, "and its story")
 	var hints: Container = layout.get_node("Scroll/Content/Hints")
-	_check(hints.get_child_count() == ashwing.hints.size(), "and all its hints")
-	_check(hints.get_child(0).get_node("Text").text == ashwing.hints[0].en, "in the right order")
+	_check(hints.get_child_count() == mirefang.hints.size(), "and all its hints")
+	_check(hints.get_child(0).get_node("Text").text == mirefang.hints[0].en, "in the right order")
 	_check((layout.get_node("Scroll/Content/Picture") as TextureRect).texture != null, "and its picture")
 
 	var buttons: Container = layout.get_node("Difficulty")
@@ -118,7 +118,7 @@ func _check_overview() -> void:
 
 	TranslationServer.set_locale("de")
 	await get_tree().process_frame
-	_check(layout.get_node("Header/Titles/Name").text == "Aschenschwinge" and hard.text == "Schwer", "the overview follows the language")
+	_check(layout.get_node("Header/Titles/Name").text == "Moorzahn" and hard.text == "Schwer", "the overview follows the language")
 	_check(layout.get_node("DifficultyHint").text == Bosses.DIFFICULTIES.hard.description.de, "the explanation, too")
 	TranslationServer.set_locale("en")
 	await get_tree().process_frame
@@ -126,7 +126,7 @@ func _check_overview() -> void:
 	layout.get_node("Footer/Fight").pressed.emit()
 	await _until_left(screen)
 	_check(_next != null and _next.scene_file_path == "res://boss_fight.tscn", "Fight! starts the fight")
-	_check(Encounter.boss == "ashwing" and Encounter.difficulty == "hard", "with the boss and difficulty chosen")
+	_check(Encounter.boss == "mirefang" and Encounter.difficulty == "hard", "with the boss and difficulty chosen")
 	if _next != null:
 		_next.free()
 	screen.queue_free()

@@ -317,7 +317,7 @@ func _run() -> void:
 	_check(done.text == "To Battle!", "the table stays in that language")
 	TranslationServer.set_locale("de")
 	await get_tree().process_frame
-	_check(done.text == "Zur Schlacht!" and _scene._party_name_edit.placeholder_text == "Name der Gruppe", "the table follows the language")
+	_check(done.text == "Zum Kampf!" and _scene._party_name_edit.placeholder_text == "Name der Gruppe", "the table follows the language")
 
 
 func _open_scene() -> void:

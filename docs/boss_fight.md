@@ -5,7 +5,7 @@ and difficulty from `Encounter`.
 
 *Status: the rules of the base game are built (see [How a fight goes](#how-a-fight-goes)), with the abilities of the
 cards in the catalog and of the heroes' levels (see [Cards](cards.md#abilities)). The boss's @-abilities can be
-prevented by cards, but none of the dummy bosses has one yet.*
+prevented by cards. The one boss so far is [Mirefang](bosses.md#mirefang).*
 
 ## What is on screen
 
@@ -13,8 +13,11 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 
 - **Background:** the boss's own picture, darker at the edges, with mist drifting over the ground and particles in the
   boss's colours (`assets/fight/background.gdshader`).
-- **The boss:** large, in the middle. It moves gently while it waits: it breathes, hovers or sways, as its script says
-  (`assets/fight/figure.gdshader`). The shader also has `flash` for lighting the boss up on a hit.
+- **The boss:** large, in the middle. It moves gently while it waits: it breathes, hovers, sways or slithers, as its
+  script says (`assets/fight/figure.gdshader`). Its eyes can glow (`Boss.eyes`). The shader also has `flash` for
+  lighting the boss up on a hit, and `sink` for sinking it below the bottom edge of its picture, as into water. When
+  the boss strikes, it rears back and lunges at the heroes. Out of reach (`Fight.boss_away`), it sinks with a splash,
+  and its shields and attack types fade; coming back, it bursts up and lights up.
 - **The heroes** at their seats, as on the table (`seats.tscn`, shared with the onboarding). Seats without a hero are
   hidden.
 - **The banner** across the upper half, for short messages. `show_banner(text)` shows one for 3 s. At the
@@ -35,7 +38,7 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The boss's poison** at the bottom right, above its health, once it has any (`Fight.poison_changed`).
 - **The shields and attack types** above the hero at the bottom, from the shield phase on: a column each for melee,
   ranged and magic. On top the boss's shield (`Boss.shield_icon()`: `Boss.SHIELD_NORMAL` by default, so that a boss
-  with special shields can show `SHIELD_DARK` or `SHIELD_POISON`), its value below it; the two pulse, count and break
+  with special shields can show `SHIELD_DARK` or `SHIELD_POISON`; asked again each time the shields rise), its value below it; the two pulse, count and break
   together, and a broken shield is grey and faint. Below that the attack type's icon: grey each round until a hero
   attacks with it (`Fight.attacked_changed`), then in colour, as supports of that type can now be played. Each column
   has a dark box behind it for readability, with the shield sitting on its top edge.

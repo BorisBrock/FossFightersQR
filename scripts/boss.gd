@@ -26,6 +26,8 @@ enum Motion {
 	HOVER,
 	## Leans from side to side.
 	SWAY,
+	## A wave runs up its body, the head moving most, like a rearing snake.
+	SLITHER,
 }
 
 ## The pictures of shields, see shield_icon(): plain iron ones that only absorb damage,
@@ -37,6 +39,10 @@ const SHIELD_POISON := "res://assets/fight/boss_shield_poison.png"
 ## Set from its file name by Bosses.
 var id := ""
 
+## The boss's look changed during the fight, such as its eyes or how fast it moves: the
+## screen shows it anew.
+signal look_changed
+
 #region Menus
 ## For the boss list, the overview and the fight. All text is { "de": …, "en": … }.
 var title := {}
@@ -47,6 +53,9 @@ var story := {}
 var hints: Array[Dictionary] = []
 ## The picture in the boss list and the overview: landscape, 4:3.
 var art := ""
+## Where its face is in art, as parts of its width and height. The list and the overview
+## crop the picture to a strip, keeping this as near the middle as they can.
+var art_focus := Vector2(0.5, 0.5)
 #endregion
 
 #region Fight
@@ -65,6 +74,15 @@ var motion := Motion.BREATHE
 var motion_amount := 12.0
 ## How long one movement takes, back and forth.
 var motion_seconds := 4.0
+## Where its eyes are in the figure, as parts of the picture's width and height (0 to 1),
+## for a glow that moves along with it. Empty for none.
+var eyes: Array[Vector2] = []
+## The glow of its eyes: colour, radius in pixels of the picture, and strength (0 for none).
+var eye_color := Color(1.0, 0.85, 0.3)
+var eye_radius := 14.0
+var eye_glow := 0.0
+## For a boss that rises from water: the bottom edge of its figure fades into it.
+var waterline := false
 ## What the boss says when the fight begins, { "de": …, "en": … }.
 var taunt := {
 	"de": "Muahaha! Ihr werdet alle untergehen!",
@@ -79,6 +97,9 @@ var attack_min := 2
 var attack_max := 5
 ## The shields it raises each round, by damage type. A missing type gets no shield.
 var shields := { "melee": 2, "ranged": 2, "magic": 2 }
+## The message (see Messages) when a card attacks it while it is out of reach
+## (Fight.set_boss_away), with {boss}.
+var away_message := "boss_away_missed"
 #endregion
 
 

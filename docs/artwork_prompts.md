@@ -24,12 +24,12 @@ Put this in front of every prompt below:
 
 Notes:
 
-- **Exceptions to the transparent background:** the three `Boss<Name>.png` pictures and the three
+- **Exceptions to the transparent background:** the `Boss<Name>.png` and
   `Background<Name>.png` pictures are full scenes and must be opaque. Their prompts say so; drop the transparency
   sentence of the global style for them.
 - If a generator cannot make real transparency, ask for "on a flat solid pure #00FF00 background" instead and remove it
   afterwards (for example `magick in.png -fuzz 12% -transparent '#00ff00' out.png`). Avoid green in those subjects'
-  edges, or use magenta (#FF00FF) for green subjects such as the poison icon and Old Mirefang.
+  edges, or use magenta (#FF00FF) for green subjects such as the poison icon and Mirefang.
 - **Resolutions:** *Generate* is what to ask the generator for (or the nearest size it offers in that aspect ratio).
   *Final* is the size of the file in the project; scale down with Lanczos. Small icons are generated large and scaled
   down, so their shapes must stay readable at 32 px: one clear silhouette, few details, strong contrast.
@@ -39,85 +39,55 @@ Notes:
 Folder: `assets/bosses/`. Import with `art/import_boss_art.sh <folder>`, which crops and scales them to the final size.
 Details in [bosses.md](bosses.md#artwork).
 
-### Old Mirefang — Lord of the Sunken Marsh
+### Mirefang — The Serpent of the Rotmire
 
-A toad the size of a house that slept for a hundred years in the mud under the village of Crookbrook. Moves by slowly
-breathing. Ambience: green fireflies.
+A giant venomous swamp serpent, like a monstrous anaconda, with evil eyes and huge fangs. It rears up out of the black
+water of an eerie swamp, dives under it and bursts out again (see [bosses.md](bosses.md#mirefang)). Ambience: green
+fireflies.
+
+What the fight does with the pictures, and so what they need:
+
+- **The figure is animated as one picture:** a wave runs up its body with the head swaying most, it sinks below the
+  **bottom edge of the picture, which is the waterline**, and its eyes get a glow drawn over them (yellow, red when
+  enraged). So the body must **run out of the bottom edge** as if rising from the water, with no water, splash or
+  reflection drawn there. It needs some empty space left and right for the swaying. The eyes must be clearly visible,
+  both of them, facing the viewer.
+- **The background has water where the snake rises:** the snake's bottom edge sits at about four fifths of the screen's
+  height, in its middle.
+- The snake is green, so a generator that cannot make transparency uses magenta (#FF00FF), not green (see the notes
+  above).
 
 **`BossMirefang.png`** — boss list and overview. Generate 1536 × 1152 (4:3), final 1024 × 768. **Opaque.**
 
-> A gigantic ancient swamp toad rising from black marsh water at dusk, mossy warty olive-green skin crusted with mud,
-> reeds and a sunken wooden bridge on its back, huge glowing yellow eyes, wide grinning maw with a long tongue curled
-> at the lips, drool, lily pads and fireflies around it. Face exactly in the centre of the picture, framed head and
-> shoulders. Atmospheric marsh background in misty green and teal, full scene, opaque background.
+> A gigantic venomous swamp serpent, like a monstrous anaconda, rearing its head out of black swamp water at night,
+> dark olive-green scales with a pattern of black blotches and a pale yellowish belly, slime and torn water weeds
+> hanging from its body, a heavy wedge-shaped head with bony brow ridges, two evil glowing yellow eyes with slit
+> pupils, jaws wide open showing two huge curved fangs dripping with luminous green venom. Its coils loop in and out
+> of the water around it. Dead crooked trees, hanging moss, a broken jetty and a sunken boat, thick fog on the water,
+> sickly green fireflies, a pale moon behind the clouds. Eerie and menacing. The head exactly in the centre of the
+> picture, framed head and upper body. Full scene, opaque background.
 
-**`FigureMirefang.png`** — the boss in the fight. Generate 1024 × 1365 (3:4), final at most 768 × 1024. **Transparent.**
+**`FigureMirefang.png`** — the boss in the fight. Generate 1024 × 1365 (3:4), final at most 768 × 1024.
+**Transparent.**
 
-> Full body of a gigantic ancient swamp toad, front view, squatting heavily, mossy warty olive-green skin crusted with
-> mud, reeds and a broken plank of a bridge stuck to its back, huge glowing yellow eyes, wide grinning maw, slime
-> dripping, a few fireflies near its head. The toad fills most of the frame, its feet touching the bottom edge of the
-> image. Transparent background.
+> A gigantic venomous swamp serpent, like a monstrous anaconda, front view, rearing up tall like a cobra about to
+> strike, its thick body rising straight up from the bottom edge of the image in a gentle S-curve. Dark olive-green
+> scales with black blotches and a pale yellowish belly, slime and torn water weeds hanging from it, a heavy
+> wedge-shaped head with bony brow ridges in the upper part of the image, facing the viewer, two evil yellow eyes with
+> slit pupils, both clearly visible, jaws wide open showing two huge curved fangs dripping with luminous green venom.
+> The body is cut off by the bottom edge of the image, as if it rises out of water: no water, no splash, no
+> reflection, no ground. Empty space to the left and right of the body and above the head. Transparent background.
+
+Instead of the margin on every side from the global style: a margin left, right and at the top, none at the bottom.
 
 **`BackgroundMirefang.png`** — behind the boss. Generate 1080 × 1920 (9:16), final 900 × 1600. **Opaque.**
 
-> Empty fantasy swamp at dusk seen from the shore, misty sunken marsh with crooked dead trees, sunken huts and a
-> half-drowned wooden bridge, still black water reflecting a green-violet sky, glowing fireflies, fog lying on the
-> water. No creature, no characters. The centre is open and calm for a monster to stand in, the lower fifth is dark
-> muddy ground, nothing important near the edges. Full scene, opaque background.
-
-### Ashwing — The Ember Wyrm of Blackridge
-
-The guardian of the Fire Mountains, burning every village since a thief stole its egg. Hovers in the air. Ambience:
-embers.
-
-**`BossAshwing.png`** — boss list and overview. Generate 1536 × 1152 (4:3), final 1024 × 768. **Opaque.**
-
-> A furious ember wyrm, a lean dragon with soot-black scales cracked by glowing orange magma veins, wings spread with
-> burning torn membranes, smoke and sparks streaming from its nostrils, molten eyes, roaring. Head exactly in the
-> centre of the picture. Behind it a smoking volcanic ridge and a village burning far below, sky of ash and orange
-> glow. Full scene, opaque background.
-
-**`FigureAshwing.png`** — the boss in the fight. Generate 1024 × 1365 (3:4), final at most 768 × 1024.
-**Transparent.**
-
-> Full body of a furious ember wyrm hovering in the air, front view, wings spread wide and up, soot-black scales cracked
-> by glowing orange magma veins, burning torn wing membranes, tail curling below, embers and thin smoke rising from it,
-> molten eyes, jaws open. The dragon fills most of the frame and its tail tip reaches near the bottom edge.
-> Transparent background.
-
-**`BackgroundAshwing.png`** — behind the boss. Generate 1080 × 1920 (9:16), final 900 × 1600. **Opaque.**
-
-> Empty volcanic mountain ridge at night, black basalt cliffs with rivers of glowing lava, a smoking crater, an
-> empty scorched nest of a dragon on a ledge, sky full of ash clouds lit orange from below, drifting embers. No
-> creature, no characters. The centre is open sky for a flying monster, the lower fifth is dark cracked rock, nothing
-> important near the edges. Full scene, opaque background.
-
-### The Brass Colossus — Engine of the Mad Tinker
-
-A machine built by Master Gearwright to protect the city, which decided the city is safest with nobody in it. Heats up
-every turn. Moves by swaying. Ambience: golden dust.
-
-**`BossColossus.png`** — boss list and overview. Generate 1536 × 1152 (4:3), final 1024 × 768. **Opaque.**
-
-> A towering clockwork colossus of riveted brass and copper, steampunk-fantasy golem with a furnace glowing red-orange
-> in its chest, exposed gears and pistons at the joints, steam venting from its shoulders, a single glowing lens eye in
-> a helmet-like head. Head exactly in the centre of the picture, framed head and chest. Behind it the rooftops of an
-> empty medieval city in golden dusty light. Full scene, opaque background.
-
-**`FigureColossus.png`** — the boss in the fight. Generate 1024 × 1365 (3:4), final at most 768 × 1024.
-**Transparent.**
-
-> Full body of a towering clockwork colossus, front view, standing firmly with heavy feet apart, riveted brass and
-> copper plates, furnace glowing red-orange in its chest, exposed gears and pistons at the joints, steam venting from
-> its shoulders, single glowing lens eye, huge hammer-like fists. The colossus fills most of the frame, its feet on the
-> bottom edge of the image. Transparent background.
-
-**`BackgroundColossus.png`** — behind the boss. Generate 1080 × 1920 (9:16), final 900 × 1600. **Opaque.**
-
-> Empty town square of a deserted medieval fantasy city, cobblestones cracked by giant footprints, abandoned market
-> stalls, a clock tower and a tinker's workshop with scattered cogs, golden dusty late-afternoon light, dust motes in
-> the air. No creature, no characters. The centre is open for a giant to stand in, the lower fifth is cobblestones,
-> nothing important near the edges. Full scene, opaque background.
+> An eerie fantasy swamp at night, seen from just above the water: still, black, oily water fills the lower half of
+> the picture, from the far bank down to the bottom edge, with a wide open stretch of water in the centre, where a
+> monster will rise at about four fifths of the picture's height. Around it crooked dead trees with hanging moss, rotting roots, a
+> broken jetty and a half-sunken boat at the sides, bubbles and green slime on the water, thick fog lying on it, a pale
+> moon behind clouds in a dark green-violet sky, sickly green fireflies. No creature, no characters. The centre is
+> open and calm, the lower fifth is dark water, nothing important near the edges. Full scene, opaque background.
 
 ## Fight icons
 

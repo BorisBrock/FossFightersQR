@@ -80,10 +80,6 @@
 	"remove_tokens": {
 		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Marker."
 	},
-	"colossus_armour": {
-		"title": "Eisenpanzer",
-		"body": "Die Panzerung des Bosses schwächt euren Angriff. Er macht nur [damage]{damage} Schaden[/damage] :damage:."
-	},
 	"victory": {
 		"title": "Sieg!",
 		"body": "[boss]{boss}[/boss] ist besiegt. Gut gekämpft, Helden!"
@@ -489,5 +485,39 @@
 	},
 	"reset_health": {
 		"body": "[player]{player}[/player] setzt die Lebenspunkte auf den [heal]Startwert[/heal] :health:."
+	},
+	"boss_away_missed": {
+		"body": "[boss]{boss}[/boss] ist außer Reichweite: Der Angriff wirkt nicht.",
+		"auto": true
+	},
+	"mirefang_out_of_reach": {
+		"title": "Unter Wasser",
+		"body": "[boss]{boss}[/boss] lauert tief unter Wasser. Euer Angriff erreicht ihn nicht.",
+		"auto": true
+	},
+	"mirefang_poison_shield": {
+		"title": "Giftschild",
+		"body": "[player]{player}[/player] trifft den Giftschild und erhält [poison]{poison} Gift[/poison] :poison:."
+	},
+	"mirefang_dive": {
+		"title": "Abgetaucht",
+		"body": [
+			"[boss]{boss}[/boss] taucht ins schwarze Wasser ab. Seine Schilde und Angriffe sind fort, und kein Angriff erreicht ihn.",
+			"Er lauert unter [player]{player}[/player]: Taucht er auf, beißt er zu, mit [damage]{damage} Schaden[/damage] :claw: und [poison]{poison} Gift[/poison] :poison:.",
+			"Jeder Held bekommt [heal]1 Aktion mehr[/heal], um sich vorzubereiten."
+		]
+	},
+	"mirefang_surfaces": {
+		"title": "Aufgetaucht",
+		"body": "[boss]{boss}[/boss] schießt aus dem Wasser, direkt auf [player]{player}[/player] zu!",
+		"auto": true
+	},
+	"mirefang_spit": {
+		"title": "Giftspucke",
+		"body": "Getroffen spuckt [boss]{boss}[/boss] Gift: Jeder Held erhält [poison]{poison} Gift[/poison] :poison:."
+	},
+	"mirefang_enraged": {
+		"title": "Rasend",
+		"body": "[boss]{boss}[/boss] ist rasend vor Wut! Ab jetzt sind seine Angriffe und Schilde stärker, und sein Giftschild vergiftet mehr."
 	}
 }

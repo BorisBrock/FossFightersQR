@@ -38,7 +38,7 @@ func _ready() -> void:
 	if not Bosses.DIFFICULTIES.has(Encounter.difficulty):
 		Encounter.difficulty = Bosses.DEFAULT_DIFFICULTY
 	_boss = Bosses.create(Encounter.boss)
-	_picture.texture = load(_boss.art)
+	PictureCrop.show(_picture, load(_boss.art), _boss.art_focus)
 	var group := ButtonGroup.new()
 	for id: String in Bosses.DIFFICULTIES:
 		var button := Button.new()

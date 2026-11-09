@@ -5,10 +5,9 @@ extends RefCounted
 ## Each boss is a script in scripts/bosses/, named after its id (see scripts/boss.gd).
 ## The boss list shows them in the order of IDS.
 ##
-## The three there now are dummies to build the screens with. Replace them when the real
-## bosses are designed.
+## Mirefang is the first boss.
 
-const IDS: Array[String] = ["mirefang", "ashwing", "colossus"]
+const IDS: Array[String] = ["mirefang"]
 const SCRIPT_PATH := "res://scripts/bosses/%s.gd"
 
 const DIFFICULTIES := {

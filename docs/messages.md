@@ -12,7 +12,7 @@ check mark below it. Tapping the check mark confirms that the players have read 
   title in the title font, under a small line (the *kicker*) and above an ornament. A message without a title of its
   own, such as a heal, takes the name of what it comes from: the card being played, a hero's class or character card
   (*Rosie* above *Himmelspaladin*), a card's lasting effect, or the boss. A message with its own title keeps it, and
-  the kicker names the source (*Iron Colossus* above *Iron Armour*). A message of the fight itself, such as the
+  the kicker names the source (the boss's name above *Iron Armour*, say). A message of the fight itself, such as the
   phases, has only its own title, or no heading at all.
 - The round, the boss's health, *end the fight* and the settings stay in view and can still be used.
 - The check mark closes a message. Taps for 0.4 s after a message appears do not count, so that a double tap

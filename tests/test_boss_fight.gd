@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 98
+const EXPECTED_CHECKS := 101
 
 var _failures := 0
 var _checks_run := 0
@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _check_countdown()
 	await _check_round()
 	await _check_shield_choice()
+	await _check_boss_look()
 	await _check_give_up()
 	await _check_defeat()
 	await _check_game_over()
@@ -69,11 +70,12 @@ func _check_fight_state() -> void:
 	fight.deal_damage(100, "melee")
 	_check(fight.health == 0 and won[0], "health stops at 0, which wins the fight")
 
-	var colossus := Fight.new(Bosses.create("colossus"), "normal")
-	colossus.deal_damage(9, "melee")
-	_check(colossus.health == colossus.max_health - 4, "the colossus's armour halves attacks")
+	var plain := Fight.new(Bosses.create("mirefang"), "normal")
+	plain.set_shields({ "melee": 2 })
+	plain.deal_damage(9, "melee")
+	_check(plain.health == plain.max_health - 7, "a boss's shield absorbs its part of an attack")
 
-	var bosses_differ := Bosses.create("ashwing") != Bosses.create("ashwing")
+	var bosses_differ := Bosses.create("mirefang") != Bosses.create("mirefang")
 	_check(bosses_differ, "each fight gets its own boss")
 
 
@@ -95,7 +97,7 @@ func _check_screen() -> void:
 	_check(screen.get_node("Figure").texture == load(boss.figure), "the boss stands in the middle")
 	_check(screen.get_node("Background").texture == load(boss.background), "in front of its own background")
 	var figure_material: ShaderMaterial = screen.get_node("Figure").material
-	_check(figure_material.get_shader_parameter("breathe") == boss.motion_amount, "and moves as it says")
+	_check(figure_material.get_shader_parameter("slither") == boss.motion_amount, "and moves as it says")
 	_check((screen.get_node("Ambience") as CPUParticles2D).color_ramp.get_color(1).r == boss.ambience_color.r, "with its own particles")
 	_check(screen.get_node("Hud/Round/Row/Value").text == "1", "the fight starts in round 1")
 	_check(screen.get_node("Hud/Health/Row/Value").text == "0", "the boss's health counts up")
@@ -106,7 +108,7 @@ func _check_screen() -> void:
 		if token.visible:
 			shown.append(token.seat)
 	_check(shown == [1, 3], "only seats with a hero show")
-	_check(screen.get_node("Banner/Text").text == "Old Mirefang", "the boss's name is announced")
+	_check(screen.get_node("Banner/Text").text == "Mirefang", "the boss's name is announced")
 	_check(not get_tree().quit_on_go_back, "the back button of a phone does not quit the app")
 
 	screen.fight.deal_damage(7, "magic")
@@ -153,8 +155,8 @@ func _check_messages() -> void:
 	box.all_confirmed.connect(func() -> void: all_confirmed[0] = true)
 	_check(box.current() == "boss_taunt" and not box.visible, "the boss speaks, but not over its name")
 	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.5).timeout
-	_check(box.visible and layout.get_node("Header/Title").text == "[center]Old Mirefang[/center]", "then its words show")
-	_check(layout.get_node("Body").get_parsed_text().contains("hundred years"), "in its own words")
+	_check(box.visible and layout.get_node("Header/Title").text == "[center]Mirefang[/center]", "then its words show")
+	_check(layout.get_node("Body").get_parsed_text().contains("hungry"), "in its own words")
 	screen.fight.tell("example_magic_potion", { "health": 10 })
 	screen.show_message("example_reminder")
 	_check(box.queue.size() == 3 and box.current() == "boss_taunt", "later messages wait their turn")
@@ -246,9 +248,12 @@ func _check_countdown() -> void:
 
 ## A round as the players see it: choosing who starts, the phases, and playing cards.
 func _check_round() -> void:
-	Encounter.boss = "ashwing"
+	Encounter.boss = "mirefang"
 	Encounter.difficulty = "normal"
 	var screen := await _open()
+	# With this seed, Mirefang's poison shield is not the melee one, which the axe hits.
+	screen.fight.rng.seed = 2
+	screen.fight.boss.shield_value = 2
 	var box: MessageBox = screen.messages
 	var tokens := {}
 	for token: SeatToken in screen.get_node("Seats").get_children():
@@ -349,6 +354,26 @@ func _check_shield_choice() -> void:
 
 
 ## Waits until condition holds, at most seconds.
+## The boss going under water and coming up, and its look changing, as Mirefang's do.
+func _check_boss_look() -> void:
+	Encounter.boss = "mirefang"
+	var screen := await _open()
+	var figure: ShaderMaterial = screen.get_node("Figure").material
+	var shields: Control = screen.get_node("Shields")
+	screen.fight.set_boss_away(true)
+	await get_tree().create_timer(screen.SINK_SEC + 0.3).timeout
+	_check(is_equal_approx(figure.get_shader_parameter("sink"), 1.0) and shields.modulate.a == 0.0, "out of reach, the boss sinks, and its shields are gone")
+	screen.fight.set_boss_away(false)
+	await get_tree().create_timer(screen.SURFACE_SEC + 0.3).timeout
+	_check(is_equal_approx(figure.get_shader_parameter("sink"), 0.0), "then it comes back up")
+	var boss: Boss = screen.fight.boss
+	boss.eye_color = Color.RED
+	boss.motion_seconds = 2.0
+	boss.look_changed.emit()
+	_check(figure.get_shader_parameter("eye_color") == Color.RED and figure.get_shader_parameter("seconds") == 2.0, "its look can change during the fight")
+	screen.queue_free()
+
+
 func _until(condition: Callable, seconds: float) -> void:
 	var deadline := Time.get_ticks_msec() + int(seconds * 1000.0)
 	while not condition.call() and Time.get_ticks_msec() < deadline:
@@ -426,7 +451,7 @@ func _check_game_over() -> void:
 		hero.hero_class = entry[2]
 		hero.seat = entry[3]
 		heroes.append(hero)
-	var fight := Fight.new(Bosses.create("ashwing"), "normal", heroes)
+	var fight := Fight.new(Bosses.create("mirefang"), "normal", heroes)
 	var sonja := fight.heroes[0]
 	var borin := fight.heroes[1]
 	fight.stats.round_started(1)
@@ -449,7 +474,7 @@ func _check_game_over() -> void:
 	add_child(screen)
 	await get_tree().process_frame
 	_check(screen.get_node("Margin/Layout/Header/Title").text == "Victory!", "the game over screen shows how the fight ended")
-	_check(screen.get_node("Margin/Layout/Header/Subtitle").text.contains("Ashwing"), "against whom")
+	_check(screen.get_node("Margin/Layout/Header/Subtitle").text.contains("Mirefang"), "against whom")
 	_check(screen.awards.get(borin, {}).get("stat") == "damage" and screen.awards.get(sonja, {}).get("stat") == "protection", "the heroes earn titles for what they did most")
 	screen.get_node("Margin/Layout/Continue").pressed.emit()
 	await get_tree().create_timer(MenuScreen.FADE_SEC + 0.1).timeout
@@ -470,7 +495,7 @@ func _check_game_over() -> void:
 	screen.queue_free()
 
 	for outcome: Array in [[FightStats.Outcome.LOST, "Defeat"], [FightStats.Outcome.ABORTED, "Retreat"]]:
-		var other := Fight.new(Bosses.create("ashwing"), "normal", heroes)
+		var other := Fight.new(Bosses.create("mirefang"), "normal", heroes)
 		other.stats.finished(outcome[0], other.max_health)
 		var shown: Control = load("res://game_over.tscn").instantiate()
 		shown.fight = other

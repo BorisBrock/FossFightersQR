@@ -30,7 +30,7 @@ sound. A sound added to the script also has to be added to `Sfx.NAMES`.
 | `shields_up`   | The boss raises its shields (not when it has none).                                      |
 | `poison`       | The boss gets poison tokens; its poison hurts it at the end of a round. A planned attack that poisons pops up its poison token. |
 | `protect`      | An attack against a hero is lowered in the action phase, or every attack was blocked.    |
-| `boss_appears` | The boss appears at the start of the fight.                                              |
+| `boss_appears` | The boss appears at the start of the fight, or comes back up after being out of reach.   |
 
 Some [messages](messages.md) have a sound of their own instead of the message box's usual one (`MessageBox.SOUNDS`):
 
@@ -43,6 +43,8 @@ Some [messages](messages.md) have a sound of their own instead of the message bo
 | `heal`                                 | `heal`         |
 | `boss_poison`, `poison_burst`          | `poison`       |
 | `shield_broken_poison`                 | `shield_break` |
+| `mirefang_poison_shield`, `mirefang_spit` | `poison`    |
+| `mirefang_surfaces`                    | `boss_attack`  |
 | `victory`                              | `victory`      |
 | `defeat`                               | `defeat`       |
 

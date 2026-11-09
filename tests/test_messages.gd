@@ -101,8 +101,8 @@ func _check_render() -> void:
 	var card := { "title": { "de": "Himmelspaladin", "en": "Celestial Paladin" }, "hero": "[b]Rosie" }
 	_check(Messages.heading("example_reminder", {}, "en") == { "title": "", "kicker": "" }, "a message without a title or source has no heading")
 	_check(Messages.heading("example_reminder", { "source": card }, "de") == { "title": "Himmelspaladin", "kicker": "[lb]b]Rosie" }, "one without a title takes the name of its source, its hero above, as they are")
-	_check(Messages.heading("colossus_armour", { "source": { "title": { "en": "Iron Colossus" } } }, "en") == { "title": "Iron Armour", "kicker": "Iron Colossus" }, "one with a title keeps it, its source above")
-	_check(Messages.heading("colossus_armour", { "source": card }, "en").kicker == "[lb]b]Rosie · Celestial Paladin", "with its hero")
+	_check(Messages.heading("victory", { "source": { "title": { "en": "Old Mirefang" } } }, "en") == { "title": "Victory!", "kicker": "Old Mirefang" }, "one with a title keeps it, its source above")
+	_check(Messages.heading("victory", { "source": card }, "en").kicker == "[lb]b]Rosie · Celestial Paladin", "with its hero")
 
 
 func _check_bad_file() -> void:

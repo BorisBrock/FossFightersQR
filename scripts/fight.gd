@@ -21,6 +21,8 @@ signal health_changed(health: int, max_health: int)
 signal shields_changed(shields: Dictionary)
 ## The boss's poison tokens changed.
 signal poison_changed(poison: int)
+## The boss went out of reach, such as under water, or came back (see boss_away).
+signal boss_away_changed(away: bool)
 ## The boss has raised its shields for the round. The view shows them rising instead of a
 ## message, so the fight goes on without waiting for the players.
 signal shields_raised(shields: Dictionary)
@@ -118,6 +120,9 @@ var health := 0
 var max_health := 0
 ## The boss's shields, by damage type.
 var shields := {}
+## Whether the boss is out of reach, such as under water: damage from cards and the
+## poison they give do not reach it. Its own poison at the end of a round still does.
+var boss_away := false
 ## The boss's poison tokens. They stay for the whole fight, and at the end of each round
 ## each costs the boss 1 health (see FightRule.poison_damage).
 var poison := 0
@@ -530,6 +535,9 @@ func play_again(original: CardPlay, by: CardPlay) -> CardPlay:
 func deal_damage(amount: int, kind: String, play: CardPlay = null) -> int:
 	if over or amount <= 0:
 		return 0
+	if boss_away and kind != POISON:
+		_miss(play)
+		return 0
 	if kind in DAMAGE_TYPES:
 		boss_attacked.emit(kind, amount)
 	var absorbed := mini(amount, shields.get(kind, 0))
@@ -586,9 +594,30 @@ func lower_shield(kind: String, amount: int, play: CardPlay = null) -> int:
 func poison_boss(amount: int, play: CardPlay = null) -> void:
 	if amount <= 0 or over:
 		return
+	if boss_away and play != null:
+		_miss(play)
+		return
 	poison += amount
 	poison_changed.emit(poison)
 	await _each_rule("boss_poisoned", [amount, play])
+
+
+## The boss goes out of reach, or comes back (boss_away).
+func set_boss_away(away: bool) -> void:
+	if away == boss_away:
+		return
+	boss_away = away
+	boss_away_changed.emit(away)
+
+
+## A card's damage or poison misses the boss, which is out of reach. The players are told
+## once per card.
+func _miss(play: CardPlay) -> void:
+	if play != null:
+		if play.missed:
+			return
+		play.missed = true
+	tell(boss.away_message, { "boss": boss.title })
 
 
 func set_poison(value: int) -> void:

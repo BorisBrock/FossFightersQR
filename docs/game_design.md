@@ -12,8 +12,8 @@ A co-operative card game for 1 to 4 players who sit together at a real table.
 - Players draw and play real cards by showing their QR codes to the camera.
 - The app applies the effects of the cards.
 
-*Status: the onboarding, choosing the boss and the boss fight with the rules of the base game exist, with three dummy
-bosses. The catalog has no playing cards yet. The old scanner test screen (`main.tscn`) is only reached through its
+*Status: the onboarding, choosing the boss and the boss fight with the rules of the base game exist, with the first
+boss, Mirefang. The catalog has no playing cards yet. The old scanner test screen (`main.tscn`) is only reached through its
 test.*
 
 ## Table and screen

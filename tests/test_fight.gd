@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 470
+const EXPECTED_CHECKS := 495
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -19,6 +19,21 @@ var _notices: Array[String] = []
 
 
 ## A boss whose attacks and shields are known, and which notes what it was told.
+## A boss whose armour halves melee and ranged damage and tells the players so, for the
+## damage_taken hook.
+class ArmouredBoss extends Boss:
+	func _init() -> void:
+		title = { "de": "Gepanzert", "en": "Armoured" }
+		health = 60
+
+	func damage_taken(fight: Fight, amount: int, kind: String, _play: CardPlay) -> int:
+		if kind not in ["melee", "ranged"]:
+			return amount
+		var halved := floori(amount / 2.0)
+		fight.tell("armour", { "damage": halved })
+		return halved
+
+
 class TestBoss extends Boss:
 	var calls: Array[String] = []
 	var threats := {}
@@ -2317,35 +2332,119 @@ func _check_actions() -> void:
 
 
 func _check_bosses() -> void:
-	var colossus := Fight.new(Bosses.create("colossus"), "normal")
-	colossus.deal_damage(9, "melee")
-	_check(colossus.health == colossus.max_health - 4, "the colossus's armour halves melee")
-	colossus.deal_damage(9, "magic")
-	_check(colossus.health == colossus.max_health - 13, "but not magic")
+	var armoured := Fight.new(ArmouredBoss.new(), "normal")
+	armoured.deal_damage(9, "melee")
+	_check(armoured.health == armoured.max_health - 4, "a boss's armour halves melee")
+	armoured.deal_damage(9, "magic")
+	_check(armoured.health == armoured.max_health - 13, "but not magic")
 	var armour_told: Array = []
 	var armour_source := []
-	colossus.message.connect(func(id: String, values: Dictionary) -> void:
+	armoured.message.connect(func(id: String, values: Dictionary) -> void:
 		armour_told.append([id, values.get("damage")])
 		armour_source.append(values.get("source", {})))
-	colossus.deal_damage(5, "ranged")
-	_check(colossus.health == colossus.max_health - 15 and armour_told == [["colossus_armour", 2]], "the players are told how much the armour let through")
-	_check(armour_source == [{ "title": colossus.boss.title }], "as the boss's")
-	colossus.deal_damage(4, Fight.DIRECT)
-	_check(colossus.health == colossus.max_health - 19 and armour_told.size() == 1, "direct damage is no attack: the armour does not halve it")
+	armoured.deal_damage(5, "ranged")
+	_check(armoured.health == armoured.max_health - 15 and armour_told == [["armour", 2]], "the players are told how much the armour let through")
+	_check(armour_source == [{ "title": armoured.boss.title }], "as the boss's")
+	armoured.deal_damage(4, Fight.DIRECT)
+	_check(armoured.health == armoured.max_health - 19 and armour_told.size() == 1, "direct damage is no attack: the armour does not halve it")
 
-	var mirefang := Bosses.create("mirefang")
-	mirefang.attack_min = 4
-	mirefang.attack_max = 4
-	var fight := _started(mirefang, "normal", false)
-	_ready(fight)
-	_check(fight.request != null and fight.request.prompt == "prompt_tied_target" and fight.request.heroes.size() == 3, "with a tie, the players choose whom the boss targets")
-	fight.choose(fight.hero_at(3))
-	_check(fight.hero_at(3).threat_effects == { "poison": 1 } and not _told.has("mirefang_bite"), "Mirefang's bite poisons, shown only by the attack's icon")
-	_check(_told.has("round_started") and not _values[_told.find("round_started")].has("source"), "what the fight itself tells comes from nothing in particular")
-
-	var easy := Bosses.create("ashwing").attack_range("easy")
-	var hard := Bosses.create("ashwing").attack_range("hard")
+	var easy := Bosses.create("mirefang").attack_range("easy")
+	var hard := Bosses.create("mirefang").attack_range("hard")
 	_check(hard.x == easy.x + 2 and hard.y == easy.y + 2, "the difficulty changes the boss's attacks")
+	_check_mirefang()
+
+
+## Mirefang: poisonous attacks and shield, venom spit, its dives and its rage.
+func _check_mirefang() -> void:
+	var boss := Bosses.create("mirefang")
+	var away_changes: Array[bool] = []
+	var fight := _fight(boss)
+	fight.boss_away_changed.connect(func(away: bool) -> void: away_changes.append(away))
+	fight.start()
+	_ready(fight)
+	_ready(fight)
+	_check(fight.max_health == 80, "Mirefang has 80 health on normal")
+	_check(fight.heroes.all(func(hero: FightHero) -> bool:
+		var poison: int = hero.threat_effects.get("poison", 0)
+		return hero.threat >= 2 and hero.threat <= 5 and poison >= 1 and poison <= 3), "each of its attacks poisons, with 1 to 3")
+	var kinds := Fight.DAMAGE_TYPES.filter(func(kind: String) -> bool: return kind != boss.poison_shield)
+	_check(fight.shields.values() == [3, 3, 3] and kinds.size() == 2, "it raises three shields of 3, one of them poisonous")
+	_check(boss.shield_icon(boss.poison_shield) == Boss.SHIELD_POISON and boss.shield_icon(kinds[0]) == Boss.SHIELD_NORMAL, "which shows on the shield")
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+
+	fight.scan(_card("M1", [["attack", 2, boss.poison_shield]], "items"))
+	_check(_told[-1] == "mirefang_poison_shield" and _values[-1].player == "Rosie" and _values[-1].poison == 1, "whoever hits its poison shield is poisoned")
+	_ready(fight)
+	fight.scan(_card("M2", [["attack", 9, kinds[0]]], "items"))
+	_check(fight.health == 74 and not _told.has("mirefang_spit"), "a card that costs it 6 health is not enough to make it spit")
+	_ready(fight)
+	fight.scan(_card("M3", [["attack", 10, kinds[1]]], "items"))
+	_check(fight.health == 67 and _told[-1] == "mirefang_spit" and _values[-1].poison == 1, "one that costs it 7 makes it spit venom on every hero")
+	_ready(fight)
+	fight.scan(_card("M4", [["direct_damage", 7]], "items"))
+	_check(fight.health == 60 and _told.count("mirefang_spit") == 1, "once a round")
+	_check(not fight.boss_away and not _told.has("mirefang_dive"), "at exactly 75 % of its health, it stays")
+
+	_ready(fight)
+	fight.scan(_card("M5", [["direct_damage", 1]], "items"))
+	var bitten := fight.heroes_where(func(hero: FightHero) -> bool: return hero.threat > 0)
+	_check(fight.boss_away and away_changes == [true] and _told[-1] == "mirefang_dive", "below it, it dives")
+	_check(fight.shields.values() == [0, 0, 0], "its shields are gone")
+	_check(bitten.size() == 1 and bitten[0].threat == 15 and bitten[0].threat_effects == { "poison": 3 }, "and so are its attacks, but for its bite against one hero")
+	_check(_values[-1].player == bitten[0].name and _values[-1].damage == 15, "whom the players are told of")
+	_check(_actions(fight.hero_at(1)) == "TB" and _actions(fight.hero_at(5)) == "TTB", "every hero gets an action more")
+	_ready(fight)
+	var health := fight.health
+	fight.scan(_card("M6", [["attack", 5, "melee"], ["poison", 2], ["heal", 3]], "items"))
+	_check(fight.health == health and fight.poison == 0, "under water, attacks and poison do not reach it")
+	_ready(fight)
+	_check(_told.count("mirefang_out_of_reach") == 1 and _told[-1] == "heal", "told once for the card, whose other symbols still work")
+	_ready(fight)
+	while fight.phase == Fight.Phase.ACTION and fight.request != null and fight.request.kind == Fight.Request.Kind.ACTION:
+		fight.pass_action()
+	_check(_told.has("mirefang_surfaces") and not fight.boss_away and away_changes == [true, false], "after the action phase, it surfaces")
+	_ready(fight)
+	var hits: Array = _values[_told.find("boss_attacks")].hits
+	_check(hits.size() == 1 and hits[0][1].player == bitten[0].name and hits[0][1].damage == 15, "and bites the hero it chose")
+	_check(not boss.enraged, "above half its health, it is not enraged")
+	# The rest of round 1, then round 2 up to the first card.
+	for i in 6:
+		_ready(fight)
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	_check(_asks_card_of(fight, 1) and fight.shields.values() == [3, 3, 3], "the next round, it is back with its shields")
+
+	var looks := [0]
+	boss.look_changed.connect(func() -> void: looks[0] += 1)
+	fight.scan(_card("M7", [["direct_damage", 41]], "items"))
+	_check(_told[-1] == "mirefang_spit" and _told.count("mirefang_spit") == 2, "the spit comes first, once in each round")
+	_ready(fight)
+	_check(fight.health == 18 and _told.count("mirefang_dive") == 2 and _told[-1] == "mirefang_dive", "a hit past two marks makes it dive once")
+	_ready(fight)
+	while fight.phase == Fight.Phase.ACTION and fight.request != null and fight.request.kind == Fight.Request.Kind.ACTION:
+		fight.pass_action()
+	_ready(fight)
+	_check(boss.enraged and _told[-1] == "mirefang_enraged" and looks[0] == 1, "surfacing below half its health, it is enraged, and looks it")
+	for i in 6:
+		_ready(fight)
+	_check(fight.round_number == 3 and fight.shields.values() == [4, 4, 4], "enraged, its shields are stronger")
+	_check(fight.heroes.all(func(hero: FightHero) -> bool: return hero.threat >= 3 and hero.threat <= 6), "and its attacks too")
+	fight.choose(fight.hero_at(1))
+	_ready(fight)
+	fight.scan(_card("M8", [["direct_damage", 1]], "items"))
+	_check(not fight.boss_away and _told.count("mirefang_dive") == 2, "the mark it skipped is gone")
+	fight.abandon()
+
+	boss = Bosses.create("mirefang")
+	fight = _fight(boss, "hard")
+	fight.start()
+	_ready(fight)
+	_ready(fight)
+	fight.deal_damage(30, Fight.POISON)
+	_check(not fight.boss_away, "passing a mark outside the action phase, as by its poison, it waits")
+	fight.choose(fight.hero_at(1))
+	_check(fight.boss_away and _told[-1] == "mirefang_dive" and _values[-1].damage == 18 and _values[-1].poison == 3, "and dives as the action phase starts, biting harder on hard")
 	fight.abandon()
 
 

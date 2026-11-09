@@ -80,10 +80,6 @@
 	"remove_tokens": {
 		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own tokens."
 	},
-	"colossus_armour": {
-		"title": "Iron Armour",
-		"body": "The boss's armour weakens your attack. It deals only [damage]{damage} damage[/damage] :damage:."
-	},
 	"victory": {
 		"title": "Victory!",
 		"body": "[boss]{boss}[/boss] is defeated. Well fought, heroes!"
@@ -489,5 +485,39 @@
 	},
 	"reset_health": {
 		"body": "[player]{player}[/player] sets their health back to their [heal]starting health[/heal] :health:."
+	},
+	"boss_away_missed": {
+		"body": "[boss]{boss}[/boss] is out of reach: the attack has no effect.",
+		"auto": true
+	},
+	"mirefang_out_of_reach": {
+		"title": "Under Water",
+		"body": "[boss]{boss}[/boss] lurks deep under the water. Your attack does not reach it.",
+		"auto": true
+	},
+	"mirefang_poison_shield": {
+		"title": "Poison Shield",
+		"body": "[player]{player}[/player] hits the poison shield and takes [poison]{poison} poison[/poison] :poison:."
+	},
+	"mirefang_dive": {
+		"title": "Dive",
+		"body": [
+			"[boss]{boss}[/boss] dives into the black water. Its shields and attacks are gone, and no attack reaches it.",
+			"It lurks beneath [player]{player}[/player]: surfacing, it bites for [damage]{damage} damage[/damage] :claw: and [poison]{poison} poison[/poison] :poison:.",
+			"Every hero gets [heal]1 action more[/heal] to prepare."
+		]
+	},
+	"mirefang_surfaces": {
+		"title": "Surfacing",
+		"body": "[boss]{boss}[/boss] bursts out of the water, right at [player]{player}[/player]!",
+		"auto": true
+	},
+	"mirefang_spit": {
+		"title": "Venom Spit",
+		"body": "Hurt by the blow, [boss]{boss}[/boss] spits venom: every hero takes [poison]{poison} poison[/poison] :poison:."
+	},
+	"mirefang_enraged": {
+		"title": "Enraged",
+		"body": "[boss]{boss}[/boss] is enraged! From now on, its attacks and shields are stronger, and its poison shield poisons more."
 	}
 }

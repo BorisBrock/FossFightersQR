@@ -101,9 +101,8 @@ func _make_entry(id: String) -> Control:
 
 	var picture := TextureRect.new()
 	picture.name = "Picture"
-	picture.texture = load(Bosses.create(id).art)
-	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	var boss := Bosses.create(id)
+	PictureCrop.show(picture, load(boss.art), boss.art_focus)
 	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	picture.set_anchors_preset(Control.PRESET_FULL_RECT)
 	entry.add_child(picture)

@@ -48,15 +48,18 @@ What a boss has:
 | `title`, `tagline` | the list, the top of the overview, and the start of the fight |
 | `story` | the overview, a few sentences |
 | `hints` | the overview, as many as needed, each one short |
-| `art` | the picture in the list and the overview |
+| `art`, `art_focus` | the picture in the list and the overview, and where its face is in it (0 to 1 of its width and height), which the crops keep near their middle (`PictureCrop`) |
 | `figure`, `background` | the fight (see [Artwork](#artwork)) |
 | `health` | its health on *Normal*. Each difficulty scales it by its `health_factor`. |
 | `ambience`, `ambience_color` | the particles over the background: `EMBERS`, `FIREFLIES` or `DUST`, tinted |
 | `mist_color` | the mist drifting over the ground of the background |
-| `motion`, `motion_amount`, `motion_seconds` | how the boss moves while it waits: `BREATHE`, `HOVER` or `SWAY` |
+| `motion`, `motion_amount`, `motion_seconds` | how the boss moves while it waits: `BREATHE`, `HOVER`, `SWAY` or `SLITHER` (a wave running up its body, the head moving most) |
+| `waterline` | for a boss rising from water: the bottom edge of its figure fades into it |
+| `eyes`, `eye_color`, `eye_radius`, `eye_glow` | a glow over its eyes, which moves along with it: where they are in the figure (0 to 1 of its width and height), its colour, size in pixels of the picture and strength |
 | `taunt` | what it says when the fight begins |
 | `attack_min`, `attack_max` | its attack against each hero per round, on *Normal*. Each difficulty adds its `attack_bonus`. |
 | `shields` | the shields it raises each round, such as `{ "melee": 2, "ranged": 2, "magic": 2 }` |
+| `away_message` | what the players are told when a card attacks it while it is out of reach (see below) |
 
 `Boss` extends `FightRule` (`scripts/fight_rule.gd`), so a boss can step in at every moment of the fight that has a
 hook there, such as `round_started`, `card_playing`, `damage_taken` or `boss_hurt` (for something that happens at half
@@ -69,6 +72,14 @@ Besides these, `shield_hit` is for what a shield does besides absorbing damage, 
 Cards can let an attack ignore it (`FightRule.ignores_shield_effect`). A boss whose shields do that shows it by
 overriding `shield_icon` to return `SHIELD_DARK`, or `SHIELD_POISON` for poisonous shields, instead of the plain
 `SHIELD_NORMAL`.
+
+A boss can change its look during the fight, such as its eyes turning red when enraged: it changes its fields and
+emits `look_changed`, and the screen shows it anew.
+
+A boss can **go out of reach**, such as under water: `fight.set_boss_away(true)`. Then damage and poison from cards
+do not reach it, and the players are told once per card (`away_message`); the cards' other symbols still work. Its
+own poison at the end of a round still hurts it. On screen, it sinks below the bottom edge of its picture and its
+shields and attack types fade; `set_boss_away(false)` brings it back up with a splash.
 
 **@-abilities** are the boss's own code, in any of its hooks. Before using one, a boss asks the fight, as cards can
 prevent them:
@@ -97,19 +108,45 @@ a heat counter, in its own variables.
 All text needs a German and an English version (see [Adding text](settings.md#adding-text)).
 `tests/test_bosses.gd` checks this, and the pictures, for every boss and every difficulty.
 
-**The three bosses there now (Old Mirefang, Ashwing, the Brass Colossus) are dummies** to build the screens with.
-Replace them when the real bosses are designed. Their hints describe mechanics that do not exist yet, apart from two
-examples of hooks: the colossus's armour halves melee and ranged damage, and Old Mirefang's strongest attack each
-round poisons, with the players choosing the target on a tie.
+**Mirefang** is the only boss so far (see [below](#mirefang)).
+
+## Mirefang
+
+The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an eerie swamp, *Moorzahn* in German.
+80 health on *Normal*.
+
+- **Attacks:** 2 to 5 against each hero, each with 1 to 3 poison.
+- **Shields:** 3 of each type every round. One of them, at random, is the **poison shield**: whoever hits it gets 1
+  poison (`mirefang_poison_shield`). Cards that ignore a shield's effect ignore that too.
+- **Dive:** when its health falls below 75 %, 50 % and 25 % (60, 40 and 20 on *Normal*), it dives
+  (`mirefang_dive`), each mark once. A hit past several marks makes it dive once only; the marks passed are gone.
+  - It goes out of reach (`Fight.set_boss_away`): its shields are gone, and attacks and poison from cards do not reach
+    it (`mirefang_out_of_reach`).
+  - All its attacks are gone. Instead one hero, at random, is marked for its bite: 12 + 2 poison on *Easy*,
+    15 + 3 on *Normal*, 18 + 3 on *Hard*. Protection lowers it as any attack.
+  - Every hero gets an action more this round (a yellow orb) to prepare.
+  - It dives right after the card that took it past the mark. Past a mark outside the action phase, such as by its
+    own poison at the end of a round, it dives when the next action phase starts.
+  - At the end of the action phase it surfaces (`mirefang_surfaces`), and in the attack phase it bites. The bite is an
+    @-ability (`mirefang_bite`), which cards can prevent. Then the round ends as usual, and the next one starts with
+    new shields and attacks.
+- **Enraged:** surfacing below half its health, it is enraged for the rest of the fight (`mirefang_enraged`): +1 on
+  its attacks and its shields, and its poison shield gives 2 poison. Its eyes glow red and it moves faster.
+- **Venom spit:** a card that costs it 7 health or more makes it spit venom on every hero, 1 poison each
+  (`mirefang_spit`), at most once a round. An @-ability of strength 1 (`mirefang_spit`). If the same card takes it
+  past a mark, it spits first, then dives.
+- **Look:** it slithers (`Motion.SLITHER`), rises from the water (`waterline`) and its eyes glow (`eyes`, measured on
+  `FigureMirefang.png`: set them again if the picture changes). The prompts are in
+  [Artwork prompts](artwork_prompts.md#mirefang--the-serpent-of-the-rotmire).
 
 ## Artwork
 
 The pictures are in `assets/bosses/`. The ones there now are placeholders, made by `art/make_boss_placeholders.sh`.
 `art/import_boss_art.sh <folder>` takes the finished ones from a folder and scales them to size.
 
-- **`Boss<Name>.png`, for the list and the overview:** landscape, 4:3, scaled to 1024 x 768. **Keep the boss's face in
-  the middle.** The list crops each picture to a wide strip around its centre, and the overview to a slightly less
-  wide one. The bottom third of the strip in the list lies under the boss's name.
+- **`Boss<Name>.png`, for the list and the overview:** landscape, 4:3, scaled to 1024 x 768. **Best keep the boss's face
+  in the middle.** The list crops each picture to a wide strip around the face (`art_focus`, the centre by default),
+  and the overview to a slightly less wide one. The bottom third of the strip in the list lies under the boss's name.
 - **`Figure<Name>.png`, the boss in the fight:** portrait, about 3:4, transparent around the boss, at most 768 x 1024.
   It is fitted into most of the screen without cropping. Its bottom edge is where the boss stands: breathing and
   swaying keep it in place.

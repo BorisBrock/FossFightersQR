@@ -49,6 +49,9 @@ const SOUNDS := {
 	"boss_poison": "poison",
 	"poison_burst": "poison",
 	"shield_broken_poison": "shield_break",
+	"mirefang_poison_shield": "poison",
+	"mirefang_spit": "poison",
+	"mirefang_surfaces": "boss_attack",
 	"victory": "victory",
 	"defeat": "defeat",
 }
