@@ -13,9 +13,7 @@
 		"title": "Phase 3 · Actions",
 		"body": [
 			"Reveal your curses now, if you have any.",
-			"Each hero has [b]3 turns[/b] with one action each, clockwise, starting with [player]{player}[/player].",
-			"Heroes with panic :panic: play their hand cards at random, and discard 1 panic token after each.",
-			"Show your card to the camera when it is your turn."
+			"Heroes with panic :panic: play their hand cards at random, and discard 1 panic token after each."
 		]
 	},
 	"boss_attacks": {

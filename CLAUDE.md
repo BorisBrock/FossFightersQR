@@ -26,8 +26,10 @@ check fails (16 and 7 failures). That is not a bug in the code. Always run them 
     godot --headless res://tests/test_settings.tscn
     godot --headless res://tests/test_bosses.tscn
     godot --headless res://tests/test_boss_fight.tscn
-    godot res://tests/test_game.tscn          # NOT headless: opens a window
-    godot res://tests/test_onboarding.tscn    # NOT headless: opens a window
+    godot --disable-vsync res://tests/test_game.tscn        # NOT headless: opens a window
+    godot --disable-vsync res://tests/test_onboarding.tscn  # NOT headless: opens a window
+
+`--disable-vsync` matters: an unwatched window can be throttled to ~1 fps, and then the timing checks fail.
 
 Catalog and tool checks:
 

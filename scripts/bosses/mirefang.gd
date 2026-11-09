@@ -73,8 +73,8 @@ func _init() -> void:
 	ambience_color = Color(0.75, 1.0, 0.45)
 	mist_color = Color(0.45, 0.62, 0.42)
 	motion = Motion.SLITHER
-	motion_amount = 14.0
-	motion_seconds = 5.0
+	motion_amount = 9.0
+	motion_seconds = 6.5
 	art_focus = Vector2(0.5, 0.3)
 	eyes = [Vector2(0.414, 0.139), Vector2(0.655, 0.137)]
 	eye_color = Color(1.0, 0.85, 0.25)
@@ -191,8 +191,8 @@ func attack_phase_ended(fight: Fight) -> void:
 	eye_color = ENRAGED_EYES
 	eye_glow = 1.0
 	eye_radius = 16.0
-	motion_seconds = 3.2
-	motion_amount = 18.0
+	motion_seconds = 4.5
+	motion_amount = 12.0
 	look_changed.emit()
 	fight.tell("mirefang_enraged", { "boss": title })
 	await fight.until_read()

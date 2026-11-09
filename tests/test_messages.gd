@@ -75,7 +75,7 @@ func _check_render() -> void:
 	_check(render.call("{a}", { "a": "[b]x[/b] {b} :health:", "b": "no" }) == "[lb]b]x[lb]/b] {b} :health:", "shows a value as it is, never as markup")
 	_check(render.call("[damage]5[/damage]") == "%s5%s" % Messages.STYLES.damage, "replaces styles")
 	_check(render.call("[b][i]x[/i][/b] [color=red]y[/color]") == "[b][i]x[/i][/b] [color=red]y[/color]", "keeps BBCode")
-	_check(render.call("lose 1 :health:!", {}, "en", 40) == "lose 1 [img=center width=40 height=40]%s[/img]!" % Messages.SYMBOLS.health, "draws symbols at the size asked for")
+	_check(render.call("lose 1 :health:!", {}, "en", 40) == "lose 1 [img width=40 height=40]%s[/img]!" % Messages.SYMBOLS.health, "draws symbols at the size asked for")
 	_check(render.call("at 10:30:00 :nothing:") == "at 10:30:00 :nothing:", "leaves colons that are no symbol alone")
 
 	var parts := [["part_hit", { "player": "[b]Bo", "damage": 3 }], ["part_hit", { "player": "Sonja", "damage": 1 }]]

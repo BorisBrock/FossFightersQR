@@ -223,7 +223,7 @@ static func _markup(text: String, symbol_size: int) -> String:
 		if path == null:
 			continue
 		result += text.substr(start, found.get_start() - start)
-		result += "[img=center width=%d height=%d]%s[/img]" % [symbol_size, symbol_size, path]
+		result += "[img width=%d height=%d]%s[/img]" % [symbol_size, symbol_size, path]
 		start = found.get_end()
 	return result + text.substr(start)
 

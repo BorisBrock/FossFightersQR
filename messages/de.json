@@ -13,9 +13,7 @@
 		"title": "Phase 3 · Aktionen",
 		"body": [
 			"Deckt jetzt eure Flüche auf, falls ihr welche habt.",
-			"Jeder Held hat [b]3 Züge[/b] mit je einer Aktion, im Uhrzeigersinn, [player]{player}[/player] beginnt.",
-			"Helden mit Panik :panic: spielen ihre Handkarten zufällig und werfen danach jeweils 1 Panik-Marker ab.",
-			"Zeigt eure Karte der Kamera, wenn ihr dran seid."
+			"Helden mit Panik :panic: spielen ihre Handkarten zufällig und werfen danach jeweils 1 Panik-Marker ab."
 		]
 	},
 	"boss_attacks": {

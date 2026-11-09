@@ -17,9 +17,11 @@ FAST=(
 	"--headless res://tests/test_boss_fight.tscn"
 )
 # These need a window: run headless, they get no camera frames and fail.
+# Without vsync, because a compositor may throttle a window nobody looks at to ~1 fps,
+# and then every timing check fails.
 GUI=(
-	"res://tests/test_game.tscn"
-	"res://tests/test_onboarding.tscn"
+	"--disable-vsync res://tests/test_game.tscn"
+	"--disable-vsync res://tests/test_onboarding.tscn"
 )
 
 case "${1:-fast}" in
