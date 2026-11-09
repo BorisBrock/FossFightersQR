@@ -28,10 +28,18 @@ const BADGE_GAP := -3.0
 ## they are at most 115 wide.
 const SHIELD_SIZE := Vector2(115, 134)
 const ATTACK_STATE_SIZE := 76
-## The dark box behind each column, from the middle of the shield down, and the space
-## below the attack type's icon in it.
-const SHIELD_BOX_WIDTH := 115.0
+## The dark box behind each column, from the middle of the shield down, centred and
+## narrower than the shield (so that it keeps clear of the heroes' action bubbles beside
+## it), and the space below the attack type's icon in it.
+const SHIELD_BOX_WIDTH := 92.0
 const SHIELD_BOX_PADDING := 8.0
+## The value below each shield is in its damage type's colour, as the symbols on the cards
+## (as GameOver.TYPE_COLORS): melee crimson, ranged golden yellow, magic blue.
+const SHIELD_VALUE_COLORS := {
+	"melee": Color("#d6386a"),
+	"ranged": Color("#fcbe03"),
+	"magic": Color("#3b9cf2"),
+}
 const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
 ## The shield pictures are dark iron, over a dark box and background: their dark parts are
 ## lifted a little (see gray.gdshader).
@@ -832,12 +840,13 @@ func _make_shields() -> void:
 		var column := VBoxContainer.new()
 		column.name = kind.to_pascal_case()
 		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		column.custom_minimum_size.x = SHIELD_BOX_WIDTH
+		column.custom_minimum_size.x = SHIELD_SIZE.x
 		column.size_flags_vertical = Control.SIZE_SHRINK_END
 		column.add_theme_constant_override("separation", 2)
 		column.draw.connect(func() -> void:
 			var top := SHIELD_SIZE.y / 2.0
-			column.draw_style_box(box, Rect2(0.0, top, column.size.x, column.size.y - top)))
+			var left := (column.size.x - SHIELD_BOX_WIDTH) / 2.0
+			column.draw_style_box(box, Rect2(left, top, SHIELD_BOX_WIDTH, column.size.y - top)))
 		var shield := VBoxContainer.new()
 		shield.name = "Shield"
 		shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -854,6 +863,7 @@ func _make_shields() -> void:
 		value.add_theme_font_size_override("font_size", 36)
 		value.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0))
 		value.add_theme_constant_override("outline_size", 8)
+		value.add_theme_color_override("font_color", SHIELD_VALUE_COLORS[kind])
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		value.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		value.text = "0"
@@ -973,7 +983,7 @@ func _count_shield(kind: String, from: int, to: int) -> void:
 		tween.tween_property(plate, "scale", Vector2.ONE * 1.18, tick).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func() -> void:
 		value.text = str(to)
-		value.remove_theme_color_override("font_color")
+		value.add_theme_color_override("font_color", SHIELD_VALUE_COLORS[kind])
 		if to > 0:
 			_show_shield_state(plate, to))
 	tween.tween_property(plate, "scale", Vector2.ONE, 0.2)

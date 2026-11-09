@@ -98,7 +98,7 @@ placeholder, so that players recognise it.
 | File | Means | Prompt (after the global style) |
 |------|-------|--------------------------------|
 | `icon_melee.png` | melee attack | A square game icon tile with rounded corners and a thin silver rim, crimson-red enamel field, a steel broadsword pointing diagonally up. |
-| `icon_ranged.png` | ranged attack | A square game icon tile with rounded corners and a thin silver rim, amber-orange enamel field, a wooden bow with a nocked arrow pointing diagonally up. |
+| `icon_ranged.png` | ranged attack | A game icon tile shaped as a triangle with rounded corners and a thick silver rim, glossy golden-yellow enamel field, three wooden arrows with steel heads and white fletching, bound together at the lower left and fanning out to the upper right. |
 | `icon_magic.png` | magic attack | A round glowing magic orb of deep blue and cyan light with a white sparkle in the centre, swirling arcane energy, thin silver rim. |
 | `icon_damage.png` | the heroes' damage | A gold-hilted sword striking down with a bright white impact burst at the tip. |
 | `icon_claw.png` | the boss's attack | Three huge bone-white monster claws slashing diagonally, with dark red streaks. |

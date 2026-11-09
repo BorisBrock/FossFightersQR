@@ -8,11 +8,12 @@ const ONBOARDING_SCENE := "res://onboarding.tscn"
 const GOLD := Color(0.98, 0.82, 0.48)
 const CREAM := Color(0.95, 0.88, 0.74)
 const FAINT := Color(0.72, 0.64, 0.5)
-## The damage types, in the colours of their symbols on the cards (and their icons):
-## melee crimson with a touch of pink, ranged yellow-orange, magic bright blue.
+## The damage types, in the colours of their symbols on the cards (and their icons, and
+## BossFight.SHIELD_VALUE_COLORS):
+## melee crimson with a touch of pink, ranged golden yellow, magic bright blue.
 const TYPE_COLORS := {
 	"melee": Color("#d6386a"),
-	"ranged": Color("#f0a326"),
+	"ranged": Color("#fcbe03"),
 	"magic": Color("#3b9cf2"),
 }
 const TYPE_ICONS := {
