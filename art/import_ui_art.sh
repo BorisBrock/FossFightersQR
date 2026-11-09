@@ -44,10 +44,11 @@ for color in blue green red yellow; do
 	square "$src/action_orb_$color.png" "assets/fight/action_orb_$color.png" 64
 done
 
-# The boss's shields (Boss.shield_icon).
-for kind in normal dark poison; do
+# The boss's shields (Boss.shield_icon). The skull shield is Boss.SHIELD_DARK.
+for kind in normal poison; do
 	fit "$src/boss_shield_$kind.png" "assets/fight/boss_shield_$kind.png" 192 224
 done
+fit "$src/boss_shield_skull.png" assets/fight/boss_shield_dark.png 192 224
 
 # The dryad's forms replace her portrait (HeroOptions.RACES.dryad.forms).
 for form in thorn blossom bark; do

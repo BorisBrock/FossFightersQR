@@ -121,9 +121,10 @@ placeholder, so that players recognise it.
 | `icon_give_up.png` | give up button | A tattered white flag on a short wooden pole. Pure white and light grey only. |
 | `action_orb_blue.png`, `…_yellow`, `…_red`, `…_green` | a hero's actions left (blue turns, yellow extra, red limited; green is unused) | A round faceted gemstone orb in a dark metal rim with a white sparkle. Final 64 × 64. |
 
-**`boss_shield_normal.png`, `boss_shield_dark.png`, `boss_shield_poison.png`** — the boss's shields on the fight
-screen, which the code makes glow and break; their value is shown below them. Normal is plain iron, dark is for shields
-that do something besides absorbing, poison has a green drop on it (`Boss.SHIELD_*`). Generate 1024 × 1110, final
+**`boss_shield_normal.png`, `boss_shield_skull.png`, `boss_shield_poison.png`** — the boss's shields on the fight
+screen, which the code makes glow and break; their value is shown below them. Normal is plain iron, skull (imported as
+`boss_shield_dark.png`) is for shields that do something besides absorbing, poison has a green drop on it
+(`Boss.SHIELD_*`). Generate 1024 × 1110, final
 fitted into 192 × 224.
 
 > A heavy dark iron heater shield seen from the front, blackened riveted metal, a thin bronze rim, battle scratches,
