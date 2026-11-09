@@ -32,7 +32,7 @@ const TEXT := {
 	"done": { "de": "Fertig", "en": "Done" },
 	"delete": { "de": "Löschen", "en": "Delete" },
 	"delete_confirm": { "de": "Sicher?", "en": "Really?" },
-	"battle": { "de": "Zur Schlacht!", "en": "To Battle!" },
+	"battle": { "de": "Zum Kampf!", "en": "To Battle!" },
 	"party_hint": { "de": "Tippe auf deinen Platz am Tisch, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table to create or change a hero." },
 	"party_hint_full": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
 	"party_name_placeholder": { "de": "Name der Gruppe", "en": "Party name" },
