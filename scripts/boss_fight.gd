@@ -24,13 +24,13 @@ const MARK_GAP := 4.0
 ## Negative: the badge overlaps the portrait's ring a little.
 const BADGE_GAP := -3.0
 ## A column for each attack type: its shield, the shield's value below it, and the
-## attack type's icon below that. The shield pictures are about 3:4, so at this height
-## they are at most 89 wide: the width leaves them a little room.
-const SHIELD_SIZE := Vector2(96, 112)
+## attack type's icon below that. The shield pictures are about 6:7, so at this height
+## they are at most 115 wide.
+const SHIELD_SIZE := Vector2(115, 134)
 const ATTACK_STATE_SIZE := 76
 ## The dark box behind each column, from the middle of the shield down, and the space
 ## below the attack type's icon in it.
-const SHIELD_BOX_WIDTH := 96.0
+const SHIELD_BOX_WIDTH := 115.0
 const SHIELD_BOX_PADDING := 8.0
 const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
 ## The shield pictures are dark iron, over a dark box and background: their dark parts are
