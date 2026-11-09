@@ -34,10 +34,11 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   Those for everyone, such as *Muttis Nachtisch* with the cards it still boosts, are at the top, between the buttons.
 - **The boss's poison** at the bottom right, above its health, once it has any (`Fight.poison_changed`).
 - **The shields and attack types** above the hero at the bottom, from the shield phase on: a column each for melee,
-  ranged and magic. On top the boss's shield, a picture with its value on it (`Boss.shield_icon()`, so that a boss
-  with special shields can show its own); a broken shield is grey and faint. Below it, set apart in a round
-  medallion, the attack type: grey each round until a hero attacks with it (`Fight.attacked_changed`), then in
-  colour, as supports of that type can now be played.
+  ranged and magic. On top the boss's shield (`Boss.shield_icon()`: `Boss.SHIELD_NORMAL` by default, so that a boss
+  with special shields can show `SHIELD_DARK` or `SHIELD_POISON`), its value below it; the two pulse, count and break
+  together, and a broken shield is grey and faint. Below that the attack type's icon: grey each round until a hero
+  attacks with it (`Fight.attacked_changed`), then in colour, as supports of that type can now be played. Each column
+  has a dark box behind it for readability, with the shield sitting on its top edge.
 - **The prompt** in the upper half, between the seats at the sides, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
@@ -78,7 +79,7 @@ on and take off themselves.
    starts. With one hero, nobody is asked.
 5. **Actions:** curses are revealed, then the heroes take turns clockwise from the starter, three each. Each turn is one
    action: show a card, or *Pass*. Lightning gives another action within the same turn.
-   Each hero's badge shows the actions they have left this round as spheres: **blue** for their three turns,
+   Each hero's badge shows the actions they have left this round as orbs: **blue** for their three turns,
    **yellow** for extra ones (Lightning, a free card from another hero, a Warhorse's turn) and **red** for extra
    ones that allow only some cards (the Lucky Charm's top card). The one being played comes first and glows; extra
    turns are taken last.

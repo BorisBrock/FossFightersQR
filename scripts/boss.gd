@@ -28,6 +28,12 @@ enum Motion {
 	SWAY,
 }
 
+## The pictures of shields, see shield_icon(): plain iron ones that only absorb damage,
+## dark ones that do something besides, and poisonous ones.
+const SHIELD_NORMAL := "res://assets/fight/boss_shield_normal.png"
+const SHIELD_DARK := "res://assets/fight/boss_shield_dark.png"
+const SHIELD_POISON := "res://assets/fight/boss_shield_poison.png"
+
 ## Set from its file name by Bosses.
 var id := ""
 
@@ -119,10 +125,11 @@ func attack_hero(fight: Fight, hero: FightHero) -> void:
 	await fight.strike(hero)
 
 
-## The picture of its shield of kind, on which the screen shows the shield's value. A boss
-## whose shields are special, such as thorny ones, can show its own.
+## The picture of its shield of kind, above the shield's value on the screen. A boss whose
+## shields do something besides absorbing (shield_hit) shows that with SHIELD_DARK, or
+## SHIELD_POISON for poisonous ones.
 func shield_icon(_kind: String) -> String:
-	return "res://assets/fight/icon_boss_shield.svg"
+	return SHIELD_NORMAL
 
 
 ## Its shield of kind absorbed amount damage from play (or null). What a shield does

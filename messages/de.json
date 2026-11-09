@@ -99,7 +99,7 @@
 		"body": "[player]{player}[/player], du bist dran: spiel eine Karte :card:."
 	},
 	"prompt_protect": {
-		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :shield:. [b]Tippt den Helden an, der geschützt wird.[/b]"
+		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :protection:. [b]Tippt den Helden an, der geschützt wird.[/b]"
 	},
 	"prompt_tied_target": {
 		"body": "[boss]{boss}[/boss] kann sich nicht entscheiden. [b]Tippt den Helden an, den er angreift.[/b]"
@@ -338,7 +338,7 @@
 	},
 	"form_bark": {
 		"title": "Borkenform",
-		"body": "[player]{player}[/player] nimmt die Borkenform an: Jeder ihrer Schutz-Effekte :shield: bekommt [heal]+1[/heal].",
+		"body": "[player]{player}[/player] nimmt die Borkenform an: Jeder ihrer Schutz-Effekte :protection: bekommt [heal]+1[/heal].",
 		"auto": true
 	},
 	"notice_form_already": {
@@ -420,7 +420,7 @@
 		"title": "{card}",
 		"body": [
 			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
-			"Bis zum Ende der Runde ist jeder Schutz :shield: von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
+			"Bis zum Ende der Runde ist jeder Schutz :protection: von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
 		]
 	},
 	"totem_lightning": {

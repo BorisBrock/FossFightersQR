@@ -3,12 +3,12 @@
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="1_regular"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="2_bold"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/CinzelDecorative-Bold.ttf" id="3_title"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_secondary.svg" id="secondary_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_primary.svg" id="primary_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_danger.svg" id="danger_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_on.svg" id="toggle_on"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_off.svg" id="toggle_off"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/slider_grabber.svg" id="slider_grabber"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_secondary.png" id="secondary_art"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_primary.png" id="primary_art"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_danger.png" id="danger_art"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_on.png" id="toggle_on"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_off.png" id="toggle_off"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/slider_grabber.png" id="slider_grabber"]
 
 [sub_resource type="StyleBoxTexture" id="secondary_normal"]
 content_margin_left = 16.0
@@ -16,10 +16,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("secondary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxTexture" id="secondary_hover"]
@@ -28,10 +28,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("secondary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1.15, 1.15, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="secondary_pressed"]
@@ -40,10 +40,10 @@ content_margin_top = 11.0
 content_margin_right = 16.0
 content_margin_bottom = 11.0
 texture = ExtResource("secondary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(0.75, 0.75, 0.75, 1)
 
 [sub_resource type="StyleBoxTexture" id="primary_normal"]
@@ -52,10 +52,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("primary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxTexture" id="primary_hover"]
@@ -64,10 +64,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("primary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1.15, 1.15, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="primary_pressed"]
@@ -76,10 +76,10 @@ content_margin_top = 11.0
 content_margin_right = 16.0
 content_margin_bottom = 11.0
 texture = ExtResource("primary_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(0.75, 0.75, 0.75, 1)
 
 [sub_resource type="StyleBoxTexture" id="danger_normal"]
@@ -88,10 +88,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("danger_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxTexture" id="danger_hover"]
@@ -100,10 +100,10 @@ content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
 texture = ExtResource("danger_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(1.15, 1.15, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="danger_pressed"]
@@ -112,10 +112,10 @@ content_margin_top = 11.0
 content_margin_right = 16.0
 content_margin_bottom = 11.0
 texture = ExtResource("danger_art")
-texture_margin_left = 16.0
+texture_margin_left = 20.0
 texture_margin_top = 16.0
-texture_margin_right = 16.0
-texture_margin_bottom = 18.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
 modulate_color = Color(0.75, 0.75, 0.75, 1)
 
 [sub_resource type="StyleBoxEmpty" id="empty"]

@@ -84,17 +84,18 @@ asks nothing of the players, so that it closes by itself:
 
   | Symbol | Icon |
   |--------|------|
-  | `:health:` | `assets/fight/icon_health.svg` |
-  | `:round:` | `assets/fight/icon_round.svg` |
-  | `:damage:` | `assets/fight/icon_damage.svg` (the heroes' attacks) |
-  | `:claw:` | `assets/fight/icon_claw.svg` (the boss's attacks) |
-  | `:poison:` | `assets/fight/icon_poison.svg` |
-  | `:card:` | `assets/fight/icon_card.svg` |
-  | `:dice:` | `assets/onboarding/icons/dice.svg` |
-  | `:melee:`, `:ranged:`, `:magic:` | `assets/fight/icon_melee.svg` and so on |
-  | `:shield:`, `:lightning:` | `assets/fight/icon_shield.svg`, `assets/fight/icon_lightning.svg` |
-  | `:fire:`, `:panic:`, `:paralysis:` | `assets/fight/icon_fire.svg` and so on |
-  | `:totem:` | `assets/fight/icon_totem.svg` |
+  | `:health:` | `assets/fight/icon_health.png` |
+  | `:round:` | `assets/fight/icon_round.png` |
+  | `:damage:` | `assets/fight/icon_damage.png` (the heroes' attacks) |
+  | `:claw:` | `assets/fight/icon_claw.png` (the boss's attacks) |
+  | `:poison:` | `assets/fight/icon_poison.png` |
+  | `:card:` | `assets/fight/icon_card.png` |
+  | `:dice:` | `assets/onboarding/icons/dice.png` |
+  | `:melee:`, `:ranged:`, `:magic:` | `assets/fight/icon_melee.png` and so on |
+  | `:melee_support:`, `:ranged_support:`, `:magic_support:` | `assets/fight/icon_melee_support.png` and so on |
+  | `:protection:`, `:lightning:` | `assets/fight/icon_protection.png`, `assets/fight/icon_lightning.png` |
+  | `:fire:`, `:panic:`, `:paralysis:` | `assets/fight/icon_fire.png` and so on |
+  | `:totem:` | `assets/fight/icon_totem.png` |
 
 Keep messages short. They have to be read out at a table, and a long one does not fit the screen.
 

@@ -5,12 +5,12 @@
 [ext_resource type="Shader" path="res://assets/fight/background.gdshader" id="3_background"]
 [ext_resource type="Shader" path="res://assets/fight/figure.gdshader" id="4_figure"]
 [ext_resource type="PackedScene" path="res://seats.tscn" id="5_seats"]
-[ext_resource type="Texture2D" path="res://assets/fight/icon_give_up.svg" id="6_give_up"]
-[ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="7_settings_icon"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_give_up.png" id="6_give_up"]
+[ext_resource type="Texture2D" path="res://assets/icon_settings.png" id="7_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
-[ext_resource type="Texture2D" path="res://assets/fight/icon_round.svg" id="9_round"]
-[ext_resource type="Texture2D" path="res://assets/fight/icon_health.svg" id="10_health"]
-[ext_resource type="Texture2D" uid="uid://cef75cq1bceym" path="res://assets/fight/icon_poison.svg" id="15_poison"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_round.png" id="9_round"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_health.png" id="10_health"]
+[ext_resource type="Texture2D" path="res://assets/fight/icon_poison.png" id="15_poison"]
 [ext_resource type="PackedScene" path="res://message_box.tscn" id="11_messages"]
 [ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="12_scanner"]
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="13_regular"]
@@ -177,13 +177,13 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -170.0
-offset_top = -598.0
+offset_top = -500.0
 offset_right = 170.0
-offset_bottom = -418.0
+offset_bottom = -250.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 22
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="Prompt" type="PanelContainer" parent="."]
@@ -335,9 +335,24 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Hud/Round/Row"]
+[node name="Icon" type="Control" parent="Hud/Round/Row"]
 custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Picture" type="TextureRect" parent="Hud/Round/Row/Icon"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("9_round")
 expand_mode = 1
@@ -382,9 +397,24 @@ text = "40"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Icon" type="TextureRect" parent="Hud/Health/Row"]
+[node name="Icon" type="Control" parent="Hud/Health/Row"]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Picture" type="TextureRect" parent="Hud/Health/Row/Icon"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("10_health")
 expand_mode = 1

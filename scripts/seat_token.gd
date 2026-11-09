@@ -25,14 +25,6 @@ const SELECTABLE_TURNS_PER_SECOND := 0.08
 ## A hero who can be chosen grows and shrinks a little, to catch the players' eye.
 const PULSE_SCALE := 0.1
 const PULSE_SPEED := 5.0
-## The forms the dryad can take (FightHero.form): a badge by her portrait, and the colour
-## of its ring and of her picture.
-const FORMS := {
-	"thorn": { "icon": "res://assets/fight/icon_form_thorn.svg", "ring": Color(0.88, 0.3, 0.18), "tint": Color(1.0, 0.86, 0.8) },
-	"blossom": { "icon": "res://assets/fight/icon_form_blossom.svg", "ring": Color(0.94, 0.54, 0.69), "tint": Color(1.0, 0.92, 0.94) },
-	"bark": { "icon": "res://assets/fight/icon_form_bark.svg", "ring": Color(0.55, 0.36, 0.18), "tint": Color(0.92, 0.84, 0.74) },
-}
-const RING_COLOR := Color(0.85, 0.66, 0.3)
 ## The glow around a hero who has a totem token (Fight.has_totem), as on the totem chip.
 const TOTEM_COLOR := Color(0.25, 0.75, 0.7)
 
@@ -41,7 +33,8 @@ const TOTEM_COLOR := Color(0.25, 0.75, 0.7)
 @export var facing_degrees := 0.0
 
 var mode := Mode.IDLE
-## The form the hero here has taken, see FORMS. Empty for none.
+## The form the hero here has taken (FightHero.form), which shows as another portrait,
+## see HeroOptions.RACES. Empty for none.
 var form := ""
 ## The hero here has a totem token, so their portrait glows.
 var totem := false
@@ -53,7 +46,6 @@ var _shows_crest := true
 
 @onready var _portrait: TextureRect = $Portrait
 @onready var _crest: TextureRect = $Crest
-@onready var _form: TextureRect = $Form
 @onready var _plate: Control = $NamePlate
 @onready var _name: Label = $NamePlate/Name
 @onready var _hit: Button = $Hit
@@ -72,7 +64,7 @@ func _ready() -> void:
 
 func _center_pivots() -> void:
 	var middle := _portrait.position + _portrait.size / 2.0
-	for picture: Control in [_portrait, _crest, _form]:
+	for picture: Control in [_portrait, _crest]:
 		picture.pivot_offset = middle - picture.position
 
 
@@ -86,11 +78,6 @@ func use_fight_look(factor: float) -> void:
 	var rect := Rect2(Vector2(old.get_center().x - grown.x / 2.0, old.end.y - grown.y), grown)
 	_portrait.position = rect.position
 	_portrait.size = rect.size
-	# The form badge keeps its place at the portrait's upper left.
-	var form_size := _form.size * sqrt(factor)
-	var form_center := rect.get_center() + (_form.position + _form.size / 2.0 - old.get_center()) * factor
-	_form.position = form_center - form_size / 2.0
-	_form.size = form_size
 	_ring_radius = RING_RADIUS * factor
 	# The whole portrait can be tapped.
 	_hit.offset_top = minf(0.0, rect.position.y)
@@ -111,7 +98,7 @@ func _pulsing() -> bool:
 
 
 func _scale_portrait(factor: Vector2) -> void:
-	for picture: Control in [_portrait, _crest, _form]:
+	for picture: Control in [_portrait, _crest]:
 		picture.scale = factor
 
 
@@ -152,25 +139,27 @@ func show_hero(hero: Party.Hero) -> void:
 	_crest.visible = hero != null and _shows_crest
 	_plate.visible = hero != null
 	if hero != null:
-		_portrait.texture = load(HeroOptions.RACES[hero.race].art)
 		_crest.texture = load(HeroOptions.CLASSES[hero.hero_class].art)
 		_name.text = hero.name
+	form = ""
 	show_form("")
 	show_totem(false)
 	queue_redraw()
 
 
-## Shows the form the hero has taken, see FORMS, or none for "".
+## Shows the form the hero has taken, as the portrait of that form, or the usual
+## portrait for "" or a form without one.
 func show_form(new_form: String) -> void:
-	form = new_form if FORMS.has(new_form) else ""
-	var look: Dictionary = FORMS.get(form, {})
-	_form.visible = not look.is_empty()
-	_form.texture = load(look.icon) if not look.is_empty() else null
-	_portrait.self_modulate = look.get("tint", Color.WHITE)
-	(_portrait.material as ShaderMaterial).set_shader_parameter("ring_color", look.get("ring", RING_COLOR))
-	if _form.visible:
-		_form.scale = Vector2(0.2, 0.2)
-		create_tween().tween_property(_form, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var race: Dictionary = HeroOptions.RACES[_hero.race] if _hero != null else {}
+	var forms: Dictionary = race.get("forms", {})
+	var old := form
+	form = new_form if forms.has(new_form) else ""
+	if race.is_empty():
+		return
+	_portrait.texture = load(forms[form] if not form.is_empty() else race.art)
+	if form != old:
+		_portrait.scale = Vector2(0.85, 0.85)
+		create_tween().tween_property(_portrait, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func show_totem(has_totem: bool) -> void:

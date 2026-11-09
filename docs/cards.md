@@ -170,8 +170,9 @@ one: its `buff()` (in `FightRule`) returns a `FightBuff` with icons (`FightBuff.
 Nachtisch* still boosts, a health bar (`bar`, `bar_max`), such as the battle robot's, and the hero it is for. A buff
 for a hero sits in their badge, a buff for everyone (no hero) at the top of the screen (see
 [The boss fight](boss_fight.md#what-is-on-screen)). The fight sends `buffs_changed` when a rule with a buff comes or
-goes; a rule whose buff changes, such as a count going down, sends it itself. The dryad's forms keep their own look at
-her portrait.
+goes; a rule whose buff changes, such as a count going down, sends it itself. The icons are keys of `FightBuff.ICONS`;
+a support of one type is `<type>_support`, and `support` (of any type) shows the three support icons overlapping. The
+dryad's forms have no chip: her portrait changes to that of the form (`HeroOptions.RACES.dryad.forms`).
 
 | Shows a buff | For |
 |--------------|-----|

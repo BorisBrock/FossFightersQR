@@ -36,6 +36,6 @@ or a taller screen it simply grows.
   playing one.
 - The chart, the power bars and the legend are drawn by small classes inside `game_over.gd`. The colours of the damage
   types were checked for colour blindness and contrast against the panels.
-- The icons for healing, damage taken and titles are `icon_heal.svg`, `icon_wound.svg` and `icon_crown.svg` in
+- The icons for healing, damage taken and titles are `icon_heal.png`, `icon_wound.png` and `icon_crown.png` in
   `assets/fight/`.
 - Tests: `tests/test_fight.gd` for the statistics, `tests/test_boss_fight.tscn` for ending a fight and the screen.

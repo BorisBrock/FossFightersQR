@@ -76,7 +76,8 @@ On a laptop, press F5 in the editor or run `godot --path .`. The window is scale
 - **Real cards:** when the cards have been scanned, give them a `race` or `hero_class` ([cards](cards.md)) and delete
   the dummies. More than one card can stand for the same race or class.
 - **Artwork:** `art/import_onboarding_art.sh <folder>` takes the finished images from a folder, with the same file
-  names as now (`CharacterDwarf.png`, `ClassThief.png`, `Table.png`, …).
+  names as now (`CharacterDwarf.png`, `ClassThief.png`, `Table.png`, …). The icons, buttons, controls and the dryad's
+  form portraits come in through `art/import_ui_art.sh <folder>` (see [Artwork prompts](artwork_prompts.md)).
 - **Music:** `music.tscn` is an autoload, so the track keeps playing from the onboarding into the game. It sets the
   track and its volume, which together with the default of the [music slider](settings.md) is kept low so that players
   can talk over it. New tracks need Loop on in their import settings.

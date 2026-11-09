@@ -1,8 +1,12 @@
 # Artwork prompts
 
-Prompts for replacing the remaining placeholder graphics with AI-generated artwork.
+Prompts for the AI-generated artwork, kept for making more of it in the same style.
 
-**Already final, not listed here:** the character portraits (`assets/onboarding/portraits/`), the class crests
+**Status:** everything below is final, except `icon_check` (the confirm button), which is still an SVG placeholder.
+The icons, frames, buttons, controls, boss shields, action orbs and the dryad's form portraits are imported with
+`art/import_ui_art.sh <folder>` (see [Putting them in](#putting-them-in)), the bosses with `art/import_boss_art.sh`.
+
+**Also final, not listed here:** the character portraits (`assets/onboarding/portraits/`), the class crests
 (`assets/onboarding/crests/`), the table (`assets/onboarding/table.png`) and the logo (`art/FossFighters.png`, from
 which `art/build_icons.sh` makes the app icons and the splash). The particle sprites in `assets/fight/particles/` are
 Kenney's CC0 pack. They are white shapes that the code tints, so they stay as they are.
@@ -131,7 +135,7 @@ placeholder, so that players recognise it.
 | `icon_health.png` | health | A glossy deep-pink ruby heart with a pale pink rim and a white highlight. |
 | `icon_heal.png` | healing | A glowing mint-green healing cross with soft white light and small leaves. |
 | `icon_wound.png` | damage taken | A torn dark crimson heart split by a jagged crack, a drop of blood falling. |
-| `icon_shield.png` | protection | A kite shield of blue enamel with a pale steel rim and a small gold boss. |
+| `icon_protection.png` | protection | A knight's helmet of polished steel with gold trim, seen from the front. |
 | `icon_lightning.png` | Lightning | A bright yellow-white lightning bolt with a soft golden glow. |
 | `icon_fire.png` | fire status | A lively flame, orange at the base, yellow and white at the tip. |
 | `icon_poison.png` | poison status | A bubbling glass vial of toxic green liquid with a dark green cork, a drip running down. |
@@ -139,21 +143,24 @@ placeholder, so that players recognise it.
 | `icon_paralysis.png` | paralysis status | A crystal of pale blue ice with frozen shards and frost around it. |
 | `icon_totem.png` | Totem | A small carved wooden shaman totem pole with a turquoise glowing spirit face. |
 | `icon_robot.png` | the goblin's battle robot | The head of a small goblin-made battle robot, riveted silver plates, yellow glowing eyes, a crooked antenna. |
-| `icon_support.png` | support | Two hands clasped together in a golden glow, warm amber colours. |
+| `icon_melee_support.png`, `icon_ranged_support.png`, `icon_magic_support.png` | support of that type | The icon of the attack type with a bold silver plus sign at its lower right. There is no single support icon: a support of any type shows all three, overlapping. |
 | `icon_card.png` | a card | A single fantasy playing card seen from the back, cream parchment with a gold ornamental border, slightly tilted. |
 | `icon_round.png` | the round | An hourglass with a gold frame and glowing blue sand. |
 | `icon_crown.png` | title on the game-over screen | A gold crown with blue sapphires and a soft shine. |
 | `icon_check.png` | confirm button | A bold golden check mark with a dark bronze outline. |
 | `icon_give_up.png` | give up button | A tattered white flag on a short wooden pole. Pure white and light grey only. |
-| `icon_form_thorn.png` | dryad's thorn form | A curling thorny vine with sharp red-orange thorns. |
-| `icon_form_blossom.png` | dryad's blossom form | An open pink blossom with a golden yellow centre. |
-| `icon_form_bark.png` | dryad's bark form | A round piece of tough brown tree bark with a small fresh green sprout. |
+| `action_orb_blue.png`, `…_yellow`, `…_red`, `…_green` | a hero's actions left (blue turns, yellow extra, red limited; green is unused) | A round faceted gemstone orb in a dark metal rim with a white sparkle. Final 64 × 64. |
 
-**`icon_boss_shield.png`** — the boss's shields on the fight screen, which the code makes glow and break. Generate
-1024 × 1110, final 192 × 208.
+**`boss_shield_normal.png`, `boss_shield_dark.png`, `boss_shield_poison.png`** — the boss's shields on the fight
+screen, which the code makes glow and break; their value is shown below them. Normal is plain iron, dark is for shields
+that do something besides absorbing, poison has a green drop on it (`Boss.SHIELD_*`). Generate 1024 × 1110, final
+fitted into 192 × 224.
 
 > A heavy dark iron heater shield seen from the front, blackened riveted metal, a thin bronze rim, battle scratches,
 > plain flat centre without emblem.
+
+**The dryad's forms** — `assets/onboarding/portraits/CharacterDryadThorn.png`, `…Blossom.png`, `…Bark.png`: her
+portrait while she has taken that form, in the style of the other character portraits. Final 640 × 640, opaque.
 
 ## Interface icons
 
@@ -164,7 +171,7 @@ placeholder, so that players recognise it.
 | `assets/icon_settings.png` | A gold cogwheel with a small sapphire in the middle. |
 | `assets/icon_switch_camera.png` | A small brass-and-leather fantasy camera, like a magic lens box, with two curved golden arrows circling it. |
 | `assets/onboarding/icons/dice.png` | A single ivory twenty-sided die with gold-inlaid pips, slightly tilted. Final 192 × 192. |
-| `assets/onboarding/icons/pen.png` | A quill pen with a white feather and a gold nib, diagonal. Final 64 × 64. |
+| `assets/onboarding/icons/pen.png` | A quill pen with a white feather and a gold nib, diagonal. Final 32 × 32, as a text field draws it at its pixel size. |
 
 ## Frames and ornaments
 
@@ -191,28 +198,29 @@ Generate 1024 × 1434 (5:7), final 400 × 560.
 
 ## Buttons and controls
 
-The buttons are nine-patch textures: the code keeps the outer 16 px (18 px at the bottom) and stretches the middle, so
-**the centre must be plain and even, and all the decoration must be in the border**. Generate wide and scale to the
-final size; they are drawn at half size, so the margins in the theme have to be doubled to 32/36 px when the PNG
-replaces the SVG.
+The buttons are nine-patch textures: the theme keeps the outer 20 px at the sides and 16 px at the top and bottom and
+stretches the middle, so **the centre must be plain and even, and all the decoration must be in the border**. The
+import script paints over the gem in the middle of the top and bottom edge, which would be stretched. Godot draws
+the edges of a nine-patch, and the icons of toggles and sliders, at their pixel size, so these are imported at the
+size they have on screen.
 
 | File | Generate | Final | Prompt (after the global style) |
 |------|----------|-------|--------------------------------|
-| `button_primary.png` | 1536 × 928 | 192 × 116 | A rounded rectangular game button of polished gold with a bevelled raised edge and a darker bronze outline, plain smooth evenly lit face, no icon, viewed straight from the front. |
-| `button_secondary.png` | 1536 × 928 | 192 × 116 | The same rounded rectangular game button in dark walnut wood with a thin gold rim, plain smooth face. |
-| `button_danger.png` | 1536 × 928 | 192 × 116 | The same rounded rectangular game button in deep crimson enamel with a thin gold rim, plain smooth face. |
-| `toggle_on.png` | 1536 × 850 | 152 × 84 | A pill-shaped fantasy toggle switch, gold frame, emerald-green glowing track, a round gold knob on the right side. |
-| `toggle_off.png` | 1536 × 850 | 152 × 84 | The same pill-shaped toggle switch, gold frame, dark grey unlit track, a round dull bronze knob on the left side. |
-| `slider_grabber.png` | 1024 × 1024 | 80 × 80 | A round gold slider knob with a small gem in the middle, seen from the front. |
+| `button_primary.png` | 1536 × 928 | 132 × 58 | A rounded rectangular game button of polished gold with a bevelled raised edge and a darker bronze outline, plain smooth evenly lit face, no icon, viewed straight from the front. |
+| `button_secondary.png` | 1536 × 928 | 132 × 58 | The same rounded rectangular game button in dark walnut wood with a thin gold rim, plain smooth face. |
+| `button_danger.png` | 1536 × 928 | 132 × 58 | The same rounded rectangular game button in deep crimson enamel with a thin gold rim, plain smooth face. |
+| `toggle_on.png` | 1536 × 850 | 76 × 37 | A pill-shaped fantasy toggle switch, gold frame, emerald-green glowing track, a round gold knob on the right side. |
+| `toggle_off.png` | 1536 × 850 | 76 × 37 | The same pill-shaped toggle switch, gold frame, dark grey unlit track, a round dull bronze knob on the left side. |
+| `slider_grabber.png` | 1024 × 1024 | 40 × 40 | A round gold slider knob with a small gem in the middle, seen from the front. |
 
 All in `assets/onboarding/icons/`.
 
 ## Putting them in
 
-- Every icon above is an SVG today. A PNG has to be referenced by its new name: in `scripts/messages.gd`,
-  `scripts/fight_buff.gd`, `scripts/boss_fight.gd`, `scripts/game_over.gd`, `scripts/seat_token.gd`, `scripts/boss.gd`
-  and the `.tscn` files that load them (search for `.svg`). Then delete the SVG.
-- Check that the PNGs import with mipmaps on, as they are scaled down a lot on small screens.
-- Run `godot --headless -s tests/test_messages.gd`, `godot --headless -s tests/test_fight.gd` and
-  `godot --headless res://tests/test_bosses.tscn` afterwards: they
-  load these files.
+- Put the generated PNGs in one folder, named as in the tables (`icon_shield.png` for the helmet,
+  `character_dryad_<form>_form.png` for the dryad), and run `art/import_ui_art.sh <folder>`. It trims, scales and
+  copies them; Godot imports them when the editor or a test starts.
+- The scaled-down icons import with mipmaps on, and the project filters textures with mipmaps
+  (`rendering/textures/canvas_textures/default_texture_filter`), as they are drawn much smaller than they are. A new
+  icon needs `mipmaps/generate=true` in its `.import` file.
+- Run `tests/run.sh` afterwards: the tests load these files.

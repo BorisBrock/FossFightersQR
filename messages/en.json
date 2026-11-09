@@ -99,7 +99,7 @@
 		"body": "[player]{player}[/player], your turn: play a card :card:."
 	},
 	"prompt_protect": {
-		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :shield:. [b]Tap the hero to protect.[/b]"
+		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :protection:. [b]Tap the hero to protect.[/b]"
 	},
 	"prompt_tied_target": {
 		"body": "[boss]{boss}[/boss] cannot decide. [b]Tap the hero it targets.[/b]"
@@ -338,7 +338,7 @@
 	},
 	"form_bark": {
 		"title": "Bark Form",
-		"body": "[player]{player}[/player] takes the Bark Form: their protection :shield: gets [heal]+1[/heal].",
+		"body": "[player]{player}[/player] takes the Bark Form: their protection :protection: gets [heal]+1[/heal].",
 		"auto": true
 	},
 	"notice_form_already": {
@@ -420,7 +420,7 @@
 		"title": "{card}",
 		"body": [
 			"Give [player]{player}[/player] the totem token :totem:.",
-			"Until the end of the round, every protection :shield: of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
+			"Until the end of the round, every protection :protection: of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
 		]
 	},
 	"totem_lightning": {

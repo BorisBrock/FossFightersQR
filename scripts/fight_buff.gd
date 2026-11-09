@@ -4,20 +4,29 @@ extends RefCounted
 ## by the seat of its hero or, for one that is for everyone, at the top of the screen.
 ## Such as a Totem (+1 on a hero's attacks) or Muttis Nachtisch (+1 on the next 8 cards).
 
+## A key with several icons, such as "support" (supports of every type), shows them
+## overlapping as one symbol.
 const ICONS := {
-	"attack": "res://assets/fight/icon_damage.svg",
-	"support": "res://assets/fight/icon_support.svg",
-	"protection": "res://assets/fight/icon_shield.svg",
-	"heal": "res://assets/fight/icon_heal.svg",
-	"lightning": "res://assets/fight/icon_lightning.svg",
-	"draw": "res://assets/fight/icon_card.svg",
-	"card": "res://assets/fight/icon_card.svg",
-	"poison": "res://assets/fight/icon_poison.svg",
-	"melee": "res://assets/fight/icon_melee.svg",
-	"ranged": "res://assets/fight/icon_ranged.svg",
-	"magic": "res://assets/fight/icon_magic.svg",
-	"totem": "res://assets/fight/icon_totem.svg",
-	"robot": "res://assets/fight/icon_robot.svg",
+	"attack": "res://assets/fight/icon_damage.png",
+	"support": [
+		"res://assets/fight/icon_melee_support.png",
+		"res://assets/fight/icon_ranged_support.png",
+		"res://assets/fight/icon_magic_support.png",
+	],
+	"protection": "res://assets/fight/icon_protection.png",
+	"heal": "res://assets/fight/icon_heal.png",
+	"lightning": "res://assets/fight/icon_lightning.png",
+	"draw": "res://assets/fight/icon_card.png",
+	"card": "res://assets/fight/icon_card.png",
+	"poison": "res://assets/fight/icon_poison.png",
+	"melee": "res://assets/fight/icon_melee.png",
+	"ranged": "res://assets/fight/icon_ranged.png",
+	"magic": "res://assets/fight/icon_magic.png",
+	"melee_support": "res://assets/fight/icon_melee_support.png",
+	"ranged_support": "res://assets/fight/icon_ranged_support.png",
+	"magic_support": "res://assets/fight/icon_magic_support.png",
+	"totem": "res://assets/fight/icon_totem.png",
+	"robot": "res://assets/fight/icon_robot.png",
 }
 
 ## Whose it is, or null for one that is for everyone.
@@ -44,6 +53,19 @@ func _init(buff_hero: FightHero = null, buff_icons: Array[String] = [], buff_tex
 	text = buff_text
 
 
-## The icon of a symbol or damage type, such as "attack" or "magic", or "" for none.
-static func icon(key: String) -> String:
-	return ICONS.get(key, "")
+## The pictures of a symbol or damage type, such as "attack" or "magic": one, several for
+## one shown as overlapping icons, or none.
+static func icon_paths(key: String) -> Array[String]:
+	var found: Variant = ICONS.get(key)
+	var paths: Array[String] = []
+	if found is String:
+		paths.append(found)
+	elif found is Array:
+		paths.assign(found)
+	return paths
+
+
+## The key of a symbol and damage type, such as "magic" for a magic attack and
+## "magic_support" for a magic support.
+static func typed_key(symbol: String, damage_type: String) -> String:
+	return damage_type + "_support" if symbol == "support" else damage_type

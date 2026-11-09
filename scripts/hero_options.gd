@@ -32,6 +32,12 @@ const RACES := {
 	"dryad": {
 		"title": { "de": "Dryaden-Hüterin", "en": "Forest Dryad" },
 		"art": "res://assets/onboarding/portraits/CharacterDryad.png",
+		# Her portrait while she has taken a form (FightHero.form).
+		"forms": {
+			"thorn": "res://assets/onboarding/portraits/CharacterDryadThorn.png",
+			"blossom": "res://assets/onboarding/portraits/CharacterDryadBlossom.png",
+			"bark": "res://assets/onboarding/portraits/CharacterDryadBark.png",
+		},
 		"names": ["Ivy", "Birka", "Fernwen", "Salvia", "Eschia", "Moosine"],
 	},
 }

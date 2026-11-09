@@ -73,7 +73,7 @@ class NextCard extends FightRule:
 
 	func buff() -> FightBuff:
 		var by_type := symbol in ["attack", "support"] and damage_type != "any"
-		var icons: Array[String] = ["card", damage_type if by_type else symbol]
+		var icons: Array[String] = ["card", FightBuff.typed_key(symbol, damage_type) if by_type else symbol]
 		var text := ""
 		match then:
 			"lightning":

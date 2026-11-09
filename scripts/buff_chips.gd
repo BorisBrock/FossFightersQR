@@ -66,16 +66,22 @@ func _chip(buff: FightBuff, plate: StyleBox) -> Control:
 	row.add_theme_constant_override("separation", 2)
 	chip.add_child(row)
 	for key in buff.icons:
-		var path := FightBuff.icon(key)
-		if path.is_empty():
+		var paths := FightBuff.icon_paths(key)
+		if paths.is_empty():
 			continue
-		var icon := TextureRect.new()
-		icon.texture = load(path)
-		icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(icon)
+		# Several pictures for one key overlap, so that they read as one symbol.
+		var group := HBoxContainer.new()
+		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		group.add_theme_constant_override("separation", -ICON_SIZE / 2)
+		for path in paths:
+			var icon := TextureRect.new()
+			icon.texture = load(path)
+			icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			group.add_child(icon)
+		row.add_child(group)
 	if not buff.text.is_empty():
 		row.add_child(_label(buff.text, 22, TEXT_COLOR))
 	if buff.count > 0:

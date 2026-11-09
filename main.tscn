@@ -5,8 +5,8 @@
 [ext_resource type="Script" path="res://scripts/placeholder_scene.gd" id="3_placeholder"]
 [ext_resource type="AudioStream" path="res://assets/sounds/card_scanned.ogg" id="5_pling"]
 
-[ext_resource type="Texture2D" path="res://assets/icon_switch_camera.svg" id="6_icon"]
-[ext_resource type="Texture2D" path="res://assets/icon_settings.svg" id="7_settings_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon_switch_camera.png" id="6_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon_settings.png" id="7_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="8_settings"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_result"]

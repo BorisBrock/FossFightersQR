@@ -21,11 +21,16 @@ const PORTRAIT_FACTOR := 1.6
 ## their right, MARK_GAP from the portrait, and the badge with their actions right above it.
 const THREAT_ICON_SIZE := 34
 const MARK_GAP := 4.0
-const BADGE_GAP := 0.0
-const BADGE_HEIGHT := 44.0
-## A shield above each attack type, both large.
-const SHIELD_SIZE := Vector2(92, 100)
-const ATTACK_STATE_SIZE := 76
+## Negative: the badge overlaps the portrait's ring a little.
+const BADGE_GAP := -3.0
+## A column for each attack type: its shield, the shield's value below it, and the
+## attack type's icon below that.
+const SHIELD_SIZE := Vector2(92, 88)
+const ATTACK_STATE_SIZE := 60
+## The dark box behind each column, from the middle of the shield down, and the space
+## below the attack type's icon in it.
+const SHIELD_BOX_WIDTH := 104.0
+const SHIELD_BOX_PADDING := 8.0
 const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
 ## How long the boss takes to plan its attack against each hero, while the message says
 ## so: the attack pops up and counts up, then what it does besides.
@@ -58,15 +63,15 @@ const HEALTH_STEP_SEC := 0.8
 const STEP_PAUSE_SEC := 0.2
 const HIT_COLOR := Color(1.0, 0.36, 0.28)
 const TOKEN_ICONS := {
-	"poison": "res://assets/fight/icon_poison.svg",
-	"panic": "res://assets/fight/icon_panic.svg",
-	"paralysis": "res://assets/fight/icon_paralysis.svg",
-	"fire": "res://assets/fight/icon_fire.svg",
+	"poison": "res://assets/fight/icon_poison.png",
+	"panic": "res://assets/fight/icon_panic.png",
+	"paralysis": "res://assets/fight/icon_paralysis.png",
+	"fire": "res://assets/fight/icon_fire.png",
 }
 const SHIELD_ICONS := {
-	"melee": "res://assets/fight/icon_melee.svg",
-	"ranged": "res://assets/fight/icon_ranged.svg",
-	"magic": "res://assets/fight/icon_magic.svg",
+	"melee": "res://assets/fight/icon_melee.png",
+	"ranged": "res://assets/fight/icon_ranged.png",
+	"magic": "res://assets/fight/icon_magic.png",
 }
 
 const CONFIRM_DIALOG := preload("res://confirm_dialog.tscn")
@@ -123,7 +128,7 @@ var _badges := {}
 var _shield_plates := {}
 ## The pulse of each shield the players can tap now, by damage type.
 var _shield_pulses := {}
-## By damage type: whether it was attacked this round, a medallion each below its shield.
+## By damage type: whether it was attacked this round, the icon below its shield.
 var _attack_states := {}
 ## By seat: whether the attack planned against the hero has been shown yet. The boss plans
 ## them one after the other, while its message says so (_animate_planning).
@@ -600,7 +605,9 @@ func _make_badges() -> void:
 		badge.anchor_left = portrait.get_center().x / token.size.x
 		badge.anchor_right = badge.anchor_left
 		badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
-		badge.offset_top = portrait.position.y - BADGE_GAP - BADGE_HEIGHT
+		# As high as what it shows, growing up from the portrait.
+		badge.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		badge.offset_top = portrait.position.y - BADGE_GAP
 		badge.offset_bottom = portrait.position.y - BADGE_GAP
 		var row := HBoxContainer.new()
 		row.name = "Row"
@@ -631,7 +638,7 @@ func _make_badges() -> void:
 		value.add_theme_font_size_override("font_size", 32)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(value)
-		column.add_child(_icon("res://assets/fight/icon_claw.svg", THREAT_ICON_SIZE))
+		column.add_child(_icon("res://assets/fight/icon_claw.png", THREAT_ICON_SIZE))
 		threat.add_child(column)
 		var effects := _side_plate("Effects", token, portrait.end.x + MARK_GAP, Control.GROW_DIRECTION_END)
 		var effect_row := HBoxContainer.new()
@@ -777,57 +784,54 @@ func _on_phase_changed(phase: Fight.Phase) -> void:
 		_refresh_badge(hero)
 
 
-## A column for each damage type: the boss's shield, with its value on it, and below it
-## a medallion for the attack type, grey until a hero attacks with it this round. Then it
-## is in colour: supports of that type can be played.
+## A column for each damage type: the boss's shield, its value below it, and below that
+## the attack type's icon, grey until a hero attacks with it this round. Then it is in
+## colour: supports of that type can be played. The shield and its value are one plate,
+## which pulses, counts and breaks as a whole. A dark box behind each column, for
+## readability over the boss, has the shield sitting on its top edge.
 func _make_shields() -> void:
-	var medallion := StyleBoxFlat.new()
-	medallion.bg_color = Color(0.08, 0.04, 0.02, 0.85)
-	medallion.border_color = Color(0.84, 0.65, 0.28)
-	medallion.set_border_width_all(3)
-	medallion.set_corner_radius_all(ATTACK_STATE_SIZE / 2)
+	var box: StyleBoxFlat = _plate.duplicate() if _plate is StyleBoxFlat else StyleBoxFlat.new()
+	box.set_corner_radius_all(18)
 	for kind in Fight.DAMAGE_TYPES:
 		var column := VBoxContainer.new()
 		column.name = kind.to_pascal_case()
 		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		column.add_theme_constant_override("separation", 4)
-		var shield := Control.new()
+		column.custom_minimum_size.x = SHIELD_BOX_WIDTH
+		column.size_flags_vertical = Control.SIZE_SHRINK_END
+		column.add_theme_constant_override("separation", 2)
+		column.draw.connect(func() -> void:
+			var top := SHIELD_SIZE.y / 2.0
+			column.draw_style_box(box, Rect2(0.0, top, column.size.x, column.size.y - top)))
+		var shield := VBoxContainer.new()
 		shield.name = "Shield"
-		shield.custom_minimum_size = SHIELD_SIZE
 		shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shield.add_theme_constant_override("separation", -6)
 		var picture := _icon(fight.boss.shield_icon(kind), 0)
 		picture.name = "Icon"
-		picture.set_anchors_preset(Control.PRESET_FULL_RECT)
+		picture.custom_minimum_size = SHIELD_SIZE
 		picture.material = _gray_material()
 		shield.add_child(picture)
 		var value := Label.new()
 		value.name = "Value"
 		value.theme_type_variation = &"Title"
-		value.add_theme_font_size_override("font_size", 40)
+		value.add_theme_font_size_override("font_size", 36)
 		value.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0))
 		value.add_theme_constant_override("outline_size", 8)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		value.set_anchors_preset(Control.PRESET_FULL_RECT)
-		# The middle of the shield's face, a little below that of the picture.
-		value.offset_top = 6.0
+		value.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		value.text = "0"
 		shield.add_child(value)
 		column.add_child(shield)
 
-		var state := PanelContainer.new()
+		var state := _icon(SHIELD_ICONS[kind], ATTACK_STATE_SIZE)
 		state.name = "Attack"
-		state.custom_minimum_size = Vector2(ATTACK_STATE_SIZE, ATTACK_STATE_SIZE)
 		state.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		state.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		state.add_theme_stylebox_override("panel", medallion)
 		state.material = _gray_material()
-		var icon := _icon(SHIELD_ICONS[kind], ATTACK_STATE_SIZE - 22)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon.use_parent_material = true
-		state.add_child(icon)
 		column.add_child(state)
+		var padding := Control.new()
+		padding.custom_minimum_size.y = SHIELD_BOX_PADDING
+		padding.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(padding)
 		_shields.add_child(column)
 		shield.gui_input.connect(_on_shield_input.bind(kind))
 		_shield_plates[kind] = shield

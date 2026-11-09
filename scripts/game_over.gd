@@ -16,19 +16,19 @@ const TYPE_COLORS := {
 	"magic": Color("#3b9cf2"),
 }
 const TYPE_ICONS := {
-	"melee": "res://assets/fight/icon_melee.svg",
-	"ranged": "res://assets/fight/icon_ranged.svg",
-	"magic": "res://assets/fight/icon_magic.svg",
+	"melee": "res://assets/fight/icon_melee.png",
+	"ranged": "res://assets/fight/icon_ranged.png",
+	"magic": "res://assets/fight/icon_magic.png",
 }
 const HEALTH_COLOR := Color("#c4922f")
 const DAMAGE_COLOR := Color("#c8504a")
 const ICONS := {
-	"round": "res://assets/fight/icon_round.svg",
-	"damage": "res://assets/fight/icon_damage.svg",
-	"shield": "res://assets/fight/icon_shield.svg",
-	"heal": "res://assets/fight/icon_heal.svg",
-	"wound": "res://assets/fight/icon_wound.svg",
-	"crown": "res://assets/fight/icon_crown.svg",
+	"round": "res://assets/fight/icon_round.png",
+	"damage": "res://assets/fight/icon_damage.png",
+	"protection": "res://assets/fight/icon_protection.png",
+	"heal": "res://assets/fight/icon_heal.png",
+	"wound": "res://assets/fight/icon_wound.png",
+	"crown": "res://assets/fight/icon_crown.png",
 }
 ## How each outcome looks: the title's colour, the rays behind it, the boss and the
 ## particles.
@@ -223,7 +223,7 @@ func _make_tiles() -> void:
 	_tiles.append(_tile("round", stats.rounds, "", "rounds"))
 	_tiles.append(_tile("damage", stats.team_damage(), "", "team_damage"))
 	_tiles.append(_tile("wound", stats.boss_damage(), "", "boss_damage"))
-	_tiles.append(_tile("shield", stats.attacks_blocked, "/%d" % stats.attacks, "blocked"))
+	_tiles.append(_tile("protection", stats.attacks_blocked, "/%d" % stats.attacks, "blocked"))
 
 
 func _tile(icon: String, value: int, suffix: String, caption: String) -> Control:
@@ -403,7 +403,7 @@ func _hero_row(hero: FightHero, most_power: int) -> Control:
 	numbers.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	middle.add_child(numbers)
 	numbers.add_child(_mini_stat("damage", stats.damage, "damage"))
-	numbers.add_child(_mini_stat("shield", stats.protection, "protection"))
+	numbers.add_child(_mini_stat("protection", stats.protection, "protection"))
 	numbers.add_child(_mini_stat("heal", stats.healing, "healing"))
 	numbers.add_child(_mini_stat("wound", stats.damage_taken, "taken"))
 

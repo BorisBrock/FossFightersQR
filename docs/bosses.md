@@ -66,7 +66,9 @@ the end of `scripts/boss.gd`. Each hook has the default that a boss without spec
 targets: `await fight.choose_hero(...)`. See [The boss fight](boss_fight.md#how-it-fits-together).
 
 Besides these, `shield_hit` is for what a shield does besides absorbing damage, such as hurting whoever hits it.
-Cards can let an attack ignore it (`FightRule.ignores_shield_effect`).
+Cards can let an attack ignore it (`FightRule.ignores_shield_effect`). A boss whose shields do that shows it by
+overriding `shield_icon` to return `SHIELD_DARK`, or `SHIELD_POISON` for poisonous shields, instead of the plain
+`SHIELD_NORMAL`.
 
 **@-abilities** are the boss's own code, in any of its hooks. Before using one, a boss asks the fight, as cards can
 prevent them:
