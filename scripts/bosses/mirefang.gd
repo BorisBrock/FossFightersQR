@@ -82,6 +82,17 @@ func _init() -> void:
 	eye_glow = 0.6
 	waterline = true
 	away_message = "mirefang_out_of_reach"
+	sounds = {
+		"boss_appears": "boss_mirefang_emerge",
+		"boss_sinks": "boss_mirefang_dive",
+		"boss_defeated": "boss_mirefang_death",
+		"boss_taunt": "boss_mirefang_hiss",
+		"boss_attacks": "boss_mirefang_attack",
+		"mirefang_surfaces": "boss_mirefang_lunge",
+		"mirefang_spit": "boss_mirefang_spit",
+		"mirefang_poison_shield": "boss_mirefang_poison_shield",
+		"mirefang_enraged": "boss_mirefang_enraged",
+	}
 	taunt = {
 		"de": "Ssssso viele kleine Helden ... und ich bin ssso hungrig.",
 		"en": "Ssssso many little heroes ... and I am ssso hungry.",

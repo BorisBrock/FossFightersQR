@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copies the icons, frames, buttons, controls, boss shields, action orbs and the dryad's form
+# Copies the icons, frames, buttons, controls, boss shields, action orbs, the arrow and the dryad's form
 # portraits from a folder of finished artwork into the project, trimmed and scaled down to
 # what the screen needs. Requires ImageMagick 7. See docs/artwork_prompts.md.
 # Usage: art/import_ui_art.sh ~/Downloads/FossArtwork
@@ -35,6 +35,9 @@ for name in card claw crown damage fire give_up heal health lightning magic magi
 	square "$src/icon_$name.png" "assets/fight/icon_$name.png" 256
 done
 square "$src/icon_shield.png" assets/fight/icon_protection.png 256
+
+# The arrows of a ranged attack (AttackEffects.Arrow), drawn about 180 px long.
+fit "$src/arrow.png" assets/fight/arrow.png 384 64
 
 # A hero's actions left this round (ActionSpheres).
 for color in blue green red yellow; do

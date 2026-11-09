@@ -3,7 +3,7 @@
 Prompts for the AI-generated artwork, kept for making more of it in the same style.
 
 **Status:** everything below is final, except `icon_check` (the confirm button), which is still an SVG placeholder.
-The icons, frames, buttons, controls, boss shields, action orbs and the dryad's form portraits are imported with
+The icons, frames, buttons, controls, boss shields, action orbs, the arrow and the dryad's form portraits are imported with
 `art/import_ui_art.sh <folder>` (see [Putting them in](#putting-them-in)), the bosses with `art/import_boss_art.sh`.
 
 **Also final, not listed here:** the character portraits (`assets/onboarding/portraits/`), the class crests
@@ -128,6 +128,16 @@ fitted into 192 × 224.
 
 > A heavy dark iron heater shield seen from the front, blackened riveted metal, a thin bronze rim, battle scratches,
 > plain flat centre without emblem.
+
+**`arrow.png`** — the arrows of a ranged attack, which fly at the boss and stick in it (`AttackEffects.Arrow`). The
+code turns them along their path, so the arrow must lie flat and point right, and the code draws the light streak
+behind it. Generate 1536 × 1024 (3:2), final fitted into 384 × 64.
+
+> A single fantasy war arrow seen exactly from the side, lying perfectly horizontal and pointing to the right, filling
+> the full width of the image. A dark polished wooden shaft with a faint grain and a thin gold-bronze band near each
+> end. A broad, leaf-shaped steel broadhead with a bright sharp edge and a small gold collar where it meets the shaft.
+> At the left end, three long ivory-white feather fletchings, with a pale gold nock. No motion blur, no speed lines,
+> no glow, no trail: just the arrow, crisp and readable. Lots of empty space above and below it.
 
 **The dryad's forms** — `assets/onboarding/portraits/CharacterDryadThorn.png`, `…Blossom.png`, `…Bark.png`: her
 portrait while she has taken that form, in the style of the other character portraits. Final 640 × 640, opaque.

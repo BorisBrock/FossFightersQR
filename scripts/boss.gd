@@ -88,6 +88,12 @@ var taunt := {
 	"de": "Muahaha! Ihr werdet alle untergehen!",
 	"en": "Muahaha! You are all going to die!",
 }
+## Its own sounds (assets/sounds/<name>.ogg) instead of the fight's usual ones: by the
+## name of the sound it replaces (see Sfx.NAMES), or by a message id for the sound of
+## that message. Two have no usual sound and play only if a boss has its own:
+## "boss_sinks" (it goes out of reach) and "boss_defeated" (it fades away, beaten).
+## See docs/sounds.md#boss-sounds.
+var sounds := {}
 #endregion
 
 #region Rules

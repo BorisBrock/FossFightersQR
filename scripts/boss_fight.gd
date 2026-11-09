@@ -24,14 +24,23 @@ const MARK_GAP := 4.0
 ## Negative: the badge overlaps the portrait's ring a little.
 const BADGE_GAP := -3.0
 ## A column for each attack type: its shield, the shield's value below it, and the
-## attack type's icon below that.
-const SHIELD_SIZE := Vector2(92, 88)
-const ATTACK_STATE_SIZE := 60
+## attack type's icon below that. The shield pictures are about 3:4, so at this height
+## they are at most 89 wide: the width leaves them a little room.
+const SHIELD_SIZE := Vector2(96, 112)
+const ATTACK_STATE_SIZE := 76
 ## The dark box behind each column, from the middle of the shield down, and the space
 ## below the attack type's icon in it.
-const SHIELD_BOX_WIDTH := 104.0
+const SHIELD_BOX_WIDTH := 96.0
 const SHIELD_BOX_PADDING := 8.0
 const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
+## The shield pictures are dark iron, over a dark box and background: their dark parts are
+## lifted a little (see gray.gdshader).
+const SHIELD_LIFT := 0.35
+## An attack type not attacked yet is a light grey, not quite opaque, so that it stays
+## readable over the dark box, but clearly apart from the coloured ones.
+const ATTACK_GRAY_SCALE := 0.9
+const ATTACK_GRAY_LIFT := 0.3
+const ATTACK_CLOSED_ALPHA := 0.85
 ## How long the boss takes to plan its attack against each hero, while the message says
 ## so: the attack pops up and counts up, then what it does besides.
 const PLAN_START_SEC := 0.5
@@ -197,6 +206,8 @@ func _ready() -> void:
 	var party := Party.load_file(party_path)
 	_cards = CardDatabase.load_file(cards_path)
 	fight = Fight.new(Bosses.create(Encounter.boss), Encounter.difficulty, party.heroes, _cards)
+	_sfx.override(fight.boss.sounds)
+	messages.sounds = fight.boss.sounds
 	fight.round_changed.connect(_on_round_changed)
 	fight.health_changed.connect(_on_health_changed)
 	fight.shields_changed.connect(_on_shields_changed)
@@ -835,6 +846,7 @@ func _make_shields() -> void:
 		picture.name = "Icon"
 		picture.custom_minimum_size = SHIELD_SIZE
 		picture.material = _gray_material()
+		(picture.material as ShaderMaterial).set_shader_parameter("lift", SHIELD_LIFT)
 		shield.add_child(picture)
 		var value := Label.new()
 		value.name = "Value"
@@ -852,6 +864,8 @@ func _make_shields() -> void:
 		state.name = "Attack"
 		state.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		state.material = _gray_material()
+		(state.material as ShaderMaterial).set_shader_parameter("gray_scale", ATTACK_GRAY_SCALE)
+		(state.material as ShaderMaterial).set_shader_parameter("gray_lift", ATTACK_GRAY_LIFT)
 		column.add_child(state)
 		var padding := Control.new()
 		padding.custom_minimum_size.y = SHIELD_BOX_PADDING
@@ -888,7 +902,7 @@ func _on_attacked_changed(kinds: Array[String]) -> void:
 		state.set_meta("open", open)
 		if open == was_open:
 			material.set_shader_parameter("gray", 0.0 if open else 1.0)
-			state.modulate.a = 1.0 if open else 0.6
+			state.modulate.a = 1.0 if open else ATTACK_CLOSED_ALPHA
 			continue
 		if open:
 			var light := create_tween().set_parallel()
@@ -897,7 +911,7 @@ func _on_attacked_changed(kinds: Array[String]) -> void:
 			_pop(state)
 		else:
 			material.set_shader_parameter("gray", 1.0)
-			state.modulate.a = 0.6
+			state.modulate.a = ATTACK_CLOSED_ALPHA
 
 
 ## The shields shown follow the fight's, after what the screen shows before: a shield that
@@ -1199,6 +1213,8 @@ func _on_boss_away_changed(away: bool) -> void:
 
 func _sink() -> void:
 	var material := _figure.material as ShaderMaterial
+	if _sfx.has("boss_sinks"):
+		_sfx.play("boss_sinks")
 	_splash(0.6)
 	var tween := create_tween().set_parallel()
 	tween.tween_method(func(value: float) -> void: material.set_shader_parameter("sink", value), 0.0, 1.0, SINK_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
@@ -1256,6 +1272,8 @@ func _lunge() -> void:
 ## Once the last hit has shown, the boss fades away.
 func _on_won() -> void:
 	_show_step(func() -> void:
+		if _sfx.has("boss_defeated"):
+			_sfx.play("boss_defeated")
 		var fade := create_tween().set_parallel()
 		fade.tween_property(_figure, "modulate:a", 0.0, 1.6).set_delay(0.3)
 		fade.tween_property(_shields, "modulate:a", 0.0, 0.5), 0.0)

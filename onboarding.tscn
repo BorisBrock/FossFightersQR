@@ -147,10 +147,33 @@ alignment = 1
 select_all_on_focus = true
 right_icon = ExtResource("11_pen")
 
-[node name="Title" type="Label" parent="Stage/Margin/Layout/Header"]
+[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Header"]
 layout_mode = 2
-theme_type_variation = &"Heading"
-horizontal_alignment = 1
+theme_override_constants/separation = 6
+
+[node name="Balance" type="Control" parent="Stage/Margin/Layout/Header/NameRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Header/NameRow"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleEdit"
+alignment = 1
+max_length = 16
+select_all_on_focus = true
+right_icon = ExtResource("11_pen")
+
+[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Header/NameRow"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+texture_normal = ExtResource("10_dice")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header"]
 layout_mode = 2
@@ -268,41 +291,165 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Info" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor"]
+[node name="Steps" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CharacterStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Info"]
+[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row"]
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
-theme_override_constants/separation = 10
+size_flags_vertical = 4
+mouse_filter = 2
 
-[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Views/Editor/Info/NameRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-max_length = 16
-select_all_on_focus = true
-right_icon = ExtResource("11_pen")
-
-[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Views/Editor/Info/NameRow"]
-custom_minimum_size = Vector2(52, 52)
-layout_mode = 2
-focus_mode = 0
-texture_normal = ExtResource("10_dice")
-ignore_texture_size = true
+[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = -8.0
+offset_bottom = -4.0
+mouse_filter = 2
+texture = ExtResource("9_card")
+expand_mode = 1
 stretch_mode = 5
 
-[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Editor/Info"]
-layout_mode = 2
-theme_type_variation = &"Heading"
-horizontal_alignment = 1
-autowrap_mode = 3
+[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
 
-[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Editor/Info"]
-custom_minimum_size = Vector2(0, 58)
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts"]
 layout_mode = 2
 theme_type_variation = &"Hint"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 15
+uppercase = true
+
+[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+max_lines_visible = 2
+
+[node name="ClassStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = -8.0
+offset_bottom = -4.0
+mouse_filter = 2
+texture = ExtResource("9_card")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts"]
+layout_mode = 2
+theme_type_variation = &"Hint"
+theme_override_font_sizes/font_size = 15
+uppercase = true
+
+[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+max_lines_visible = 2
+
+[node name="Message" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor"]
+custom_minimum_size = Vector2(0, 108)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Icon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+custom_minimum_size = Vector2(40, 48)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Alert" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts"]
+layout_mode = 2
+theme_type_variation = &"Heading"
+theme_override_font_sizes/font_size = 25
+autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts"]
+layout_mode = 2
+theme_type_variation = &"Hint"
+theme_override_font_sizes/font_size = 19
 autowrap_mode = 3
 
 [node name="PartyView" type="CenterContainer" parent="Stage/Margin/Layout/Views"]

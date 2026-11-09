@@ -87,7 +87,7 @@
 		"body": "[boss]{boss}[/boss] hat diesmal gewonnen. Ruht euch aus und versucht es noch einmal!"
 	},
 	"prompt_choose_starter": {
-		"body": "Wer beginnt diese Runde? [b]Tippt einen Helden an.[/b]"
+		"body": "Wer beginnt diese Runde?\n[b]Tippt einen Helden an![/b]"
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], du bist dran: spiel eine Karte :card:."

@@ -5,6 +5,9 @@ extends Control
 
 enum View { PARTY, EDITOR }
 
+const CARD_ICON := preload("res://assets/onboarding/icons/card_scan.png")
+const PEN_ICON := preload("res://assets/onboarding/icons/pen.png")
+const ERROR_ICON := preload("res://assets/onboarding/icons/error.png")
 const BOSS_SCENE := "res://boss_selection.tscn"
 const CARDS_PATH := "res://cards/cards.json"
 ## A code seen this recently is taken to be still in view. It is what lets a player keep
@@ -17,14 +20,23 @@ const DELETE_CONFIRM_SEC := 3.0
 const TAKEN_NOTICE_SEC := 3.0
 ## Keeps the caret from pushing a name that just fits out of view.
 const PARTY_NAME_SPARE_WIDTH := 6.0
-const TAKEN := Color(0.85, 0.5, 0.42)
+const GOLD := Color(0.84, 0.65, 0.28)
+const BRIGHT_GOLD := Color(0.98, 0.84, 0.5)
+const ALERT := Color(0.92, 0.42, 0.32)
 
 const TEXT := {
-	"hero": { "de": "Held %d", "en": "Hero %d" },
+	"character": { "de": "Charakter", "en": "Character" },
+	"class": { "de": "Klasse", "en": "Class" },
+	"step_open": { "de": "noch offen", "en": "not yet" },
 	"prompt_both": { "de": "Charakter- und Klassenkarte", "en": "Character and class card" },
 	"prompt_character": { "de": "Deine Charakterkarte", "en": "Your character card" },
 	"prompt_class": { "de": "Deine Klassenkarte", "en": "Your class card" },
 	"hint_show": { "de": "Über die Kamera halten.", "en": "Hold it over the camera." },
+	"prompt_name": { "de": "Wie heißt dein Held?", "en": "What is your hero called?" },
+	"hint_name": { "de": "Tippe oben auf den Namen, oder würfle einen.", "en": "Type it at the top, or roll the dice." },
+	"prompt_ready": { "de": "%s ist bereit!", "en": "%s is ready!" },
+	"prompt_taken": { "de": "Schon vergeben", "en": "Already taken" },
+	"prompt_problem": { "de": "Da klemmt etwas", "en": "Something went wrong" },
 	"hint_edit": { "de": "Zeig eine andere Karte, oder tippe auf einen freien Platz, um dich umzusetzen.", "en": "Show another card, or tap a free seat to move there." },
 	"taken": { "de": "%s ist schon vergeben, an %s.", "en": "%s is already taken by %s." },
 	"camera_starting": { "de": "Die Kamera startet…", "en": "Starting the camera…" },
@@ -66,6 +78,11 @@ var _delete_timer: SceneTreeTimer
 var _taken_notice := ""
 var _taken_notice_until_msec := 0
 var _party_name_font_size := 0
+var _name_font_size := 0
+## What the message says, so that only a new message pops.
+var _message_shown := ""
+var _step_pulse: Tween
+var _styles := {}
 
 @onready var _scanner: QrCameraScanner = $QrCameraScanner
 @onready var _table: TextureRect = $Table
@@ -74,7 +91,7 @@ var _party_name_font_size := 0
 @onready var _stage: Control = $Stage
 @onready var _ornaments: Control = $Ornaments
 @onready var _party_name_edit: LineEdit = $Stage/Margin/Layout/Header/PartyName
-@onready var _title: Label = $Stage/Margin/Layout/Header/Title
+@onready var _name_row: Control = $Stage/Margin/Layout/Header/NameRow
 @onready var _party_hint: Label = $Stage/Margin/Layout/Header/PartyHint
 @onready var _editor: Control = $Stage/Margin/Layout/Views/Editor
 @onready var _party_view: Control = $Stage/Margin/Layout/Views/PartyView
@@ -88,10 +105,15 @@ var _party_name_font_size := 0
 @onready var _card_icon: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt/CardIcon
 @onready var _sweep: Control = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt/Sweep
 @onready var _badge: TextureRect = $Stage/Margin/Layout/Views/Editor/CardArea/Frame/Badge
-@onready var _prompt: Label = $Stage/Margin/Layout/Views/Editor/Info/Prompt
-@onready var _hint: Label = $Stage/Margin/Layout/Views/Editor/Info/Hint
-@onready var _name_edit: LineEdit = $Stage/Margin/Layout/Views/Editor/Info/NameRow/NameEdit
-@onready var _dice: TextureButton = $Stage/Margin/Layout/Views/Editor/Info/NameRow/Dice
+@onready var _character_step: PanelContainer = $Stage/Margin/Layout/Views/Editor/Steps/CharacterStep
+@onready var _class_step: PanelContainer = $Stage/Margin/Layout/Views/Editor/Steps/ClassStep
+@onready var _message: PanelContainer = $Stage/Margin/Layout/Views/Editor/Message
+@onready var _message_icon: TextureRect = $Stage/Margin/Layout/Views/Editor/Message/Row/Icon
+@onready var _message_alert: TextureRect = $Stage/Margin/Layout/Views/Editor/Message/Row/Alert
+@onready var _prompt: Label = $Stage/Margin/Layout/Views/Editor/Message/Row/Texts/Prompt
+@onready var _hint: Label = $Stage/Margin/Layout/Views/Editor/Message/Row/Texts/Hint
+@onready var _name_edit: LineEdit = $Stage/Margin/Layout/Header/NameRow/NameEdit
+@onready var _dice: TextureButton = $Stage/Margin/Layout/Header/NameRow/Dice
 @onready var _delete: Button = $Stage/Margin/Layout/Footer/Delete
 @onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
 @onready var _footer_spacer: Control = $Stage/Margin/Layout/Footer/Spacer
@@ -111,6 +133,7 @@ func _ready() -> void:
 	_cards = CardDatabase.load_file(cards_path)
 	_portrait.material = PortraitMaterial.new(0.09, 0.012)
 	_badge.material = PortraitMaterial.new(0.5, 0.05)
+	_build_status_styles()
 
 	_scanner.code_read.connect(_on_code_read)
 	_scanner.camera_started.connect(_on_camera_started)
@@ -125,6 +148,8 @@ func _ready() -> void:
 	_name_edit.text_submitted.connect(func(_text: String) -> void: _name_edit.release_focus())
 	_name_edit.max_length = Party.MAX_NAME_LENGTH
 	_name_edit.placeholder_text = _t("name_placeholder")
+	_name_font_size = _name_edit.get_theme_font_size("font_size")
+	_name_edit.resized.connect(func() -> void: _fit_title(_name_edit, _name_font_size))
 	_party_name_font_size = _party_name_edit.get_theme_font_size("font_size")
 	_party_name_edit.max_length = Party.MAX_PARTY_NAME_LENGTH
 	_refresh_party_name_placeholder()
@@ -133,8 +158,8 @@ func _ready() -> void:
 	_party_name_edit.text_submitted.connect(func(_text: String) -> void: _party_name_edit.release_focus())
 	_party_name_edit.focus_entered.connect(_refresh_party_name_placeholder)
 	_party_name_edit.focus_exited.connect(_refresh_party_name_placeholder)
-	_party_name_edit.resized.connect(_fit_party_name)
-	_fit_party_name()
+	_party_name_edit.resized.connect(func() -> void: _fit_title(_party_name_edit, _party_name_font_size))
+	_fit_title(_party_name_edit, _party_name_font_size)
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
 
@@ -284,7 +309,7 @@ func _select_race(race: String, card := "") -> void:
 	_draft.race_card = card
 	if _draft.name.is_empty() or _name_is_suggested:
 		_suggest_name()
-	_show_new_choice()
+	_show_new_choice(_character_step)
 
 
 ## card as for _select_race().
@@ -301,13 +326,14 @@ func _select_class(hero_class: String, card := "") -> void:
 		return
 	_draft.hero_class = hero_class
 	_draft.class_card = card
-	_show_new_choice()
+	_show_new_choice(_class_step)
 
 
-func _show_new_choice() -> void:
+## step is the one that shows the new choice.
+func _show_new_choice(step: Control) -> void:
 	_clear_taken_notice()
 	_refresh_controls()
-	_pop_control(_prompt)
+	_pop_control(step)
 	_reveal()
 
 
@@ -318,6 +344,7 @@ func _show_taken(option: Dictionary, owner_hero: Party.Hero) -> void:
 	var now := Time.get_ticks_msec()
 	if notice != _taken_notice or now >= _taken_notice_until_msec:
 		_shake(_frame)
+		_shake(_message, 3.0)
 	_taken_notice = notice
 	_taken_notice_until_msec = now + int(TAKEN_NOTICE_SEC * 1000.0)
 	_refresh_hint()
@@ -343,6 +370,7 @@ func _suggest_name() -> void:
 		suggestion = _draft.name
 	_draft.name = suggestion
 	_name_edit.text = suggestion
+	_fit_title(_name_edit, _name_font_size)
 	_name_is_suggested = true
 
 
@@ -354,13 +382,14 @@ func _on_dice_pressed() -> void:
 
 
 func _on_name_changed(text: String) -> void:
+	_fit_title(_name_edit, _name_font_size)
 	_draft.name = text.strip_edges()
 	_name_is_suggested = false
 	_refresh_controls()
 
 
 func _on_party_name_changed(text: String) -> void:
-	_fit_party_name()
+	_fit_title(_party_name_edit, _party_name_font_size)
 	var party_name := text.strip_edges()
 	if party_name != _party.party_name:
 		_party.party_name = party_name
@@ -370,18 +399,18 @@ func _on_party_name_changed(text: String) -> void:
 ## The placeholder is only a hint: it makes way as soon as the name is being typed.
 func _refresh_party_name_placeholder() -> void:
 	_party_name_edit.placeholder_text = "" if _party_name_edit.has_focus() else _t("party_name_placeholder")
-	_fit_party_name()
+	_fit_title(_party_name_edit, _party_name_font_size)
 
 
 ## Long names get smaller instead of being cut off, as the title has to fit between the seats.
-func _fit_party_name() -> void:
-	var edit := _party_name_edit
+## Both the party's name and the hero's name are titles.
+func _fit_title(edit: LineEdit, full_size: int) -> void:
 	var shown := edit.text if not edit.text.is_empty() else edit.placeholder_text
-	var width := edit.get_theme_font("font").get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, _party_name_font_size).x
+	var width := edit.get_theme_font("font").get_string_size(shown, HORIZONTAL_ALIGNMENT_LEFT, -1, full_size).x
 	var room := edit.size.x - edit.get_theme_stylebox("normal").get_minimum_size().x - edit.right_icon.get_width() - PARTY_NAME_SPARE_WIDTH
-	var font_size := _party_name_font_size
+	var font_size := full_size
 	if width > room:
-		font_size = maxi(int(_party_name_font_size * room / width), 1)
+		font_size = maxi(int(full_size * room / width), 1)
 	edit.add_theme_font_size_override("font_size", font_size)
 
 
@@ -405,6 +434,7 @@ func _start_editing(hero: Party.Hero) -> void:
 func _open_editor() -> void:
 	_name_edit.text = _draft.name
 	_name_is_suggested = false
+	_message_shown = ""
 	_show_view(View.EDITOR)
 	var token: SeatToken = _seats[_draft.seat]
 	token.pop()
@@ -561,7 +591,7 @@ func _show_view(view: View, direction := 1.0) -> void:
 	_party_view.visible = not editing
 	_party_hint.visible = not editing
 	_party_name_edit.visible = not editing
-	_title.visible = editing
+	_name_row.visible = editing
 	_refresh_view()
 
 	var content: Control = _editor if editing else _party_view
@@ -573,7 +603,7 @@ func _show_view(view: View, direction := 1.0) -> void:
 
 func _refresh_view() -> void:
 	if _view == View.EDITOR:
-		_title.text = _t("hero") % (_party.heroes.find(_editing) + 1 if _editing != null else _party.heroes.size() + 1)
+		_fit_title(_name_edit, _name_font_size)
 		_refresh_pictures()
 	else:
 		_build_party_view()
@@ -593,9 +623,9 @@ func _refresh_pictures() -> void:
 
 
 func _refresh_controls() -> void:
+	_refresh_steps()
 	_refresh_hint()
 	_refresh_seat_pictures()
-	_refresh_prompt()
 	_refresh_scan_prompt()
 	var editing := _view == View.EDITOR
 	# A name needs a race to be suggested from, typing one works at any time.
@@ -616,36 +646,124 @@ func _refresh_controls() -> void:
 		_set_primary_shown(not _party.heroes.is_empty())
 
 
-## Says what is still missing, or once nothing is, what was chosen.
-func _refresh_prompt() -> void:
+# Status --------------------------------------------------------------------------
+
+
+func _build_status_styles() -> void:
+	_styles.step_open = _make_box(Color(0.04, 0.025, 0.015, 0.55), Color(GOLD, 0.3), 2)
+	_styles.step_done = _make_box(Color(0.13, 0.08, 0.035, 0.9), GOLD, 2)
+	_styles.step_done.shadow_color = Color(BRIGHT_GOLD, 0.18)
+	_styles.step_done.shadow_size = 8
+	_styles.message = _make_box(Color(0.04, 0.025, 0.015, 0.65), Color(GOLD, 0.45), 1, 6)
+	_styles.ready = _make_box(Color(0.14, 0.09, 0.03, 0.9), BRIGHT_GOLD, 2, 6)
+	_styles.ready.shadow_color = Color(BRIGHT_GOLD, 0.25)
+	_styles.ready.shadow_size = 12
+	_styles.alert = _make_box(Color(0.22, 0.06, 0.04, 0.9), ALERT, 2, 6)
+	_message_alert.texture = ERROR_ICON
+	for step: Control in [_character_step, _class_step]:
+		step.get_node("Row/Thumb/Picture").material = PortraitMaterial.new(0.5, 0.06)
+
+
+## accent is the width of the bar on the left that marks a message.
+func _make_box(bg: Color, border: Color, border_width: int, accent := 0) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = bg
+	box.border_color = border
+	box.set_border_width_all(border_width)
+	box.border_width_left = maxi(border_width, accent)
+	box.set_corner_radius_all(14)
+	box.content_margin_left = 8.0 + accent
+	box.content_margin_right = 8.0
+	box.content_margin_top = 8.0
+	box.content_margin_bottom = 8.0
+	return box
+
+
+## The two cards a hero needs, each showing what it chose or that it is still open.
+func _refresh_steps() -> void:
+	var race: Dictionary = HeroOptions.RACES.get(_draft.race, {})
+	var hero_class: Dictionary = HeroOptions.CLASSES.get(_draft.hero_class, {})
+	_refresh_step(_character_step, _t("character"), race)
+	_refresh_step(_class_step, _t("class"), hero_class)
+	var open := _view == View.EDITOR and (race.is_empty() or hero_class.is_empty())
+	if open == (_step_pulse != null):
+		return
+	if _step_pulse != null:
+		_step_pulse.kill()
+		_step_pulse = null
+	if open:
+		_step_pulse = create_tween().set_loops()
+		_step_pulse.tween_method(_pulse_open_steps, 0.0, TAU, 1.6)
+
+
+func _refresh_step(step: Control, caption: String, option: Dictionary) -> void:
+	var chosen := not option.is_empty()
+	var picture: TextureRect = step.get_node("Row/Thumb/Picture")
+	var value: Label = step.get_node("Row/Texts/Value")
+	(step.get_node("Row/Texts/Caption") as Label).text = caption
+	(step.get_node("Row/Thumb/Placeholder") as Control).visible = not chosen
+	picture.texture = load(option.art) if chosen else null
+	value.text = _title_of(option) if chosen else _t("step_open")
+	value.modulate = Color.WHITE if chosen else Color(1, 1, 1, 0.45)
+	step.add_theme_stylebox_override("panel", _styles.step_done if chosen else _styles.step_open)
+
+
+## The card icon of a step still open breathes, to show what is still needed.
+func _pulse_open_steps(angle: float) -> void:
+	for step: Control in [_character_step, _class_step]:
+		var placeholder: Control = step.get_node("Row/Thumb/Placeholder")
+		placeholder.modulate.a = 0.55 + 0.35 * sin(angle)
+
+
+## Says what to do next, or what went wrong. A problem takes the place of the
+## instructions, in red, until it is gone.
+func _refresh_hint() -> void:
 	var has_race := not _draft.race.is_empty()
 	var has_class := not _draft.hero_class.is_empty()
-	if has_race and has_class:
-		_prompt.text = "%s · %s" % [_title_of(HeroOptions.RACES[_draft.race]), _title_of(HeroOptions.CLASSES[_draft.hero_class])]
-	elif has_race:
-		_prompt.text = _t("prompt_class")
-	elif has_class:
-		_prompt.text = _t("prompt_character")
-	else:
-		_prompt.text = _t("prompt_both")
-
-
-func _refresh_hint() -> void:
+	var style := "message"
+	var icon: Texture2D = CARD_ICON
 	if not _camera_problem.is_empty():
+		style = "alert"
+		_prompt.text = _t("prompt_problem")
 		_hint.text = _camera_problem
-		_hint.add_theme_color_override("font_color", Color(1.0, 0.6, 0.5))
-		return
-	if not _taken_notice.is_empty():
+	elif not _taken_notice.is_empty():
+		style = "alert"
+		_prompt.text = _t("prompt_taken")
 		_hint.text = _taken_notice
-		_hint.add_theme_color_override("font_color", TAKEN)
-		return
-	_hint.remove_theme_color_override("font_color")
-	if not _camera_running:
-		_hint.text = _t("camera_starting")
-	elif _draft.race.is_empty() or _draft.hero_class.is_empty():
-		_hint.text = _t("hint_show")
+	elif not has_race or not has_class:
+		if has_race:
+			_prompt.text = _t("prompt_class")
+		elif has_class:
+			_prompt.text = _t("prompt_character")
+		else:
+			_prompt.text = _t("prompt_both")
+		_hint.text = _t("hint_show") if _camera_running else _t("camera_starting")
+	elif _draft.name.is_empty():
+		icon = PEN_ICON
+		_prompt.text = _t("prompt_name")
+		_hint.text = _t("hint_name")
 	else:
+		style = "ready"
+		icon = null
+		_prompt.text = _t("prompt_ready") % _draft.name
 		_hint.text = _t("hint_edit")
+	var alert := style == "alert"
+	_message.add_theme_stylebox_override("panel", _styles[style])
+	_message_alert.visible = alert
+	_message_icon.texture = icon
+	_message_icon.visible = not alert and icon != null
+	if alert:
+		_prompt.add_theme_color_override("font_color", Color(1.0, 0.72, 0.62))
+		_hint.add_theme_color_override("font_color", Color(1.0, 0.86, 0.8))
+	else:
+		_prompt.remove_theme_color_override("font_color")
+		_hint.remove_theme_color_override("font_color")
+	# A new step pops the message, but typing the name, which changes it with every
+	# letter, must not make it jump. Problems shake instead, see _show_taken().
+	var shown := style + _hint.text
+	if shown != _message_shown and not _message_shown.is_empty() and not alert and _view == View.EDITOR:
+		_pop_control(_message, 1.04)
+	_message_shown = shown
 
 
 func _set_primary_shown(shown: bool) -> void:
@@ -850,15 +968,16 @@ func _burst_sparks(at: Vector2) -> void:
 	_sparks.restart()
 
 
-func _shake(control: Control) -> void:
+## degrees is how far it turns at first.
+func _shake(control: Control, degrees := 7.0) -> void:
 	var home := control.rotation_degrees
 	control.pivot_offset = control.size / 2.0
 	var shake := create_tween()
-	for angle: float in [-7.0, 7.0, -5.0, 5.0, 0.0]:
-		shake.tween_property(control, "rotation_degrees", home + angle, 0.06)
+	for factor: float in [-1.0, 1.0, -0.7, 0.7, 0.0]:
+		shake.tween_property(control, "rotation_degrees", home + degrees * factor, 0.06)
 
 
-func _pop_control(control: Control) -> void:
+func _pop_control(control: Control, amount := 1.12) -> void:
 	control.pivot_offset = control.size / 2.0
-	control.scale = Vector2(1.12, 1.12)
+	control.scale = Vector2(amount, amount)
 	create_tween().tween_property(control, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

@@ -16,28 +16,50 @@ const NAMES: Array[String] = [
 const POLYPHONY := 6
 
 var _players := {}
+## A boss's own sounds, by the name of the sound they replace (Boss.sounds).
+var _overrides := {}
 
 
 func _ready() -> void:
 	# Loaded up front, so that the first time a sound plays it does not stutter.
 	for sound in NAMES:
-		var player := AudioStreamPlayer.new()
-		player.name = sound.to_pascal_case()
-		player.stream = stream(sound)
-		player.bus = &"SFX"
-		player.max_polyphony = POLYPHONY
-		add_child(player)
-		_players[sound] = player
+		_add_player(sound)
+
+
+## A boss's own sounds play instead of the usual ones: { usual name: own name }, all
+## loaded up front. Message ids among the keys do no harm: no sound has their name. A
+## name that is not in NAMES (such as "boss_sinks") plays only if it is overridden.
+func override(sounds: Dictionary) -> void:
+	for sound: String in sounds:
+		var own: String = sounds[sound]
+		if not _players.has(own) and ResourceLoader.exists(FOLDER + own + ".ogg"):
+			_add_player(own)
+		_overrides[sound] = own
+
+
+## Whether play(sound) plays something.
+func has(sound: String) -> bool:
+	return _players.has(_overrides.get(sound, sound))
 
 
 ## pitch varies a sound that plays again and again, such as the hits of a volley.
 func play(sound: String, pitch := 1.0) -> void:
-	var player: AudioStreamPlayer = _players.get(sound)
+	var player: AudioStreamPlayer = _players.get(_overrides.get(sound, sound))
 	if player == null:
 		push_warning("Unknown sound '%s'" % sound)
 		return
 	player.pitch_scale = pitch
 	player.play()
+
+
+func _add_player(sound: String) -> void:
+	var player := AudioStreamPlayer.new()
+	player.name = sound.to_pascal_case()
+	player.stream = stream(sound)
+	player.bus = &"SFX"
+	player.max_polyphony = POLYPHONY
+	add_child(player)
+	_players[sound] = player
 
 
 ## The stream of a sound, for players of their own, such as the message box's.

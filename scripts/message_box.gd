@@ -56,6 +56,10 @@ const SOUNDS := {
 	"defeat": "defeat",
 }
 
+## The sounds of messages that replace SOUNDS and the usual sound, by message id, such
+## as a boss's own (Boss.sounds).
+var sounds := {}
+
 ## What waits, oldest first, as [id, values]. The first one is on screen.
 var queue: Array[Array] = []
 
@@ -231,7 +235,8 @@ func _on_ready_to_confirm() -> void:
 
 
 func _play_sound(id: String) -> void:
-	_sound.stream = Sfx.stream(SOUNDS[id]) if SOUNDS.has(id) else _default_sound
+	var sound: String = sounds.get(id, SOUNDS.get(id, ""))
+	_sound.stream = Sfx.stream(sound) if not sound.is_empty() else _default_sound
 	_sound.play()
 
 

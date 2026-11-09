@@ -208,7 +208,6 @@ func _ranged(area: Rect2) -> void:
 func _arrow(start: Vector2, target: Vector2, flight: float) -> void:
 	var arrow := Arrow.new()
 	arrow.length = ARROW_LENGTH * rng.randf_range(0.9, 1.1)
-	arrow.fletching = [Color(0.78, 0.16, 0.12), Color(0.95, 0.92, 0.85), Color(0.2, 0.45, 0.25)][rng.randi() % 3]
 	arrow.position = start
 	arrow.scale = Vector2.ONE * ARROW_SCALE * rng.randf_range(0.9, 1.1)
 	add_child(arrow)
@@ -551,27 +550,22 @@ func _flash_screen(color: Color, alpha: float, seconds: float) -> void:
 #endregion
 
 
-## An arrow, its tip at the origin, pointing to the right.
+## An arrow, its tip at the origin, pointing to the right, about length long (plus its
+## head and fletching), from the painted assets/fight/arrow.png.
 class Arrow:
 	extends Node2D
 
-	var length := 84.0
-	var fletching := Color(0.78, 0.16, 0.12)
+	const TEXTURE := preload("res://assets/fight/arrow.png")
 
-	func _draw() -> void:
-		var wood := Color(0.5, 0.33, 0.18)
-		draw_line(Vector2(-length, 0.0), Vector2(-6.0, 0.0), Color(0.12, 0.07, 0.03), 6.0)
-		draw_line(Vector2(-length, 0.0), Vector2(-6.0, 0.0), wood, 3.5)
-		draw_line(Vector2(-length, -0.8), Vector2(-6.0, -0.8), wood.lightened(0.35), 1.2)
-		var head := PackedVector2Array([Vector2(8.0, 0.0), Vector2(-10.0, -8.0), Vector2(-6.0, 0.0), Vector2(-10.0, 8.0)])
-		draw_colored_polygon(head, Color(0.86, 0.9, 0.95))
-		draw_polyline(head + PackedVector2Array([head[0]]), Color(0.2, 0.22, 0.26), 1.5)
-		for side: float in [-1.0, 1.0]:
-			var feather := PackedVector2Array([
-				Vector2(-length + 22.0, 0.0), Vector2(-length + 4.0, 10.0 * side),
-				Vector2(-length - 6.0, 10.0 * side), Vector2(-length + 6.0, 0.0),
-			])
-			draw_colored_polygon(feather, fletching)
+	var length := 84.0
+
+	func _ready() -> void:
+		var sprite := Sprite2D.new()
+		sprite.texture = TEXTURE
+		sprite.centered = false
+		sprite.offset = Vector2(-TEXTURE.get_width(), -TEXTURE.get_height() / 2.0)
+		sprite.scale = Vector2.ONE * (length + 14.0) / TEXTURE.get_width()
+		add_child(sprite)
 
 
 ## A slash of a blade along path, as a band that is widest in its middle, from tail to

@@ -8,6 +8,28 @@ it like this:
 
     ffmpeg -i in.wav -ac 1 -c:a libvorbis -q:a 5 assets/sounds/<name>.ogg
 
+## Loudness
+
+The sounds come from different sources, so `tools/normalize_sounds.py` brings them to one loudness. Each sound
+belongs to a tier, and every sound of a tier is equally loud: its loudest 400 ms (EBU R128 maximum momentary
+loudness, as Godot plays it: mono on both speakers) are at the tier's target.
+
+| Tier     | Target    | Sounds                                                                         |
+|----------|-----------|--------------------------------------------------------------------------------|
+| `event`  | -16 LUFS  | `boss_appears`, `boss_attack`, `victory`, `defeat`, `fanfare`, every `boss_*` sound |
+| `effect` | -19 LUFS  | `hit`, `slash`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
+| `volley` | -21 LUFS  | `magic_hit`, `arrow_hit`, `shield_block`: they come in quick series and add up  |
+| `cue`    | -22 LUFS  | `turn`, `choose`, `seat`, `reveal`, `card_scanned`, `rejected`, `round`         |
+| `ui`     | -26 LUFS  | `click`, `select`                                                               |
+
+The tiers sit 15 to 20 LU above the music, which plays at about -34.5 LUFS with the default settings (the track
+is mastered to -14.5 LUFS and starts 20 dB down, see [settings](settings.md)). So every player in the game plays
+its sound at 0 dB: the mix is in the files. After adding or replacing a sound, add it to `TIERS` in the script if
+it is new, and run
+
+    python3 tools/normalize_sounds.py            # fixes the sounds that are off by more than 0.5 LU
+    python3 tools/normalize_sounds.py --check    # only reports; exit code 1 if a sound is off
+
 ## The fight's sound effects
 
 They are in `assets/sounds/`. The fight screen plays them through `Sfx` (`scripts/sfx.gd`), a node with a player per
@@ -43,10 +65,29 @@ Some [messages](messages.md) have a sound of their own instead of the message bo
 | `heal`                                 | `heal`         |
 | `boss_poison`, `poison_burst`          | `poison`       |
 | `shield_broken_poison`                 | `shield_break` |
-| `mirefang_poison_shield`, `mirefang_spit` | `poison`    |
-| `mirefang_surfaces`                    | `boss_attack`  |
 | `victory`                              | `victory`      |
 | `defeat`                               | `defeat`       |
+
+## Boss sounds
+
+A boss can have sounds of its own (`Boss.sounds`), which play instead of the usual ones. Each entry maps either the
+name of a sound above (`Sfx` plays the boss's own instead) or a message id (the message box plays it instead of the
+message's usual sound) to a file in `assets/sounds/`. Two names have no usual sound and only play if a boss has its
+own: `boss_sinks` (it goes out of reach and sinks) and `boss_defeated` (it fades away, beaten).
+
+Mirefang's sounds (`scripts/bosses/mirefang.gd`):
+
+| Replaces                         | Sound                         | When                                               |
+|----------------------------------|-------------------------------|----------------------------------------------------|
+| `boss_appears`                   | `boss_mirefang_emerge`        | It rises at the start of the fight, and surfaces after a dive. |
+| `boss_sinks`                     | `boss_mirefang_dive`          | It dives under the water.                          |
+| `boss_defeated`                  | `boss_mirefang_death`         | It fades away, beaten.                             |
+| message `boss_taunt`             | `boss_mirefang_hiss`          | Its taunt at the start ("Ssssso many little heroes …"). |
+| message `boss_attacks`           | `boss_mirefang_attack`        | It attacks the heroes.                             |
+| message `mirefang_surfaces`      | `boss_mirefang_lunge`         | It bursts out of the water at the marked hero.     |
+| message `mirefang_spit`          | `boss_mirefang_spit`          | It spits venom on every hero.                      |
+| message `mirefang_poison_shield` | `boss_mirefang_poison_shield` | A hero hits its poison shield.                     |
+| message `mirefang_enraged`       | `boss_mirefang_enraged`       | It becomes enraged.                                |
 
 ## Other sounds
 

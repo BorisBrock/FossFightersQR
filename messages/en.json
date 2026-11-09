@@ -87,7 +87,7 @@
 		"body": "[boss]{boss}[/boss] has won this time. Rest, and try again!"
 	},
 	"prompt_choose_starter": {
-		"body": "Who starts this round? [b]Tap a hero.[/b]"
+		"body": "Who starts this round?\n[b]Tap a hero![/b]"
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], your turn: play a card :card:."

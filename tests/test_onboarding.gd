@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 74
+const EXPECTED_CHECKS := 77
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -94,7 +94,7 @@ func _run() -> void:
 	# Tapping a seat opens the editor for it, and cancelling leaves nothing behind.
 	seat_three.pressed.emit()
 	_check(_scene._view == VIEW_EDITOR and _scene._draft.seat == 3, "tapping a free seat opens the editor for it")
-	_check(not party_name.visible and _scene._title.visible, "the editor shows the hero's number instead of the party's name")
+	_check(not party_name.visible and _scene._name_edit.is_visible_in_tree() and _scene._name_edit.get_parent() == _scene._name_row, "the editor shows the hero's name in place of the party's")
 	_check(seat_three.mode == SeatToken.Mode.ACTIVE and seat_five.mode == SeatToken.Mode.QUIET_SELECTABLE, "the seat being edited stands out")
 	_check(_scene._camera_problem.is_empty() and _scene._camera_view.visible, "debug builds show the camera while waiting for a card")
 	_check(done.disabled and not delete.visible, "a new hero cannot be finished or deleted yet")
@@ -141,8 +141,10 @@ func _run() -> void:
 	name_edit.text = "  "
 	name_edit.text_changed.emit("  ")
 	_check(done.disabled, "cannot finish without a name")
+	_check(_scene._prompt.text == "Wie heißt dein Held?", "and asks for one")
 	name_edit.text = "Boris"
 	name_edit.text_changed.emit("Boris")
+	_check(_scene._prompt.text == "Boris ist bereit!" and not _scene._message_alert.visible, "a complete hero is ready")
 
 	# Finishing at once leaves the reveal unfinished, which must not get in the way.
 	done.pressed.emit()
@@ -170,6 +172,7 @@ func _run() -> void:
 	var hint: Label = _scene._hint
 	await _until(func() -> bool: return hint.text.contains("Boris"), READ_TIMEOUT_SEC)
 	_check(_scene._draft.hero_class.is_empty() and hint.text.contains("Boris"), "a class that is taken is refused, saying by whom: '%s'" % hint.text)
+	_check(_scene._message_alert.visible, "and shows that as a warning")
 	_feed.show_image(DRUID)
 	await _until(func() -> bool: return not _scene._draft.hero_class.is_empty(), READ_TIMEOUT_SEC)
 	_check(_scene._draft.hero_class == "druid" and _scene._draft.name.is_empty(), "the class can come first")
