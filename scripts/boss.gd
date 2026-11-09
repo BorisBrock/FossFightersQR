@@ -65,6 +65,9 @@ var figure := ""
 var background := ""
 ## Health on normal difficulty. The difficulty scales it (Bosses.DIFFICULTIES).
 var health := 40
+## Health on normal difficulty with 1, 2, 3 and 4 heroes, instead of health, as more
+## heroes have more actions, protection and healing. Empty: health for any number.
+var health_by_heroes: Array[int] = []
 var ambience := Ambience.EMBERS
 var ambience_color := Color(1.0, 0.7, 0.35)
 ## The colour of the mist that drifts over the ground of the background.
@@ -101,23 +104,47 @@ var sounds := {}
 ## difficulty adds its attack_bonus (Bosses.DIFFICULTIES).
 var attack_min := 2
 var attack_max := 5
+## Added to the attack against each hero with 1, 2, 3 and 4 heroes. Empty: nothing.
+var attack_by_heroes: Array[int] = []
 ## The shields it raises each round, by damage type. A missing type gets no shield.
 var shields := { "melee": 2, "ranged": 2, "magic": 2 }
+## Added to each of its shields with 1, 2, 3 and 4 heroes, as fewer heroes have fewer
+## actions to break them. Empty: nothing. Not below 0.
+var shield_by_heroes: Array[int] = []
 ## The message (see Messages) when a card attacks it while it is out of reach
 ## (Fight.set_boss_away), with {boss}.
 var away_message := "boss_away_missed"
 #endregion
 
 
-## The health the boss starts with on a difficulty.
-func max_health(difficulty: String) -> int:
-	return maxi(1, roundi(health * Bosses.DIFFICULTIES[difficulty].health_factor))
+## The health the boss starts with on a difficulty, against that many heroes.
+func max_health(difficulty: String, heroes := Party.MAX_HEROES) -> int:
+	var base: int = by_heroes(health_by_heroes, heroes, health)
+	return maxi(1, roundi(base * Bosses.DIFFICULTIES[difficulty].health_factor))
 
 
-## The attack against one hero on a difficulty, before anything lowers it.
-func attack_range(difficulty: String) -> Vector2i:
-	var bonus: int = Bosses.DIFFICULTIES[difficulty].attack_bonus
+## The attack against one hero on a difficulty, against that many heroes, before
+## anything lowers it.
+func attack_range(difficulty: String, heroes := Party.MAX_HEROES) -> Vector2i:
+	var bonus: int = Bosses.DIFFICULTIES[difficulty].attack_bonus + by_heroes(attack_by_heroes, heroes)
 	return Vector2i(maxi(0, attack_min + bonus), maxi(0, attack_max + bonus))
+
+
+## The value of values (for 1, 2, 3 and 4 heroes) for that many heroes, or fallback if
+## values is empty, such as health_by_heroes.
+static func by_heroes(values: Array[int], heroes: int, fallback := 0) -> int:
+	if values.is_empty():
+		return fallback
+	return values[clampi(heroes, 1, values.size()) - 1]
+
+
+## Its shields this round: shields, with shield_by_heroes.
+func shields_for(fight: Fight) -> Dictionary:
+	var bonus := by_heroes(shield_by_heroes, fight.heroes.size())
+	var result := {}
+	for kind: String in shields:
+		result[kind] = maxi(0, shields[kind] + bonus)
+	return result
 
 
 ## What the boss tells comes with its name, such as its armour weakening an attack.
@@ -136,7 +163,7 @@ func message_source() -> Dictionary:
 ## Phase 1: decides the attack against each hero, through fight.threaten(). By default
 ## each hero gets a random attack from attack_range().
 func plan_attacks(fight: Fight) -> void:
-	var attack := attack_range(fight.difficulty)
+	var attack := attack_range(fight.difficulty, fight.heroes.size())
 	for hero in fight.heroes:
 		fight.threaten(hero, fight.rng.randi_range(attack.x, attack.y))
 
@@ -144,7 +171,7 @@ func plan_attacks(fight: Fight) -> void:
 ## Phase 2: raises the shields, through fight.set_shields(). By default the same each
 ## round, replacing what is left of the last ones.
 func raise_shields(fight: Fight) -> void:
-	fight.set_shields(shields)
+	fight.set_shields(shields_for(fight))
 
 
 ## Phase 4: strikes one hero. By default with what is left of its planned attack.

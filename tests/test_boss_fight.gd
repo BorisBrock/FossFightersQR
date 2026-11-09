@@ -102,7 +102,7 @@ func _check_screen() -> void:
 	_check(screen.get_node("Hud/Round/Row/Value").text == "1", "the fight starts in round 1")
 	_check(screen.get_node("Hud/Health/Row/Value").text == "0", "the boss's health counts up")
 	await get_tree().create_timer(screen.HEALTH_COUNT_SEC + 0.6).timeout
-	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard")), "to its full health")
+	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard", 2)), "to its full health")
 	var shown := []
 	for token: SeatToken in screen.get_node("Seats").get_children():
 		if token.visible:
@@ -114,9 +114,9 @@ func _check_screen() -> void:
 	screen.fight.deal_damage(7, "magic")
 	await get_tree().create_timer(0.5).timeout
 	_check(screen.is_showing_steps() and screen.get_node("AttackEffects").get_child_count() > 0, "an attack shows on the boss, with particles")
-	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard")), "before the health goes down")
+	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard", 2)), "before the health goes down")
 	await _until(func() -> bool: return not screen.is_showing_steps(), 6.0)
-	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard") - 7), "the health shown follows the fight")
+	_check(screen.get_node("Hud/Health/Row/Value").text == str(boss.max_health("hard", 2) - 7), "the health shown follows the fight")
 	_check(not screen.get_node("Hud/Poison").visible, "the boss's poison only shows once it has some")
 	screen.fight.poison_boss(2)
 	_check(screen.get_node("Hud/Poison").visible and screen.get_node("Hud/Poison/Row/Value").text == "2", "then how much")
@@ -254,6 +254,7 @@ func _check_round() -> void:
 	# With this seed, Mirefang's poison shield is not the melee one, which the axe hits.
 	screen.fight.rng.seed = 2
 	screen.fight.boss.shield_value = 2
+	screen.fight.boss.shield_by_heroes.clear()
 	var box: MessageBox = screen.messages
 	var tokens := {}
 	for token: SeatToken in screen.get_node("Seats").get_children():

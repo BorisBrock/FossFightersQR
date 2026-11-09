@@ -7,26 +7,35 @@ extends Boss
 ##   attacks cannot reach it, and one hero is marked for its bite. Every hero gets an
 ##   action more to prepare. At the end of the action phase it surfaces and bites.
 ## - From the dive below half its health on, it is enraged: stronger attacks and shields.
-## - A card that costs it SPIT_DAMAGE health or more makes it spit venom on every hero,
+## - A card that costs it spit_damage health or more makes it spit venom on every hero,
 ##   once a round.
 
 ## It dives when its health falls below these parts of its health, each once. A hit past
 ## several of them makes it dive once only.
-const DIVE_BELOW: Array[float] = [0.75, 0.5, 0.25]
+var dive_below: Array[float] = [0.75, 0.5, 0.25]
 ## Its bite when it surfaces, by difficulty: damage and poison.
-const BITE := {
+var bite := {
 	"easy": { "damage": 12, "poison": 2 },
 	"normal": { "damage": 15, "poison": 3 },
 	"hard": { "damage": 18, "poison": 3 },
 }
+## Added to the bite's damage with 1, 2, 3 and 4 heroes: with fewer, each one is bitten
+## more often. Empty: nothing.
+var bite_by_heroes: Array[int] = []
+## Added to the poison of its attacks and its bite with 1, 2, 3 and 4 heroes, as fewer
+## heroes have fewer cards to remove it. Empty: nothing. Never below 1.
+var poison_by_heroes: Array[int] = []
 ## Surfacing below this part of its health, it is enraged.
-const ENRAGED_BELOW := 0.5
+var enraged_below := 0.5
 ## What enraged adds to its attacks and its shields, and its poison shield's poison.
-const ENRAGED_BONUS := 1
+var enraged_bonus := 1
 ## A card that costs it this much health makes it spit.
-const SPIT_DAMAGE := 7
-const SPIT_POISON := 1
+var spit_damage := 7
+var spit_poison := 1
 const ENRAGED_EYES := Color(1.0, 0.18, 0.1)
+
+# The numbers above and below are variables, not constants, so that the balance simulator
+# (tools/balance/simulate.gd) can try other values.
 
 ## Every shield has this value, the poison shield too.
 var shield_value := 3
@@ -39,9 +48,9 @@ var enraged := false
 ## The damage type of this round's poison shield.
 var poison_shield := ""
 
-## How many of DIVE_BELOW it has passed.
+## How many of dive_below it has passed.
 var _passed := 0
-## It has passed one of DIVE_BELOW and dives as soon as it can.
+## It has passed one of dive_below and dives as soon as it can.
 var _dive_due := false
 ## Whom it bites when it surfaces.
 var _bitten: FightHero
@@ -69,6 +78,14 @@ func _init() -> void:
 	health = 80
 	attack_min = 2
 	attack_max = 5
+	# By the number of heroes, so that 1 to 4 have about the same chance: fewer heroes have
+	# fewer actions, cards to protect, heal and remove poison, and each is bitten more
+	# often. Found with the balance simulator, see docs/balance.md.
+	health_by_heroes = [40, 60, 80, 100]
+	attack_by_heroes = [0, 0, 0, 1]
+	shield_by_heroes = [-2, -1, 0, 1]
+	bite_by_heroes = [-9, -5, 0, 3]
+	poison_by_heroes = [-2, 0, 0, 0]
 	ambience = Ambience.FIREFLIES
 	ambience_color = Color(0.75, 1.0, 0.45)
 	mist_color = Color(0.45, 0.62, 0.42)
@@ -101,17 +118,17 @@ func _init() -> void:
 
 ## Every attack poisons, the stronger ones not more than the others.
 func plan_attacks(fight: Fight) -> void:
-	var attack := attack_range(fight.difficulty)
-	var bonus := ENRAGED_BONUS if enraged else 0
+	var attack := attack_range(fight.difficulty, fight.heroes.size())
+	var bonus := enraged_bonus if enraged else 0
 	for hero in fight.heroes:
 		fight.threaten(hero, fight.rng.randi_range(attack.x, attack.y) + bonus,
-			{ "poison": fight.rng.randi_range(poison_min, poison_max) })
+			{ "poison": maxi(1, fight.rng.randi_range(poison_min, poison_max) + by_heroes(poison_by_heroes, fight.heroes.size())) })
 
 
 ## Three shields of the same value, one of them poisonous, chosen at random each round.
 func raise_shields(fight: Fight) -> void:
 	poison_shield = Fight.DAMAGE_TYPES[fight.rng.randi() % Fight.DAMAGE_TYPES.size()]
-	var value := shield_value + (ENRAGED_BONUS if enraged else 0)
+	var value := maxi(0, shield_value + (enraged_bonus if enraged else 0) + by_heroes(shield_by_heroes, fight.heroes.size()))
 	fight.set_shields({ "melee": value, "ranged": value, "magic": value })
 
 
@@ -123,23 +140,23 @@ func shield_icon(kind: String) -> String:
 func shield_hit(fight: Fight, kind: String, _amount: int, play: CardPlay) -> void:
 	if kind != poison_shield or play == null:
 		return
-	var poison := 1 + (ENRAGED_BONUS if enraged else 0)
+	var poison := 1 + (enraged_bonus if enraged else 0)
 	fight.tell("mirefang_poison_shield", { "player": play.hero.name, "poison": poison })
 
 
-## Passing one of DIVE_BELOW, it dives once it can: after the card that did it, or when
+## Passing one of dive_below, it dives once it can: after the card that did it, or when
 ## the next action phase starts, such as after its own poison at the end of a round.
 func boss_hurt(fight: Fight, _old: int, new: int) -> void:
-	while _passed < DIVE_BELOW.size() and new < fight.max_health * DIVE_BELOW[_passed]:
+	while _passed < dive_below.size() and new < fight.max_health * dive_below[_passed]:
 		_passed += 1
 		_dive_due = new > 0
 
 
 func card_played(fight: Fight, play: CardPlay) -> void:
-	if play.damage >= SPIT_DAMAGE and _spat_round != fight.round_number:
+	if play.damage >= spit_damage and _spat_round != fight.round_number:
 		_spat_round = fight.round_number
-		if await fight.boss_ability("mirefang_spit", SPIT_POISON):
-			fight.tell("mirefang_spit", { "boss": title, "poison": SPIT_POISON })
+		if await fight.boss_ability("mirefang_spit", spit_poison):
+			fight.tell("mirefang_spit", { "boss": title, "poison": spit_poison })
 			await fight.until_read()
 	if _dive_due and fight.phase == Fight.Phase.ACTION:
 		await _dive(fight)
@@ -162,13 +179,15 @@ func _dive(fight: Fight) -> void:
 	for hero in fight.heroes:
 		fight.threaten(hero, 0)
 	_bitten = fight.heroes[fight.rng.randi() % fight.heroes.size()]
-	var bite: Dictionary = BITE.get(fight.difficulty, BITE.normal)
-	fight.threaten(_bitten, bite.damage, { "poison": bite.poison })
+	var bitten_by: Dictionary = bite.get(fight.difficulty, bite.normal)
+	var damage: int = maxi(0, bitten_by.damage + by_heroes(bite_by_heroes, fight.heroes.size()))
+	var poison := maxi(1, bitten_by.poison + by_heroes(poison_by_heroes, fight.heroes.size()))
+	fight.threaten(_bitten, damage, { "poison": poison })
 	for hero in fight.heroes:
 		hero.turns_left += 1
 		hero.extra_turns += 1
 		fight.hero_changed.emit(hero)
-	fight.tell("mirefang_dive", { "boss": title, "player": _bitten.name, "damage": bite.damage, "poison": bite.poison })
+	fight.tell("mirefang_dive", { "boss": title, "player": _bitten.name, "damage": damage, "poison": poison })
 	await fight.until_read()
 
 
@@ -196,7 +215,7 @@ func attack_hero(fight: Fight, hero: FightHero) -> void:
 func attack_phase_ended(fight: Fight) -> void:
 	var surfaced := _surfaced
 	_surfaced = false
-	if enraged or not surfaced or fight.health >= fight.max_health * ENRAGED_BELOW:
+	if enraged or not surfaced or fight.health >= fight.max_health * enraged_below:
 		return
 	enraged = true
 	eye_color = ENRAGED_EYES

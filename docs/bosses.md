@@ -51,6 +51,7 @@ What a boss has:
 | `art`, `art_focus` | the picture in the list and the overview, and where its face is in it (0 to 1 of its width and height), which the crops keep near their middle (`PictureCrop`) |
 | `figure`, `background` | the fight (see [Artwork](#artwork)) |
 | `health` | its health on *Normal*. Each difficulty scales it by its `health_factor`. |
+| `health_by_heroes` | its health on *Normal* with 1, 2, 3 and 4 heroes, instead of `health`. Empty for the same with any number. |
 | `ambience`, `ambience_color` | the particles over the background: `EMBERS`, `FIREFLIES` or `DUST`, tinted |
 | `mist_color` | the mist drifting over the ground of the background |
 | `motion`, `motion_amount`, `motion_seconds` | how the boss moves while it waits: `BREATHE`, `HOVER`, `SWAY` or `SLITHER` (a wave running up its body, the head moving most) |
@@ -58,7 +59,9 @@ What a boss has:
 | `eyes`, `eye_color`, `eye_radius`, `eye_glow` | a glow over its eyes, which moves along with it: where they are in the figure (0 to 1 of its width and height), its colour, size in pixels of the picture and strength |
 | `taunt` | what it says when the fight begins |
 | `attack_min`, `attack_max` | its attack against each hero per round, on *Normal*. Each difficulty adds its `attack_bonus`. |
+| `attack_by_heroes` | added to its attack with 1, 2, 3 and 4 heroes, or empty |
 | `shields` | the shields it raises each round, such as `{ "melee": 2, "ranged": 2, "magic": 2 }` |
+| `shield_by_heroes` | added to each shield with 1, 2, 3 and 4 heroes, or empty (`Boss.shields_for()`) |
 | `away_message` | what the players are told when a card attacks it while it is out of reach (see below) |
 
 `Boss` extends `FightRule` (`scripts/fight_rule.gd`), so a boss can step in at every moment of the fight that has a
@@ -113,17 +116,29 @@ All text needs a German and an English version (see [Adding text](settings.md#ad
 ## Mirefang
 
 The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an eerie swamp, *Moorzahn* in German.
-80 health on *Normal*.
+- **The number of heroes** changes it, so that 1 to 4 heroes have about the same chance (found with the
+  [balance simulator](balance.md)). Fewer heroes have fewer actions and fewer cards to protect, heal and remove poison,
+  and each of them is bitten more often. On *Normal*:
 
-- **Attacks:** 2 to 5 against each hero, each with 1 to 3 poison.
-- **Shields:** 3 of each type every round. One of them, at random, is the **poison shield**: whoever hits it gets 1
+  | Heroes | Health | Attacks | Poison per attack | Shields | Bite |
+  |--------|--------|---------|-------------------|---------|------|
+  | 1 | 40 | 2 to 5 | 1 | 1 | 6 + 1 poison |
+  | 2 | 60 | 2 to 5 | 1 to 3 | 2 | 10 + 3 poison |
+  | 3 | 80 | 2 to 5 | 1 to 3 | 3 | 15 + 3 poison |
+  | 4 | 100 | 3 to 6 | 1 to 3 | 4 | 18 + 3 poison |
+
+  The difficulty changes health and attacks as for every boss, and the bite as below. In the script:
+  `health_by_heroes`, `attack_by_heroes`, `shield_by_heroes`, and its own `bite_by_heroes` (added to the bite's
+  damage) and `poison_by_heroes` (added to the poison of its attacks and bite, never below 1).
+- **Attacks:** 2 to 5 against each hero, each with 1 to 3 poison (with 3 heroes).
+- **Shields:** 3 of each type every round (with 3 heroes). One of them, at random, is the **poison shield**: whoever hits it gets 1
   poison (`mirefang_poison_shield`). Cards that ignore a shield's effect ignore that too.
-- **Dive:** when its health falls below 75 %, 50 % and 25 % (60, 40 and 20 on *Normal*), it dives
+- **Dive:** when its health falls below 75 %, 50 % and 25 % (60, 40 and 20 on *Normal* with 3 heroes), it dives
   (`mirefang_dive`), each mark once. A hit past several marks makes it dive once only; the marks passed are gone.
   - It goes out of reach (`Fight.set_boss_away`): its shields are gone, and attacks and poison from cards do not reach
     it (`mirefang_out_of_reach`).
   - All its attacks are gone. Instead one hero, at random, is marked for its bite: 12 + 2 poison on *Easy*,
-    15 + 3 on *Normal*, 18 + 3 on *Hard*. Protection lowers it as any attack.
+    15 + 3 on *Normal*, 18 + 3 on *Hard*, with 3 heroes. Protection lowers it as any attack.
   - Every hero gets an action more this round (a yellow orb) to prepare.
   - It dives right after the card that took it past the mark. Past a mark outside the action phase, such as by its
     own poison at the end of a round, it dives when the next action phase starts.
@@ -135,6 +150,8 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
 - **Venom spit:** a card that costs it 7 health or more makes it spit venom on every hero, 1 poison each
   (`mirefang_spit`), at most once a round. An @-ability of strength 1 (`mirefang_spit`). If the same card takes it
   past a mark, it spits first, then dives.
+- **Tuning:** its numbers are variables at the top of its script, so that the [balance simulator](balance.md) can try
+  others with `--set`.
 - **Look:** it slithers (`Motion.SLITHER`), rises from the water (`waterline`) and its eyes glow (`eyes`, measured on
   `FigureMirefang.png`: set them again if the picture changes). The prompts are in
   [Artwork prompts](artwork_prompts.md#mirefang--the-serpent-of-the-rotmire).

@@ -2,7 +2,7 @@
 
 Decisions, rules and hints for further development. Add to this file whenever a decision is made, with the reason if
 it is not obvious. Details of single features live in their own files: [onboarding](onboarding.md),
-[choosing the boss](bosses.md), [the boss fight](boss_fight.md), [game over](game_over.md), [messages](messages.md), [cards](cards.md), [QR scanning](qr_scanning.md).
+[choosing the boss](bosses.md), [the boss fight](boss_fight.md), [game over](game_over.md), [messages](messages.md), [cards](cards.md), [QR scanning](qr_scanning.md), [balancing](balance.md).
 
 ## Concept
 

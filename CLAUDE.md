@@ -31,6 +31,10 @@ check fails (16 and 7 failures). That is not a bug in the code. Always run them 
 
 `--disable-vsync` matters: an unwatched window can be throttled to ~1 fps, and then the timing checks fail.
 
+Balance simulator (not a test; see `docs/balance.md`):
+
+    godot --headless -s tools/balance/simulate.gd -- --games 200
+
 Catalog and tool checks:
 
     .venv/bin/python tools/validate_catalog.py

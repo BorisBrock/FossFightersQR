@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 495
+const EXPECTED_CHECKS := 499
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -2351,6 +2351,20 @@ func _check_bosses() -> void:
 	var easy := Bosses.create("mirefang").attack_range("easy")
 	var hard := Bosses.create("mirefang").attack_range("hard")
 	_check(hard.x == easy.x + 2 and hard.y == easy.y + 2, "the difficulty changes the boss's attacks")
+	var scaled := Bosses.create("mirefang")
+	_check([1, 2, 3, 4].map(func(count: int) -> int: return scaled.max_health("normal", count)) == [40, 60, 80, 100], "Mirefang's health grows with the number of heroes")
+	_check(scaled.attack_range("normal", 4) == scaled.attack_range("normal", 3) + Vector2i(1, 1), "and with four heroes, its attacks")
+	var solo_hero := Party.Hero.new()
+	solo_hero.name = "Solo"
+	solo_hero.race = "troll"
+	solo_hero.hero_class = "warrior"
+	solo_hero.seat = 3
+	var solo := Fight.new(scaled, "normal", [solo_hero])
+	solo.start()
+	for i in 3:
+		_ready(solo)
+	_check(solo.max_health == 40 and solo.shields == { "melee": 1, "ranged": 1, "magic": 1 }, "against one hero, it has less health and weaker shields")
+	_check(solo.heroes[0].threat_effects == { "poison": 1 }, "and its attacks poison less, but still poison")
 	_check_mirefang()
 
 

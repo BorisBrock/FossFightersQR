@@ -165,13 +165,13 @@ signal _answered(value: Variant)
 func _init(fight_boss: Boss, fight_difficulty: String, party_heroes: Array[Party.Hero] = [], cards: CardDatabase = null) -> void:
 	boss = fight_boss
 	difficulty = fight_difficulty
-	max_health = boss.max_health(difficulty)
-	health = max_health
 	rules.append(boss)
 	var sorted := party_heroes.duplicate()
 	sorted.sort_custom(func(a: Party.Hero, b: Party.Hero) -> bool: return a.seat < b.seat)
 	for party_hero: Party.Hero in sorted:
 		heroes.append(FightHero.new(party_hero))
+	max_health = boss.max_health(difficulty, heroes.size())
+	health = max_health
 	stats = FightStats.new(heroes, max_health)
 	if cards != null:
 		_add_traits(cards)
