@@ -39,6 +39,8 @@ TIERS = {
     # The big moments: the boss appears, attacks and dies, the fight is won or lost.
     "event": (-16.0, ["boss_appears", "boss_attack", "victory", "defeat", "fanfare", "boss_*"]),
 }
+# Files in assets/sounds/ that are not sound effects: the music sets their volume (Music.VOLUMES_DB).
+MUSIC = {"loop_swamp"}
 PEAK_LIMIT = -1.0  # dBFS
 TOLERANCE = 0.5  # LU
 SILENT = -70.0  # LUFS: below this a sound counts as silent (a broken file)
@@ -92,6 +94,8 @@ def main() -> int:
     off = 0
     for path in sorted(SOUNDS.glob("*.ogg")):
         name = path.stem
+        if name in MUSIC:
+            continue
         tier = tier_of(name)
         loudness, peak = measure(path)
         if tier is None:

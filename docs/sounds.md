@@ -29,7 +29,8 @@ loudness, as Godot plays it: mono on both speakers) are at the tier's target.
 
 The tiers sit 15 to 20 LU above the music, which plays at about -34.5 LUFS with the default settings (the track
 is mastered to -14.5 LUFS and starts 20 dB down, see [settings](settings.md)). So every player in the game plays
-its sound at 0 dB: the mix is in the files. After adding or replacing a sound, add it to `TIERS` in the script if
+its sound at 0 dB: the mix is in the files. The script skips the music in `assets/sounds/` (`loop_swamp`, listed in `MUSIC`): its
+volume is set in `Music.VOLUMES_DB`. After adding or replacing a sound, add it to `TIERS` in the script if
 it is new, and run
 
     python3 tools/normalize_sounds.py            # fixes the sounds that are off by more than 0.5 LU
