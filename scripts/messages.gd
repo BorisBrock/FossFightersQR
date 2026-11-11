@@ -49,6 +49,8 @@ const STYLES := {
 	"damage": ["[b][color=#ff5a4a]", "[/color][/b]"],
 	"heal": ["[b][color=#7fe07a]", "[/color][/b]"],
 	"poison": ["[b][color=#b6e04a]", "[/color][/b]"],
+	## What the boss says, such as its taunt: in its own voice, apart from the instructions.
+	"taunt": ["[i][color=#ff8070]", "[/color][/i]"],
 }
 
 static var _files := {}

@@ -13,25 +13,6 @@ const CATALOG := "res://cards/cards.json"
 const RACES: Array[String] = ["halfling", "dwarf", "elf", "troll", "goblin", "dryad"]
 const CLASSES: Array[String] = ["paladin", "magician", "warrior", "thief", "druid", "shaman"]
 
-## Health and hand limit printed on the level 1 character and class cards: a hero's start
-## health and hand limit are the sums of their character's and class's. The catalog does
-## not have them. --health and --hand override them for every hero.
-const RACE_STATS := {
-	"halfling": { "health": 15, "hand": 6 },
-	"dwarf": { "health": 19, "hand": 5 },
-	"elf": { "health": 14, "hand": 5 },
-	"troll": { "health": 22, "hand": 4 },
-	"goblin": { "health": 19, "hand": 5 },
-	"dryad": { "health": 22, "hand": 4 },
-}
-const CLASS_STATS := {
-	"paladin": { "health": 15, "hand": 1 },
-	"magician": { "health": 11, "hand": 2 },
-	"warrior": { "health": 15, "hand": 1 },
-	"thief": { "health": 10, "hand": 1 },
-	"druid": { "health": 11, "hand": 2 },
-	"shaman": { "health": 11, "hand": 2 },
-}
 ## The items of the base game, by German title, for --items. Fackel and Machete are only
 ## for a boss of the board game, Passen is the pass card.
 const ITEMS: Array[String] = ["Heiltrank", "Rucksack", "Medizintasche", "Trinkschlauch", "Glücksbringer", "Opas Glasauge"]
@@ -42,7 +23,7 @@ const PASS_BELOW := 0.5
 
 ## Messages that are only to read, or ask for nothing that matters to the simulated table.
 const READ_ONLY: Array[String] = [
-	"boss_taunt", "draw_start", "boss_planning", "phase_action", "phase_attack_blocked", "boss_poison", "victory", "defeat",
+	"boss_taunt", "first_round", "boss_planning", "phase_action", "phase_attack_blocked", "boss_poison", "victory", "defeat",
 	"support_without_attack", "mirefang_surfaces", "mirefang_out_of_reach", "boss_ability_prevented",
 	"totems_returned", "totem_lightning", "shield_breaker", "card_repeated", "nothing_to_repeat",
 	"attacks_weakened", "attacks_weakened_next_round", "attack_redirected", "attack_halved",
@@ -259,8 +240,8 @@ func _random_party(players: int) -> Array[Party.Hero]:
 		sim.name = hero.name
 		sim.race = hero.race
 		sim.hero_class = hero.hero_class
-		sim.max_health = _options.health if _options.health > 0 else RACE_STATS[hero.race].health + CLASS_STATS[hero.hero_class].health
-		sim.hand_limit = _options.hand if _options.hand > 0 else RACE_STATS[hero.race].hand + CLASS_STATS[hero.hero_class].hand
+		sim.max_health = _options.health if _options.health > 0 else HeroOptions.RACES[hero.race].health + HeroOptions.CLASSES[hero.hero_class].health
+		sim.hand_limit = _options.hand if _options.hand > 0 else HeroOptions.hand_limit(hero.race, hero.hero_class)
 		sim.health = sim.max_health
 		_game.by_name[hero.name] = sim
 	return party
@@ -651,7 +632,7 @@ func _on_message(id: String, values: Dictionary) -> void:
 			game.bitten = values.player
 		"mirefang_enraged":
 			game.enraged_round = fight.round_number
-		"round_started":
+		"round_started", "first_round":
 			game.bitten = ""
 		"round_end_status":
 			for each in game.heroes:
@@ -929,7 +910,7 @@ const HELP := """Usage: godot --headless -s tools/balance/simulate.gd -- [option
   --level 1|5|8      hero level: the character and class cards up to it (1)
   --loot N           loot cards per hero, one of each level 1..N (10)
   --items            each hero has the base game's items
-  --health N         start health of every hero (else from RACE_STATS + CLASS_STATS)
+  --health N         start health of every hero (else from HeroOptions: character + class)
   --hand N           hand limit of every hero (likewise)
   --set key=value    changes a variable of the boss, value as JSON, e.g.
                      --set health=70 --set shield_value=2 --set 'dive_below=[0.66,0.33]'

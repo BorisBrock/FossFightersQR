@@ -1319,7 +1319,7 @@ func _smash(tween: Tween, control: Control, strength: float) -> void:
 	tween.tween_property(control, "scale", Vector2.ONE, SMASH_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func() -> void:
 		_sfx.play("slam")
-		shake_screen(strength))
+		shake_screen(strength, false))
 
 
 ## Adds to tween: label counts from from to to, a step each tick, with a tack each,
@@ -1343,7 +1343,13 @@ func _count_seconds(steps: int) -> float:
 
 
 ## The whole screen shakes, as in an earthquake, and settles: strength 1 is a heavy blow.
-func shake_screen(strength := 1.0) -> void:
+## It crashes with the "smash" sound, unless smash is false, such as when the shake goes
+## with a sound of its own.
+func shake_screen(strength := 1.0, smash := true) -> void:
+	# Hits that follow quickly, such as those of a volley, shake again, but crash once.
+	var shaking := _screen_shake != null and _screen_shake.is_running()
+	if smash and not shaking:
+		_sfx.play("smash")
 	if _screen_shake != null:
 		_screen_shake.kill()
 	var phase := randf() * TAU

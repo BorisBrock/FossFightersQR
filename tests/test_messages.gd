@@ -95,7 +95,7 @@ func _check_render() -> void:
 	_check(round.title == "Round 3" and not round.body.is_empty(), "renders a message by its id")
 	_check(Messages.render("round_started", values, "de_AT").title == "Runde 3", "in the language of the locale")
 	_check(Messages.render("round_started", values, "fr_FR").title == "Runde 3", "and in German for a language without messages")
-	_check(Messages.is_auto("boss_taunt") and not Messages.is_auto("round_end_status") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
+	_check(Messages.is_auto("boss_taunt") and Messages.is_auto("round_started") and not Messages.is_auto("first_round") and not Messages.is_auto("round_end_status") and not Messages.is_auto("no_such_message"), "knows which messages close by themselves")
 	_check(Messages.render("example_reminder", {}, "en").title == "", "a message may have no title")
 	_check(Messages.has("round_started") and not Messages.has("no_such_message"), "knows which messages there are")
 	var card := { "title": { "de": "Himmelspaladin", "en": "Celestial Paladin" }, "hero": "[b]Rosie" }

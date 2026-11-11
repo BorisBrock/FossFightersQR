@@ -37,8 +37,8 @@ the AI will make the fight easier for players too.
 ## Before trusting the numbers
 
 A hero's start health and hand limit are the sums of the values printed on their level 1 character and class cards,
-which are not in the catalog: `RACE_STATS` and `CLASS_STATS` at the top of the script have them. `--health` and
-`--hand` set them for every hero instead.
+which are not in the catalog: `HeroOptions` (`scripts/hero_options.gd`) has them, as the fight's first message
+lists each hero's hand limit too. `--health` and `--hand` set them for every hero instead.
 
 At the end, the simulator lists the messages its table did not act on. If one shows up there, a card effect is
 missing from the simulation: add it to `_on_message`, or to `READ_ONLY` if there is nothing for the table to do.

@@ -1,16 +1,26 @@
 {
 	"boss_taunt": {
 		"title": "{boss}",
-		"body": "[i]»{taunt}«[/i]",
+		"body": "[taunt]»{taunt}«[/taunt]",
 		"auto": true
 	},
-	"draw_start": {
-		"title": "Draw cards",
-		"body": "Draw your cards :card: up to your hand limit."
+	"first_round": {
+		"title": "Round {round}",
+		"body": [
+			"[taunt]{flavor}[/taunt]",
+			"",
+			"Draw your cards :card: up to your hand limit:",
+			"{draws}",
+			"",
+			"[i]One card less per paralysis :paralysis:.[/i]"
+		]
+	},
+	"first_round_draw": {
+		"body": "[player]{player}[/player]: [b]{count}[/b] :card:"
 	},
 	"round_started": {
 		"title": "Round {round}",
-		"body": "[i]{flavor}[/i]",
+		"body": "[taunt]{flavor}[/taunt]",
 		"auto": true
 	},
 	"boss_planning": {

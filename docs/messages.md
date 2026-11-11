@@ -78,6 +78,7 @@ asks nothing of the players, so that it closes by itself:
   | `[damage]…[/damage]` | damage and losses |
   | `[heal]…[/heal]` | healing and gains |
   | `[poison]…[/poison]` | poison |
+  | `[taunt]…[/taunt]` | what the boss says (its taunt, its line each round): italic, in red |
 
 - **Symbols** are written `:name:` and drawn inline, as tall as the text:
 

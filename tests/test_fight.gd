@@ -122,9 +122,9 @@ func _check_round() -> void:
 	_check(fight.request == null, "and the fight waits until they have read it")
 	_check(fight.scan(_card("AXE", [["attack", 5, "melee"]], "dwarf")) == "ignored" and fight.health == 30, "cards are only taken when one is asked for")
 	_ready(fight)
-	_check(_told[-1] == "draw_start" and fight.round_number == 0 and fight.request == null, "then everyone draws their cards, before the first round")
-	_ready(fight)
-	_check(_told.slice(-2) == ["round_started", "boss_planning"] and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins")
+	_check(_told.slice(-2) == ["first_round", "boss_planning"] and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins, and everyone draws their cards")
+	var draws: Array = _values[-2].draws
+	_check(draws.map(func(part: Array) -> Array: return [part[0], part[1].player, part[1].count]) == [["first_round_draw", "Rosie", 7], ["first_round_draw", "Borin", 6], ["first_round_draw", "Sonja", 6]], "each hero up to their hand limit, from character and class")
 	_check(_values[-2].flavor == boss.round_text(1) and not boss.round_text(1).is_empty() and boss.round_text(2) != boss.round_text(1), "with a word from the boss, another each round")
 	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in a message of its own")
 	_check(fight.hero_at(1).threat == 4 and fight.hero_at(5).threat_effects == { "poison": 1 }, "against each hero")

@@ -42,6 +42,7 @@ const ANIMATED_MARGIN := 160
 ## Messages with a sound of their own (see Sfx), by id. The others play the box's own.
 const SOUNDS := {
 	"round_started": "round",
+	"first_round": "round",
 	"boss_attacks": "boss_attack",
 	"phase_attack_blocked": "protect",
 	"health_loss": "hurt",

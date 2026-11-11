@@ -17,7 +17,7 @@ loudness, as Godot plays it: mono on both speakers) are at the tier's target.
 | Tier     | Target    | Sounds                                                                         |
 |----------|-----------|--------------------------------------------------------------------------------|
 | `event`  | -16 LUFS  | `boss_appears`, `boss_attack`, `victory`, `defeat`, `fanfare`, every `boss_*` sound |
-| `effect` | -19 LUFS  | `hit`, `slash`, `slam`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
+| `effect` | -19 LUFS  | `hit`, `slash`, `slam`, `smash`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
 | `volley` | -21 LUFS  | `magic_hit`, `arrow_hit`, `shield_block`, `tack`: they come in quick series and add up |
 | `cue`    | -22 LUFS  | `turn`, `choose`, `seat`, `reveal`, `card_scanned`, `rejected`, `round`         |
 | `ui`     | -26 LUFS  | `click`, `select`                                                               |
@@ -50,6 +50,7 @@ sound. A sound added to the script also has to be added to `Sfx.NAMES`.
 | `arrow_hit`    | An arrow of a ranged attack hits the boss, at a slightly different pitch each time.     |
 | `shields_up`   | The boss raises its shields (not when it has none).                                      |
 | `slam`         | A planned attack or a shield smashes onto the screen, as the screen shakes. Made with sox. |
+| `smash`        | The screen shakes: a big attack hits, the boss strikes hard, a shield breaks (not with `slam`, which has its own thud). Once per shake, not per hit of a volley. A placeholder made with sox. |
 | `tack`         | A number counts up a step: a planned attack or a rising shield, a little higher each step. Made with sox. |
 | `poison`       | The boss gets poison tokens; its poison hurts it at the end of a round. A planned attack that poisons pops up its poison token. |
 | `protect`      | An attack against a hero is lowered in the action phase, or every attack was blocked.    |
@@ -59,7 +60,7 @@ Some [messages](messages.md) have a sound of their own instead of the message bo
 
 | Message                                | Sound          |
 |----------------------------------------|----------------|
-| `round_started`                        | `round`        |
+| `round_started`, `first_round`         | `round`        |
 | `boss_attacks`                         | `boss_attack`  |
 | `phase_attack_blocked`                 | `protect`      |
 | `health_loss`                          | `hurt`         |

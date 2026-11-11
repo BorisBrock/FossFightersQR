@@ -77,9 +77,10 @@ on and take off themselves.
 
 1. **Start:** the heroes appear at their seats, the boss appears, its health counts up, and it greets the heroes
    (`Boss.taunt`).
-   Then everyone draws their cards (*Draw cards*, with a check mark), once, before the first round.
-2. **Each round:** *Round n* with a line from the boss (`Boss.round_text()`, another each round), which closes by
-   itself. The round counter shows the new round.
+2. **Each round:** *Round n* with a line from the boss (`Boss.round_text()`, another each round, in red), which
+   closes by itself. The round counter shows the new round. *Round 1* also has everyone draw their starting hand:
+   it lists each hero with their hand limit (`HeroOptions.hand_limit()`), reminds them that each paralysis token
+   means one card less, and waits for the check mark.
 3. **Planning:** *The boss is preparing its attacks*, in a message without a check mark. The boss plans an attack
    against each hero (`Boss.plan_attacks`). While the message shows, the attack smashes in at one seat after the
    other, shaking the screen, and counts up with a tack at each step; the tokens it gives besides pop up beside it.

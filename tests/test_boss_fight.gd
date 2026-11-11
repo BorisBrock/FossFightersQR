@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 106
+const EXPECTED_CHECKS := 104
 
 var _failures := 0
 var _checks_run := 0
@@ -62,9 +62,7 @@ func _check_fight_state() -> void:
 	fight.start()
 	_check(boss.calls == ["fight_started"] and told == ["boss_taunt <null>"], "a fight starts with the boss's greeting")
 	fight.players_ready()
-	_check(told[-1] == "draw_start <null>" and boss.calls[-1] == "fight_started", "then everyone draws their cards")
-	fight.players_ready()
-	_check(boss.calls[-1] == "round_started 1" and told.has("round_started 1"), "then round 1 is announced, and the boss told")
+	_check(told.has("first_round 1") and boss.calls[-1] == "round_started 1", "then round 1 is announced, with drawing the cards, and the boss told")
 	fight.deal_damage(5, "melee")
 	_check(fight.health == 15, "an attack takes off health")
 	fight.deal_damage(5, "magic")
@@ -181,7 +179,7 @@ func _check_messages() -> void:
 	confirm.pressed.emit()
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	_check(confirmed == ["boss_taunt", "example_magic_potion", "example_reminder"] and all_confirmed[0], "each message is confirmed in turn")
-	_check(box.current() == "draw_start", "and once all are read, the fight goes on")
+	_check(box.current() == "first_round", "and once all are read, the fight goes on")
 	screen.queue_free()
 
 
@@ -207,11 +205,8 @@ func _check_countdown() -> void:
 
 	await _confirm(box)
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
-	_check(box.current() == "draw_start" and not box.is_counting_down(), "drawing the cards waits for the check mark")
+	_check(box.current() == "first_round" and not box.is_counting_down(), "round 1, with drawing the cards, waits for the check mark")
 	await _confirm(box)
-	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
-	_check(box.current() == "round_started" and box.is_counting_down(), "the round, with a word from the boss, runs down by itself")
-	await _run_down(box, "round_started")
 	var check_mark: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm")
 	_check(box.current() == "boss_planning" and not box.is_counting_down() and not check_mark.visible and not box.get_node("Dim").visible, "while the boss plans its attacks, its message has no check mark and leaves the fight undimmed")
 	await _until(func() -> bool: return box.current() != "boss_planning", 8.0)
@@ -269,10 +264,9 @@ func _check_round() -> void:
 		tokens[token.seat] = token
 	await get_tree().create_timer(screen.INTRO_SEC).timeout
 	await _confirm(box)
-	await _confirm(box)
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
-	_check(box.current() == "round_started" and screen.get_node("Hud/Round/Row/Value").text == "1", "after the boss's words and drawing, round 1 begins")
-	await _run_down(box, "round_started")
+	_check(box.current() == "first_round" and screen.get_node("Hud/Round/Row/Value").text == "1", "after the boss's words, round 1 begins, with drawing the cards")
+	await _confirm(box)
 	_check(box.current() == "boss_planning", "and the boss plans its attacks")
 	var threats: Array[Control] = [tokens[1].get_node("Threat"), tokens[3].get_node("Threat")]
 	_check(not threats[0].visible and not threats[1].visible, "the attacks are not shown yet")

@@ -1,16 +1,26 @@
 {
 	"boss_taunt": {
 		"title": "{boss}",
-		"body": "[i]»{taunt}«[/i]",
+		"body": "[taunt]»{taunt}«[/taunt]",
 		"auto": true
 	},
-	"draw_start": {
-		"title": "Karten ziehen",
-		"body": "Zieht eure Karten :card: bis zum Handkartenlimit."
+	"first_round": {
+		"title": "Runde {round}",
+		"body": [
+			"[taunt]{flavor}[/taunt]",
+			"",
+			"Zieht eure Karten :card: bis zum Handkartenlimit:",
+			"{draws}",
+			"",
+			"[i]Pro Lähmung :paralysis: eine Karte weniger.[/i]"
+		]
+	},
+	"first_round_draw": {
+		"body": "[player]{player}[/player]: [b]{count}[/b] :card:"
 	},
 	"round_started": {
 		"title": "Runde {round}",
-		"body": "[i]{flavor}[/i]",
+		"body": "[taunt]{flavor}[/taunt]",
 		"auto": true
 	},
 	"boss_planning": {

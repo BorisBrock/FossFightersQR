@@ -779,11 +779,16 @@ func _run() -> void:
 	await until_read()
 	if over:
 		return
-	# Before the first round, everyone draws their starting hand.
-	tell("draw_start")
-	await until_read()
 	while not over:
 		await _play_round()
+
+
+## How many cards each hero draws for their starting hand, as message parts, one per hero.
+func _starting_hands() -> Array:
+	var parts := []
+	for hero in heroes:
+		parts.append(["first_round_draw", { "player": hero.name, "count": HeroOptions.hand_limit(hero.hero.race, hero.hero.hero_class) }])
+	return parts
 
 
 func _play_round() -> void:
@@ -802,8 +807,14 @@ func _play_round() -> void:
 		hero_changed.emit(hero)
 	round_changed.emit(round_number)
 	# The new round with a word from the boss, then its planning, which the screen shows
-	# as it happens.
-	tell("round_started", { "round": round_number, "boss": boss.title, "flavor": boss.round_text(round_number) })
+	# as it happens. The first round also has everyone draw their starting hand, so it
+	# waits for the check mark.
+	var values := { "round": round_number, "boss": boss.title, "flavor": boss.round_text(round_number) }
+	if round_number == 1:
+		values.draws = _starting_hands()
+		tell("first_round", values)
+	else:
+		tell("round_started", values)
 	await _each_rule("round_started")
 	if over:
 		return
