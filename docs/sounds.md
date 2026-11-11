@@ -3,6 +3,11 @@
 All sound effects play on the **SFX** bus, so the volume in the [settings](settings.md) applies to them. The music has
 a bus of its own.
 
+The music is the `Music` autoload (`music.tscn`, `scripts/music.gd`). The menus play the tavern track
+(`assets/music/boss_fighters.mp3`); the boss fight switches to the swamp loop (`assets/sounds/loop_swamp.ogg`, imported
+with `loop=true`) and back when it ends. The swamp loop is a quiet recording (about -43 LUFS as played), so its player
+volume in `Music.VOLUMES_DB` is 28.5 dB above the tavern track's -8 dB to sound as loud.
+
 The sounds are mono Ogg Vorbis (`.ogg`, quality 5), which Godot plays as is. To add a sound from elsewhere, convert
 it like this:
 

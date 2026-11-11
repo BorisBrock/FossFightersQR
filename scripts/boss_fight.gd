@@ -63,6 +63,8 @@ const COUNT_MAX_SEC := 1.0
 ## large to its size, and lands with a thud that shakes the screen.
 const SMASH_SCALE := 2.4
 const SMASH_SEC := 0.18
+## The smash's thud shakes the screen this much harder than its strength alone would.
+const SMASH_SHAKE := 1.4
 ## The whole screen shakes, as in an earthquake: this far at strength 1, for this long.
 const SCREEN_SHAKE_PX := 16.0
 const SCREEN_SHAKE_SEC := 0.4
@@ -224,6 +226,7 @@ var _card_name: Label
 
 func _ready() -> void:
 	super()
+	Music.play_fight()
 	_sfx = Sfx.new()
 	_sfx.name = "Sfx"
 	add_child(_sfx)
@@ -289,6 +292,11 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	super()
+	# The menus and the game over screen have the tavern music again. Looked up, as the
+	# autoload may be gone already when the game quits.
+	var music := get_node_or_null(^"/root/Music")
+	if music != null:
+		music.play_tavern()
 	# Lets the fight's rules stop waiting for players who have left.
 	if fight != null:
 		fight.abandon()
@@ -1319,7 +1327,7 @@ func _smash(tween: Tween, control: Control, strength: float) -> void:
 	tween.tween_property(control, "scale", Vector2.ONE, SMASH_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func() -> void:
 		_sfx.play("slam")
-		shake_screen(strength, false))
+		shake_screen(strength * SMASH_SHAKE, false))
 
 
 ## Adds to tween: label counts from from to to, a step each tick, with a tack each,
