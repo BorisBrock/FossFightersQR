@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://qswtakbydwgc"
-path="res://.godot/imported/Almendra-Bold.ttf-6ec8f33ea9d06505e94ed139c8fa8c86.fontdata"
+uid="uid://bkgqoe2mukby8"
+path="res://.godot/imported/GoudyMediaeval-Regular.ttf-fb7827f7a87da8f3bfbf7b2f443bc8be.fontdata"
 
 [deps]
 
-source_file="res://assets/onboarding/fonts/Almendra-Bold.ttf"
-dest_files=["res://.godot/imported/Almendra-Bold.ttf-6ec8f33ea9d06505e94ed139c8fa8c86.fontdata"]
+source_file="res://assets/onboarding/fonts/GoudyMediaeval-Regular.ttf"
+dest_files=["res://.godot/imported/GoudyMediaeval-Regular.ttf-fb7827f7a87da8f3bfbf7b2f443bc8be.fontdata"]
 
 [params]
 

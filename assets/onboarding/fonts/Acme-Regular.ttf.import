@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bipmfjxgd5s1m"
-path="res://.godot/imported/Almendra-Regular.ttf-607b7b1cd19ebbf88cd52ce056658227.fontdata"
+uid="uid://dmcqfqkyw0mho"
+path="res://.godot/imported/Acme-Regular.ttf-8d9e5b2ed71121635bc1dfc433db0056.fontdata"
 
 [deps]
 
-source_file="res://assets/onboarding/fonts/Almendra-Regular.ttf"
-dest_files=["res://.godot/imported/Almendra-Regular.ttf-607b7b1cd19ebbf88cd52ce056658227.fontdata"]
+source_file="res://assets/onboarding/fonts/Acme-Regular.ttf"
+dest_files=["res://.godot/imported/Acme-Regular.ttf-8d9e5b2ed71121635bc1dfc433db0056.fontdata"]
 
 [params]
 
@@ -27,7 +27,7 @@ subpixel_positioning=4
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null
-fallbacks=[]
+fallbacks=[Resource("uid://bkgqoe2mukby8", "res://assets/onboarding/fonts/GoudyMediaeval-Regular.ttf")]
 Compress=null
 compress=true
 preload=[]

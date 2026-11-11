@@ -39,9 +39,11 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The shields and attack types** above the hero at the bottom, from the shield phase on: a column each for melee,
   ranged and magic. On top the boss's shield (`Boss.shield_icon()`: `Boss.SHIELD_NORMAL` by default, so that a boss
   with special shields can show `SHIELD_DARK` or `SHIELD_POISON`; asked again each time the shields rise), its value below it; the two pulse, count and break
-  together, and a broken shield is grey and faint. Below that the attack type's icon: grey each round until a hero
+  together. Below that the attack type's icon: grey (same brightness, no colour) each round until a hero
   attacks with it (`Fight.attacked_changed`), then in colour, as supports of that type can now be played. Each column
-  has a dark box behind it for readability, with the shield sitting on its top edge.
+  has a dark box behind it for readability, with the shield sitting on its top edge. A broken shield (or none raised)
+  is gone, value and all, and its box collapses down onto the attack type's icon and fades; it grows back when the
+  shield rises again.
 - **The prompt** in the upper half, between the seats at the sides, in large type for small screens, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.

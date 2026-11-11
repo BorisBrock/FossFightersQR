@@ -154,5 +154,8 @@ itself. The fight waits until every message so far is confirmed before it goes o
   message with `MessageBox.finish(id)`.
 - The box lies between the seats and the HUD in `boss_fight.tscn`, so that the HUD stays usable. Dialogs, such as
   giving up, are above it.
-- Italics are Almendra, slanted by a `FontVariation`, as the font has no italic of its own.
+- Body text is Acme, titles are Goudy Mediaeval. Acme has neither bold nor italic of its own: bold is `Acme-Bold.tres`,
+  a `FontVariation` that thickens it, and italics are slanted by another `FontVariation`. Titles use
+  `GoudyMediaeval.tres`, which falls back to Acme for characters Goudy lacks, such as `·`; Acme falls back to Goudy
+  for `…`.
 - When `MessageBox.all_confirmed` fires, the screen calls `Fight.players_ready()`, and the fight goes on.

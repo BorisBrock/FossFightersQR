@@ -1,0 +1,8 @@
+[gd_resource type="FontVariation" load_steps=3 format=3]
+
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/GoudyMediaeval-Regular.ttf" id="1_goudy"]
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Acme-Regular.ttf" id="2_acme"]
+
+[resource]
+base_font = ExtResource("1_goudy")
+fallbacks = Array[Font]([ExtResource("2_acme")])

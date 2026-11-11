@@ -105,7 +105,7 @@
 		"body": "Ihr seid am Zug. Wer beginnt diese Runde?\n[b]Tippt einen Helden an![/b]"
 	},
 	"prompt_action": {
-		"body": "[player]{player}[/player], du bist dran: spiel eine Karte :card:."
+		"body": "[player]{player}[/player], du bist dran:\nspiele eine Karte :card:."
 	},
 	"prompt_protect": {
 		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :protection:. [b]Tippt den Helden an, der geschützt wird.[/b]"

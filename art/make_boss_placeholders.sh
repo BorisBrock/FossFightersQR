@@ -6,7 +6,7 @@
 #   Background<Name>.png  behind the boss in the fight: sky, horizon and ground
 set -euo pipefail
 cd "$(dirname "$0")/../assets/bosses"
-font=../onboarding/fonts/CinzelDecorative-Bold.ttf
+font=../onboarding/fonts/GoudyMediaeval-Regular.ttf
 
 # name, inner colour, outer colour, letter, sky colour, ground colour
 while read -r name inner outer letter sky ground; do

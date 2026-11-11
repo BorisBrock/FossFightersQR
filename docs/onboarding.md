@@ -90,5 +90,5 @@ On a laptop, press F5 in the editor or run `godot --path .`. The window is scale
 
 ## Credits
 
-Fonts under the SIL Open Font License, next to the fonts in `assets/onboarding/fonts`: Almendra by Ana Sanfelippo,
-Cinzel Decorative by Natanael Gama.
+Fonts in `assets/onboarding/fonts`: Acme by Juan Pablo del Peral, under the SIL Open Font License (next to the font);
+Goudy Mediaeval by Typographer Mediengestaltung, character set by Dieter Steffmann, freeware.

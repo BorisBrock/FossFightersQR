@@ -12,6 +12,11 @@ const ORBS := {
 const RADIUS := 11.0
 const GAP := 5.0
 const GLOW_COLOR := Color(1.0, 0.95, 0.75)
+## Each orb has a soft drop shadow and a thin dark rim, to stand out over the boss.
+const SHADOW_OFFSET := Vector2(0.0, 2.5)
+const SHADOW_COLOR := Color(0.0, 0.0, 0.0, 0.22)
+const RIM_WIDTH := 1.5
+const RIM_COLOR := Color(0.07, 0.04, 0.02, 0.9)
 
 var _actions: Array[FightHero.Action] = []
 var _active := false
@@ -29,7 +34,7 @@ func show_actions(actions: Array[FightHero.Action], active := false) -> void:
 	_active = active and not actions.is_empty()
 	set_process(_active)
 	var width := 0.0 if actions.is_empty() else actions.size() * RADIUS * 2.0 + (actions.size() - 1) * GAP
-	custom_minimum_size = Vector2(width, RADIUS * 2.0 + 4.0)
+	custom_minimum_size = Vector2(width, RADIUS * 2.0 + 6.0)
 	visible = not actions.is_empty()
 	queue_redraw()
 
@@ -50,5 +55,8 @@ func _draw() -> void:
 		if i == 0 and _active:
 			var pulse := 0.5 + 0.5 * sin(_time * 5.0)
 			draw_circle(center, RADIUS + 2.0 + pulse * 2.5, Color(GLOW_COLOR, 0.25 + pulse * 0.3))
+		for spread in [3.5, 2.0, 0.5]:
+			draw_circle(center + SHADOW_OFFSET, RADIUS + spread, SHADOW_COLOR)
+		draw_circle(center, RADIUS + RIM_WIDTH, RIM_COLOR)
 		var orb: Texture2D = ORBS[_actions[i]]
 		draw_texture_rect(orb, Rect2(center - Vector2(RADIUS, RADIUS), Vector2(RADIUS, RADIUS) * 2.0), false)

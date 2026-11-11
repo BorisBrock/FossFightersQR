@@ -1,34 +1,33 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene format=3 uid="uid://c4nntb183bm2o"]
 
-[ext_resource type="Script" path="res://scripts/onboarding.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://csg702iw83w67" path="res://scripts/onboarding.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
 [ext_resource type="PackedScene" path="res://seats.tscn" id="3_seat"]
-[ext_resource type="Script" path="res://scripts/qr_camera_scanner.gd" id="4_scanner"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/table.png" id="5_table"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/corner.png" id="6_corner"]
-[ext_resource type="Shader" path="res://assets/onboarding/shaders/table.gdshader" id="7_table_shader"]
-[ext_resource type="Shader" path="res://assets/onboarding/shaders/rays.gdshader" id="8_rays"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/card_scan.png" id="9_card"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/dice.png" id="10_dice"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/pen.png" id="11_pen"]
-[ext_resource type="Texture2D" path="res://assets/icon_switch_camera.png" id="12_switch"]
-[ext_resource type="AudioStream" path="res://assets/sounds/reveal.ogg" id="13_reveal"]
-[ext_resource type="AudioStream" path="res://assets/sounds/seat.ogg" id="14_seat"]
-[ext_resource type="AudioStream" path="res://assets/sounds/fanfare.ogg" id="15_fanfare"]
-[ext_resource type="Script" path="res://scripts/splash.gd" id="16_splash"]
-[ext_resource type="Texture2D" path="res://assets/splash.png" id="17_splash"]
-[ext_resource type="Texture2D" path="res://assets/icon_settings.png" id="18_settings_icon"]
-[ext_resource type="Script" path="res://scripts/settings_button.gd" id="19_settings"]
+[ext_resource type="Script" uid="uid://dkj178xnjpj55" path="res://scripts/qr_camera_scanner.gd" id="4_scanner"]
+[ext_resource type="Texture2D" uid="uid://j676tnbhtp5t" path="res://assets/onboarding/table.png" id="5_table"]
+[ext_resource type="Texture2D" uid="uid://dv32syxg4qshd" path="res://assets/onboarding/icons/corner.png" id="6_corner"]
+[ext_resource type="Shader" uid="uid://buewjvuuq7dva" path="res://assets/onboarding/shaders/table.gdshader" id="7_table_shader"]
+[ext_resource type="Shader" uid="uid://dmsn1fu0iqdnn" path="res://assets/onboarding/shaders/rays.gdshader" id="8_rays"]
+[ext_resource type="Texture2D" uid="uid://b87guafq77bvv" path="res://assets/onboarding/icons/card_scan.png" id="9_card"]
+[ext_resource type="Texture2D" uid="uid://c13am4aj1vgr5" path="res://assets/onboarding/icons/dice.png" id="10_dice"]
+[ext_resource type="Texture2D" uid="uid://dqqcfn2sc3msc" path="res://assets/onboarding/icons/pen.png" id="11_pen"]
+[ext_resource type="Texture2D" uid="uid://cpbpug8ralb8t" path="res://assets/icon_switch_camera.png" id="12_switch"]
+[ext_resource type="AudioStream" uid="uid://bxb73rc2gw5xd" path="res://assets/sounds/reveal.ogg" id="13_reveal"]
+[ext_resource type="AudioStream" uid="uid://d3rvcyjp6gw1y" path="res://assets/sounds/seat.ogg" id="14_seat"]
+[ext_resource type="AudioStream" uid="uid://dea34se45r05o" path="res://assets/sounds/fanfare.ogg" id="15_fanfare"]
+[ext_resource type="Script" uid="uid://ch6vxu68f6rcc" path="res://scripts/splash.gd" id="16_splash"]
+[ext_resource type="Texture2D" uid="uid://cuenxj5b8ulf6" path="res://assets/splash.png" id="17_splash"]
+[ext_resource type="Texture2D" uid="uid://do7l1mo2s2lwj" path="res://assets/icon_settings.png" id="18_settings_icon"]
+[ext_resource type="Script" uid="uid://c1fhfd0vg8b42" path="res://scripts/settings_button.gd" id="19_settings"]
 [ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/sounds/card_scanned.ogg" id="20_pling"]
 [ext_resource type="PackedScene" path="res://boss_selection.tscn" id="21_boss_selection"]
 [ext_resource type="PackedScene" path="res://boss_overview.tscn" id="22_boss_overview"]
 
 [sub_resource type="ShaderMaterial" id="table_material"]
 shader = ExtResource("7_table_shader")
+shader_parameter/candle_at = Vector2(0.91, 0.08)
+shader_parameter/potion_at = Vector2(0.76, 0.87)
 shader_parameter/dim = 0.72
-
-[sub_resource type="ShaderMaterial" id="rays_material"]
-shader = ExtResource("8_rays")
 
 [sub_resource type="Gradient" id="dot_gradient"]
 offsets = PackedFloat32Array(0, 0.35, 1)
@@ -46,10 +45,6 @@ fill_to = Vector2(1, 0.5)
 offsets = PackedFloat32Array(0, 0.15, 0.7, 1)
 colors = PackedColorArray(1, 0.75, 0.35, 0, 1, 0.75, 0.35, 0.9, 1, 0.45, 0.15, 0.6, 0.8, 0.2, 0.05, 0)
 
-[sub_resource type="Gradient" id="spark_ramp"]
-offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(1, 0.97, 0.8, 1, 1, 0.8, 0.35, 1, 1, 0.45, 0.1, 0)
-
 [sub_resource type="StyleBoxFlat" id="frame_empty"]
 bg_color = Color(0.03, 0.02, 0.015, 0.8)
 border_width_left = 3
@@ -62,7 +57,16 @@ corner_radius_top_right = 26
 corner_radius_bottom_right = 26
 corner_radius_bottom_left = 26
 
-[node name="Onboarding" type="Control"]
+[sub_resource type="ShaderMaterial" id="rays_material"]
+shader = ExtResource("8_rays")
+shader_parameter/ray_count = 12
+shader_parameter/tint = Color(1, 0.8, 0.4, 1)
+
+[sub_resource type="Gradient" id="spark_ramp"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.97, 0.8, 1, 1, 0.8, 0.35, 1, 1, 0.45, 0.1, 0)
+
+[node name="Onboarding" type="Control" unique_id=934391749]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -72,15 +76,15 @@ grow_vertical = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_script")
 
-[node name="QrCameraScanner" type="Node" parent="."]
+[node name="QrCameraScanner" type="Node" parent="." unique_id=841158875]
 script = ExtResource("4_scanner")
 
-[node name="Pling" type="AudioStreamPlayer" parent="."]
+[node name="Pling" type="AudioStreamPlayer" parent="." unique_id=1488950007]
 stream = ExtResource("20_pling")
 max_polyphony = 3
 bus = &"SFX"
 
-[node name="Table" type="TextureRect" parent="."]
+[node name="Table" type="TextureRect" parent="." unique_id=1421071410]
 material = SubResource("table_material")
 layout_mode = 1
 anchors_preset = 15
@@ -93,11 +97,11 @@ texture = ExtResource("5_table")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Embers" type="CPUParticles2D" parent="."]
+[node name="Embers" type="CPUParticles2D" parent="." unique_id=1803945469]
 amount = 22
+texture = SubResource("dot")
 lifetime = 7.0
 preprocess = 7.0
-texture = SubResource("dot")
 emission_shape = 3
 emission_rect_extents = Vector2(700, 8)
 direction = Vector2(0, -1)
@@ -111,12 +115,12 @@ scale_amount_min = 0.15
 scale_amount_max = 0.5
 color_ramp = SubResource("ember_ramp")
 
-[node name="Seats" parent="." instance=ExtResource("3_seat")]
+[node name="Seats" parent="." unique_id=822645161 instance=ExtResource("3_seat")]
 layout_mode = 1
 
-[node name="Stage" type="PanelContainer" parent="."]
+[node name="Stage" type="PanelContainer" parent="." unique_id=834098719]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
@@ -127,22 +131,22 @@ offset_bottom = 440.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="Stage"]
+[node name="Margin" type="MarginContainer" parent="Stage" unique_id=624963837]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 24
 
-[node name="Layout" type="VBoxContainer" parent="Stage/Margin"]
+[node name="Layout" type="VBoxContainer" parent="Stage/Margin" unique_id=664389504]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Header" type="VBoxContainer" parent="Stage/Margin/Layout"]
+[node name="Header" type="VBoxContainer" parent="Stage/Margin/Layout" unique_id=1352262511]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="PartyName" type="LineEdit" parent="Stage/Margin/Layout/Header"]
+[node name="PartyName" type="LineEdit" parent="Stage/Margin/Layout/Header" unique_id=1223085635]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 theme_type_variation = &"TitleEdit"
@@ -150,16 +154,16 @@ alignment = 1
 select_all_on_focus = true
 right_icon = ExtResource("11_pen")
 
-[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Header"]
+[node name="NameRow" type="HBoxContainer" parent="Stage/Margin/Layout/Header" unique_id=1990043525]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Balance" type="Control" parent="Stage/Margin/Layout/Header/NameRow"]
+[node name="Balance" type="Control" parent="Stage/Margin/Layout/Header/NameRow" unique_id=453446437]
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Header/NameRow"]
+[node name="NameEdit" type="LineEdit" parent="Stage/Margin/Layout/Header/NameRow" unique_id=390261624]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -169,7 +173,7 @@ max_length = 16
 select_all_on_focus = true
 right_icon = ExtResource("11_pen")
 
-[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Header/NameRow"]
+[node name="Dice" type="TextureButton" parent="Stage/Margin/Layout/Header/NameRow" unique_id=2093198867]
 custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
 size_flags_vertical = 4
@@ -178,17 +182,17 @@ texture_normal = ExtResource("10_dice")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header"]
+[node name="PartyHint" type="Label" parent="Stage/Margin/Layout/Header" unique_id=337798182]
 layout_mode = 2
 theme_type_variation = &"Hint"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Views" type="Control" parent="Stage/Margin/Layout"]
+[node name="Views" type="Control" parent="Stage/Margin/Layout" unique_id=658492909]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Editor" type="VBoxContainer" parent="Stage/Margin/Layout/Views"]
+[node name="Editor" type="VBoxContainer" parent="Stage/Margin/Layout/Views" unique_id=161106737]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -197,16 +201,16 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="CardArea" type="AspectRatioContainer" parent="Stage/Margin/Layout/Views/Editor"]
+[node name="CardArea" type="AspectRatioContainer" parent="Stage/Margin/Layout/Views/Editor" unique_id=499072481]
 custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Frame" type="Panel" parent="Stage/Margin/Layout/Views/Editor/CardArea"]
+[node name="Frame" type="Panel" parent="Stage/Margin/Layout/Views/Editor/CardArea" unique_id=475890610]
 layout_mode = 2
 theme_override_styles/panel = SubResource("frame_empty")
 
-[node name="Rays" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
+[node name="Rays" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame" unique_id=1035867212]
 modulate = Color(1, 1, 1, 0)
 show_behind_parent = true
 material = SubResource("rays_material")
@@ -220,43 +224,51 @@ offset_right = 150.0
 offset_bottom = 150.0
 mouse_filter = 2
 
-[node name="Portrait" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
+[node name="Portrait" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame" unique_id=1558545042]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Flash" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
+[node name="Flash" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame" unique_id=949774777]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0.95, 0.8, 1)
 
-[node name="ScanPrompt" type="Control" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
+[node name="ScanPrompt" type="Control" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame" unique_id=746579742]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="CameraView" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
+[node name="CameraView" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt" unique_id=1705339127]
 visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 flip_h = true
 
-[node name="CardIcon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
+[node name="CardIcon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt" unique_id=506313113]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -272,7 +284,7 @@ texture = ExtResource("9_card")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Sweep" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt"]
+[node name="Sweep" type="ColorRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame/ScanPrompt" unique_id=1502221413]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.08
@@ -283,7 +295,7 @@ offset_bottom = 4.0
 mouse_filter = 2
 color = Color(1, 0.8, 0.35, 0.9)
 
-[node name="Badge" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame"]
+[node name="Badge" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/CardArea/Frame" unique_id=1694558234]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.66
@@ -294,25 +306,25 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Steps" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor"]
+[node name="Steps" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor" unique_id=2050101640]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="CharacterStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps"]
+[node name="CharacterStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps" unique_id=2141377319]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep"]
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep" unique_id=1284532412]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row"]
+[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row" unique_id=70165584]
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 
-[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb"]
+[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb" unique_id=2031796590]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -321,33 +333,37 @@ offset_left = 8.0
 offset_top = 4.0
 offset_right = -8.0
 offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("9_card")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb"]
+[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Thumb" unique_id=1953973862]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row"]
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row" unique_id=1476457382]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 0
 alignment = 1
 
-[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts"]
+[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts" unique_id=1150313475]
 layout_mode = 2
 theme_type_variation = &"Hint"
 theme_override_font_sizes/font_size = 15
 uppercase = true
 
-[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts"]
+[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/CharacterStep/Row/Texts" unique_id=2019833795]
 layout_mode = 2
 theme_type_variation = &"Heading"
 theme_override_constants/outline_size = 3
@@ -355,21 +371,21 @@ theme_override_font_sizes/font_size = 19
 autowrap_mode = 3
 max_lines_visible = 2
 
-[node name="ClassStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps"]
+[node name="ClassStep" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor/Steps" unique_id=1253822350]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep"]
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep" unique_id=1961999064]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row"]
+[node name="Thumb" type="Control" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row" unique_id=767320948]
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 
-[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb"]
+[node name="Placeholder" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb" unique_id=665277463]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -378,33 +394,37 @@ offset_left = 8.0
 offset_top = 4.0
 offset_right = -8.0
 offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("9_card")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb"]
+[node name="Picture" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Thumb" unique_id=569593076]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row"]
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row" unique_id=1000569625]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 0
 alignment = 1
 
-[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts"]
+[node name="Caption" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts" unique_id=659271213]
 layout_mode = 2
 theme_type_variation = &"Hint"
 theme_override_font_sizes/font_size = 15
 uppercase = true
 
-[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts"]
+[node name="Value" type="Label" parent="Stage/Margin/Layout/Views/Editor/Steps/ClassStep/Row/Texts" unique_id=1331823409]
 layout_mode = 2
 theme_type_variation = &"Heading"
 theme_override_constants/outline_size = 3
@@ -412,15 +432,15 @@ theme_override_font_sizes/font_size = 19
 autowrap_mode = 3
 max_lines_visible = 2
 
-[node name="Message" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor"]
+[node name="Message" type="PanelContainer" parent="Stage/Margin/Layout/Views/Editor" unique_id=838713751]
 custom_minimum_size = Vector2(0, 108)
 layout_mode = 2
 
-[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message"]
+[node name="Row" type="HBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message" unique_id=1440464677]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Icon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+[node name="Icon" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row" unique_id=1494421275]
 custom_minimum_size = Vector2(40, 48)
 layout_mode = 2
 size_flags_vertical = 4
@@ -428,7 +448,7 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Alert" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+[node name="Alert" type="TextureRect" parent="Stage/Margin/Layout/Views/Editor/Message/Row" unique_id=751980548]
 visible = false
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
@@ -437,25 +457,25 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message/Row"]
+[node name="Texts" type="VBoxContainer" parent="Stage/Margin/Layout/Views/Editor/Message/Row" unique_id=180774679]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
 alignment = 1
 
-[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts"]
+[node name="Prompt" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts" unique_id=495024421]
 layout_mode = 2
 theme_type_variation = &"Heading"
 theme_override_font_sizes/font_size = 25
 autowrap_mode = 3
 
-[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts"]
+[node name="Hint" type="Label" parent="Stage/Margin/Layout/Views/Editor/Message/Row/Texts" unique_id=1054521408]
 layout_mode = 2
 theme_type_variation = &"Hint"
 theme_override_font_sizes/font_size = 19
 autowrap_mode = 3
 
-[node name="PartyView" type="CenterContainer" parent="Stage/Margin/Layout/Views"]
+[node name="PartyView" type="CenterContainer" parent="Stage/Margin/Layout/Views" unique_id=122824293]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -464,38 +484,38 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PartyGrid" type="GridContainer" parent="Stage/Margin/Layout/Views/PartyView"]
+[node name="PartyGrid" type="GridContainer" parent="Stage/Margin/Layout/Views/PartyView" unique_id=744308536]
 layout_mode = 2
 theme_override_constants/h_separation = 14
 theme_override_constants/v_separation = 24
 columns = 2
 
-[node name="Footer" type="HBoxContainer" parent="Stage/Margin/Layout"]
+[node name="Footer" type="HBoxContainer" parent="Stage/Margin/Layout" unique_id=1532600884]
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Delete" type="Button" parent="Stage/Margin/Layout/Footer"]
+[node name="Delete" type="Button" parent="Stage/Margin/Layout/Footer" unique_id=1575325339]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 24
 focus_mode = 0
 theme_type_variation = &"DangerButton"
+theme_override_font_sizes/font_size = 24
 
-[node name="Spacer" type="Control" parent="Stage/Margin/Layout/Footer"]
+[node name="Spacer" type="Control" parent="Stage/Margin/Layout/Footer" unique_id=525393894]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Primary" type="Button" parent="Stage/Margin/Layout/Footer"]
+[node name="Primary" type="Button" parent="Stage/Margin/Layout/Footer" unique_id=878128109]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
 focus_mode = 0
 theme_type_variation = &"PrimaryButton"
+theme_override_font_sizes/font_size = 24
 
-[node name="Ornaments" type="Control" parent="."]
+[node name="Ornaments" type="Control" parent="." unique_id=1771976850]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
@@ -507,83 +527,71 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopLeft" type="TextureRect" parent="Ornaments"]
+[node name="TopLeft" type="TextureRect" parent="Ornaments" unique_id=2135746358]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0
-anchor_top = 0
-anchor_right = 0
-anchor_bottom = 0
-offset_left = -2
-offset_top = -2
-offset_right = 82
-offset_bottom = 82
+offset_left = -2.0
+offset_top = -2.0
+offset_right = 82.0
+offset_bottom = 82.0
 mouse_filter = 2
 texture = ExtResource("6_corner")
 expand_mode = 1
-flip_h = false
-flip_v = false
 
-[node name="TopRight" type="TextureRect" parent="Ornaments"]
+[node name="TopRight" type="TextureRect" parent="Ornaments" unique_id=2043382182]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1
-anchor_top = 0
-anchor_right = 1
-anchor_bottom = 0
-offset_left = -82
-offset_top = -2
-offset_right = 2
-offset_bottom = 82
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -82.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 82.0
 mouse_filter = 2
 texture = ExtResource("6_corner")
 expand_mode = 1
 flip_h = true
-flip_v = false
 
-[node name="BottomLeft" type="TextureRect" parent="Ornaments"]
+[node name="BottomLeft" type="TextureRect" parent="Ornaments" unique_id=653826611]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0
-anchor_top = 1
-anchor_right = 0
-anchor_bottom = 1
-offset_left = -2
-offset_top = -82
-offset_right = 82
-offset_bottom = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = -82.0
+offset_right = 82.0
+offset_bottom = 2.0
 mouse_filter = 2
 texture = ExtResource("6_corner")
 expand_mode = 1
-flip_h = false
 flip_v = true
 
-[node name="BottomRight" type="TextureRect" parent="Ornaments"]
+[node name="BottomRight" type="TextureRect" parent="Ornaments" unique_id=2024390757]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1
-anchor_top = 1
-anchor_right = 1
-anchor_bottom = 1
-offset_left = -82
-offset_top = -82
-offset_right = 2
-offset_bottom = 2
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -82.0
+offset_top = -82.0
+offset_right = 2.0
+offset_bottom = 2.0
 mouse_filter = 2
 texture = ExtResource("6_corner")
 expand_mode = 1
 flip_h = true
 flip_v = true
 
-[node name="BossSelection" parent="." instance=ExtResource("21_boss_selection")]
+[node name="BossSelection" parent="." unique_id=340009734 instance=ExtResource("21_boss_selection")]
 visible = false
 layout_mode = 1
 
-[node name="BossOverview" parent="." instance=ExtResource("22_boss_overview")]
+[node name="BossOverview" parent="." unique_id=1211145206 instance=ExtResource("22_boss_overview")]
 visible = false
 layout_mode = 1
 
-[node name="SwitchCamera" type="TextureButton" parent="."]
+[node name="SwitchCamera" type="TextureButton" parent="." unique_id=2112880338]
 modulate = Color(1, 1, 1, 0.75)
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 1
@@ -600,7 +608,7 @@ texture_normal = ExtResource("12_switch")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Settings" type="TextureButton" parent="."]
+[node name="Settings" type="TextureButton" parent="." unique_id=13564044]
 modulate = Color(1, 1, 1, 0.75)
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 1
@@ -615,7 +623,7 @@ ignore_texture_size = true
 stretch_mode = 5
 script = ExtResource("19_settings")
 
-[node name="Overlay" type="Control" parent="."]
+[node name="Overlay" type="Control" parent="." unique_id=944271768]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -624,13 +632,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Sparks" type="CPUParticles2D" parent="."]
+[node name="Sparks" type="CPUParticles2D" parent="." unique_id=784960304]
 emitting = false
 amount = 48
+texture = SubResource("dot")
 lifetime = 0.9
 one_shot = true
 explosiveness = 0.95
-texture = SubResource("dot")
 spread = 180.0
 gravity = Vector2(0, 160)
 initial_velocity_min = 90.0
@@ -641,7 +649,7 @@ scale_amount_min = 0.25
 scale_amount_max = 0.7
 color_ramp = SubResource("spark_ramp")
 
-[node name="Fade" type="ColorRect" parent="."]
+[node name="Fade" type="ColorRect" parent="." unique_id=1854387455]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -651,7 +659,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Splash" type="ColorRect" parent="."]
+[node name="Splash" type="ColorRect" parent="." unique_id=2109005291]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -661,7 +669,7 @@ grow_vertical = 2
 color = Color(0.0745098, 0.0431373, 0.137255, 1)
 script = ExtResource("16_splash")
 
-[node name="Logo" type="TextureRect" parent="Splash"]
+[node name="Logo" type="TextureRect" parent="Splash" unique_id=711836048]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -673,14 +681,14 @@ texture = ExtResource("17_splash")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RevealSound" type="AudioStreamPlayer" parent="."]
+[node name="RevealSound" type="AudioStreamPlayer" parent="." unique_id=1535959571]
 stream = ExtResource("13_reveal")
 bus = &"SFX"
 
-[node name="SeatSound" type="AudioStreamPlayer" parent="."]
+[node name="SeatSound" type="AudioStreamPlayer" parent="." unique_id=1893522256]
 stream = ExtResource("14_seat")
 bus = &"SFX"
 
-[node name="FanfareSound" type="AudioStreamPlayer" parent="."]
+[node name="FanfareSound" type="AudioStreamPlayer" parent="." unique_id=1227669355]
 stream = ExtResource("15_fanfare")
 bus = &"SFX"

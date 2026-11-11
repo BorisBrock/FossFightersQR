@@ -1,26 +1,16 @@
-[gd_resource type="Theme" load_steps=30 format=3]
+[gd_resource type="Theme" format=3 uid="uid://cjndn1x1mhthp"]
 
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="1_regular"]
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="2_bold"]
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/CinzelDecorative-Bold.ttf" id="3_title"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_secondary.png" id="secondary_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_primary.png" id="primary_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/button_danger.png" id="danger_art"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_on.png" id="toggle_on"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/toggle_off.png" id="toggle_off"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/icons/slider_grabber.png" id="slider_grabber"]
+[ext_resource type="FontFile" uid="uid://dmcqfqkyw0mho" path="res://assets/onboarding/fonts/Acme-Regular.ttf" id="1_regular"]
+[ext_resource type="FontVariation" path="res://assets/onboarding/fonts/Acme-Bold.tres" id="2_bold"]
+[ext_resource type="FontVariation" path="res://assets/onboarding/fonts/GoudyMediaeval.tres" id="3_title"]
+[ext_resource type="Texture2D" uid="uid://csppanr8aor83" path="res://assets/onboarding/icons/button_danger.png" id="danger_art"]
+[ext_resource type="Texture2D" uid="uid://dtbigtlpowjoq" path="res://assets/onboarding/icons/button_primary.png" id="primary_art"]
+[ext_resource type="Texture2D" uid="uid://d20tbwq01emmw" path="res://assets/onboarding/icons/button_secondary.png" id="secondary_art"]
+[ext_resource type="Texture2D" uid="uid://bg78rmnd057dr" path="res://assets/onboarding/icons/slider_grabber.png" id="slider_grabber"]
+[ext_resource type="Texture2D" uid="uid://pnuy0o5s0cdt" path="res://assets/onboarding/icons/toggle_off.png" id="toggle_off"]
+[ext_resource type="Texture2D" uid="uid://084hamwq0p88" path="res://assets/onboarding/icons/toggle_on.png" id="toggle_on"]
 
-[sub_resource type="StyleBoxTexture" id="secondary_normal"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 14.0
-texture = ExtResource("secondary_art")
-texture_margin_left = 20.0
-texture_margin_top = 16.0
-texture_margin_right = 20.0
-texture_margin_bottom = 16.0
-modulate_color = Color(1, 1, 1, 1)
+[sub_resource type="StyleBoxEmpty" id="empty"]
 
 [sub_resource type="StyleBoxTexture" id="secondary_hover"]
 content_margin_left = 16.0
@@ -34,18 +24,6 @@ texture_margin_right = 20.0
 texture_margin_bottom = 16.0
 modulate_color = Color(1.15, 1.15, 1.15, 1)
 
-[sub_resource type="StyleBoxTexture" id="secondary_pressed"]
-content_margin_left = 16.0
-content_margin_top = 11.0
-content_margin_right = 16.0
-content_margin_bottom = 11.0
-texture = ExtResource("secondary_art")
-texture_margin_left = 20.0
-texture_margin_top = 16.0
-texture_margin_right = 20.0
-texture_margin_bottom = 16.0
-modulate_color = Color(0.75, 0.75, 0.75, 1)
-
 [sub_resource type="StyleBoxTexture" id="secondary_hover_pressed"]
 content_margin_left = 16.0
 content_margin_top = 11.0
@@ -58,48 +36,47 @@ texture_margin_right = 20.0
 texture_margin_bottom = 16.0
 modulate_color = Color(0.86, 0.86, 0.86, 1)
 
-[sub_resource type="StyleBoxTexture" id="primary_normal"]
+[sub_resource type="StyleBoxTexture" id="secondary_normal"]
 content_margin_left = 16.0
 content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 14.0
-texture = ExtResource("primary_art")
+texture = ExtResource("secondary_art")
 texture_margin_left = 20.0
 texture_margin_top = 16.0
 texture_margin_right = 20.0
 texture_margin_bottom = 16.0
-modulate_color = Color(1, 1, 1, 1)
 
-[sub_resource type="StyleBoxTexture" id="primary_hover"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 14.0
-texture = ExtResource("primary_art")
-texture_margin_left = 20.0
-texture_margin_top = 16.0
-texture_margin_right = 20.0
-texture_margin_bottom = 16.0
-modulate_color = Color(1.15, 1.15, 1.15, 1)
-
-[sub_resource type="StyleBoxTexture" id="primary_pressed"]
+[sub_resource type="StyleBoxTexture" id="secondary_pressed"]
 content_margin_left = 16.0
 content_margin_top = 11.0
 content_margin_right = 16.0
 content_margin_bottom = 11.0
-texture = ExtResource("primary_art")
+texture = ExtResource("secondary_art")
 texture_margin_left = 20.0
 texture_margin_top = 16.0
 texture_margin_right = 20.0
 texture_margin_bottom = 16.0
 modulate_color = Color(0.75, 0.75, 0.75, 1)
 
-[sub_resource type="StyleBoxTexture" id="primary_hover_pressed"]
+[sub_resource type="StyleBoxTexture" id="danger_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+texture = ExtResource("danger_art")
+texture_margin_left = 20.0
+texture_margin_top = 16.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
+modulate_color = Color(1.15, 1.15, 1.15, 1)
+
+[sub_resource type="StyleBoxTexture" id="danger_hover_pressed"]
 content_margin_left = 16.0
 content_margin_top = 11.0
 content_margin_right = 16.0
 content_margin_bottom = 11.0
-texture = ExtResource("primary_art")
+texture = ExtResource("danger_art")
 texture_margin_left = 20.0
 texture_margin_top = 16.0
 texture_margin_right = 20.0
@@ -116,19 +93,6 @@ texture_margin_left = 20.0
 texture_margin_top = 16.0
 texture_margin_right = 20.0
 texture_margin_bottom = 16.0
-modulate_color = Color(1, 1, 1, 1)
-
-[sub_resource type="StyleBoxTexture" id="danger_hover"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 14.0
-texture = ExtResource("danger_art")
-texture_margin_left = 20.0
-texture_margin_top = 16.0
-texture_margin_right = 20.0
-texture_margin_bottom = 16.0
-modulate_color = Color(1.15, 1.15, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="danger_pressed"]
 content_margin_left = 16.0
@@ -142,32 +106,23 @@ texture_margin_right = 20.0
 texture_margin_bottom = 16.0
 modulate_color = Color(0.75, 0.75, 0.75, 1)
 
-[sub_resource type="StyleBoxTexture" id="danger_hover_pressed"]
-content_margin_left = 16.0
-content_margin_top = 11.0
-content_margin_right = 16.0
-content_margin_bottom = 11.0
-texture = ExtResource("danger_art")
-texture_margin_left = 20.0
-texture_margin_top = 16.0
-texture_margin_right = 20.0
-texture_margin_bottom = 16.0
-modulate_color = Color(0.86, 0.86, 0.86, 1)
+[sub_resource type="StyleBoxFlat" id="slider_filled"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.72, 0.54, 0.22, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxEmpty" id="empty"]
-
-[sub_resource type="StyleBoxFlat" id="edit_normal"]
-content_margin_left = 16.0
-content_margin_top = 6.0
-content_margin_right = 12.0
-content_margin_bottom = 6.0
-bg_color = Color(0.05, 0.03, 0.02, 0.75)
-border_width_bottom = 2
-border_color = Color(0.84, 0.65, 0.28, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxFlat" id="slider_track"]
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.05, 0.03, 0.02, 0.9)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="edit_focus"]
 content_margin_left = 16.0
@@ -185,14 +140,18 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="title_edit_normal"]
+[sub_resource type="StyleBoxFlat" id="edit_normal"]
 content_margin_left = 16.0
 content_margin_top = 6.0
 content_margin_right = 12.0
 content_margin_bottom = 6.0
-bg_color = Color(0, 0, 0, 0)
+bg_color = Color(0.05, 0.03, 0.02, 0.75)
 border_width_bottom = 2
-border_color = Color(0.72, 0.54, 0.22, 0.45)
+border_color = Color(0.84, 0.65, 0.28, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.085, 0.05, 0.035, 0.82)
@@ -209,78 +168,136 @@ shadow_color = Color(0, 0, 0, 0.65)
 shadow_size = 24
 shadow_offset = Vector2(0, 6)
 
-[sub_resource type="StyleBoxFlat" id="slider_track"]
-content_margin_top = 5.0
-content_margin_bottom = 5.0
-bg_color = Color(0.05, 0.03, 0.02, 0.9)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+[sub_resource type="StyleBoxTexture" id="primary_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+texture = ExtResource("primary_art")
+texture_margin_left = 20.0
+texture_margin_top = 16.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
+modulate_color = Color(1.15, 1.15, 1.15, 1)
 
-[sub_resource type="StyleBoxFlat" id="slider_filled"]
-content_margin_top = 5.0
-content_margin_bottom = 5.0
-bg_color = Color(0.72, 0.54, 0.22, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+[sub_resource type="StyleBoxTexture" id="primary_hover_pressed"]
+content_margin_left = 16.0
+content_margin_top = 11.0
+content_margin_right = 16.0
+content_margin_bottom = 11.0
+texture = ExtResource("primary_art")
+texture_margin_left = 20.0
+texture_margin_top = 16.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
+modulate_color = Color(0.86, 0.86, 0.86, 1)
+
+[sub_resource type="StyleBoxTexture" id="primary_normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+texture = ExtResource("primary_art")
+texture_margin_left = 20.0
+texture_margin_top = 16.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="primary_pressed"]
+content_margin_left = 16.0
+content_margin_top = 11.0
+content_margin_right = 16.0
+content_margin_bottom = 11.0
+texture = ExtResource("primary_art")
+texture_margin_left = 20.0
+texture_margin_top = 16.0
+texture_margin_right = 20.0
+texture_margin_bottom = 16.0
+modulate_color = Color(0.75, 0.75, 0.75, 1)
+
+[sub_resource type="StyleBoxFlat" id="title_edit_normal"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 2
+border_color = Color(0.72, 0.54, 0.22, 0.45)
 
 [resource]
 default_font = ExtResource("1_regular")
 default_font_size = 22
 Button/colors/font_color = Color(0.99, 0.87, 0.58, 1)
-Button/colors/font_hover_color = Color(0.99, 0.87, 0.58, 1)
-Button/colors/font_pressed_color = Color(0.85, 0.7, 0.42, 1)
-Button/colors/font_hover_pressed_color = Color(0.85, 0.7, 0.42, 1)
 Button/colors/font_focus_color = Color(0.99, 0.87, 0.58, 1)
+Button/colors/font_hover_color = Color(0.99, 0.87, 0.58, 1)
+Button/colors/font_hover_pressed_color = Color(0.85, 0.7, 0.42, 1)
 Button/colors/font_outline_color = Color(0.1, 0.04, 0.01, 1)
+Button/colors/font_pressed_color = Color(0.85, 0.7, 0.42, 1)
 Button/constants/outline_size = 4
 Button/font_sizes/font_size = 22
-Button/fonts/font = ExtResource("3_title")
+Button/fonts/font = ExtResource("1_regular")
 Button/styles/focus = SubResource("empty")
 Button/styles/hover = SubResource("secondary_hover")
 Button/styles/hover_pressed = SubResource("secondary_hover_pressed")
 Button/styles/normal = SubResource("secondary_normal")
 Button/styles/pressed = SubResource("secondary_pressed")
-PrimaryButton/base_type = &"Button"
-PrimaryButton/colors/font_color = Color(0.2, 0.09, 0.02, 1)
-PrimaryButton/colors/font_hover_color = Color(0.2, 0.09, 0.02, 1)
-PrimaryButton/colors/font_pressed_color = Color(0.13, 0.05, 0.01, 1)
-PrimaryButton/colors/font_hover_pressed_color = Color(0.13, 0.05, 0.01, 1)
-PrimaryButton/colors/font_focus_color = Color(0.2, 0.09, 0.02, 1)
-PrimaryButton/constants/outline_size = 0
-PrimaryButton/styles/hover = SubResource("primary_hover")
-PrimaryButton/styles/hover_pressed = SubResource("primary_hover_pressed")
-PrimaryButton/styles/normal = SubResource("primary_normal")
-PrimaryButton/styles/pressed = SubResource("primary_pressed")
 CheckButton/colors/font_color = Color(0.95, 0.88, 0.74, 1)
-CheckButton/colors/font_hover_color = Color(0.95, 0.88, 0.74, 1)
-CheckButton/colors/font_pressed_color = Color(0.98, 0.82, 0.48, 1)
-CheckButton/colors/font_hover_pressed_color = Color(0.98, 0.82, 0.48, 1)
 CheckButton/colors/font_focus_color = Color(0.95, 0.88, 0.74, 1)
+CheckButton/colors/font_hover_color = Color(0.95, 0.88, 0.74, 1)
+CheckButton/colors/font_hover_pressed_color = Color(0.98, 0.82, 0.48, 1)
+CheckButton/colors/font_pressed_color = Color(0.98, 0.82, 0.48, 1)
 CheckButton/font_sizes/font_size = 26
 CheckButton/fonts/font = ExtResource("2_bold")
 CheckButton/icons/checked = ExtResource("toggle_on")
 CheckButton/icons/unchecked = ExtResource("toggle_off")
 DangerButton/base_type = &"Button"
 DangerButton/colors/font_color = Color(1, 0.8, 0.72, 1)
-DangerButton/colors/font_hover_color = Color(1, 0.8, 0.72, 1)
-DangerButton/colors/font_pressed_color = Color(0.85, 0.62, 0.55, 1)
-DangerButton/colors/font_hover_pressed_color = Color(0.85, 0.62, 0.55, 1)
 DangerButton/colors/font_focus_color = Color(1, 0.8, 0.72, 1)
+DangerButton/colors/font_hover_color = Color(1, 0.8, 0.72, 1)
+DangerButton/colors/font_hover_pressed_color = Color(0.85, 0.62, 0.55, 1)
+DangerButton/colors/font_pressed_color = Color(0.85, 0.62, 0.55, 1)
 DangerButton/styles/hover = SubResource("danger_hover")
 DangerButton/styles/hover_pressed = SubResource("danger_hover_pressed")
 DangerButton/styles/normal = SubResource("danger_normal")
 DangerButton/styles/pressed = SubResource("danger_pressed")
-Label/colors/font_color = Color(0.95, 0.88, 0.74, 1)
+HSlider/icons/grabber = ExtResource("slider_grabber")
+HSlider/icons/grabber_disabled = ExtResource("slider_grabber")
+HSlider/icons/grabber_highlight = ExtResource("slider_grabber")
+HSlider/styles/grabber_area = SubResource("slider_filled")
+HSlider/styles/grabber_area_highlight = SubResource("slider_filled")
+HSlider/styles/slider = SubResource("slider_track")
 Heading/base_type = &"Label"
 Heading/colors/font_color = Color(0.98, 0.82, 0.48, 1)
 Heading/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
 Heading/constants/outline_size = 4
 Heading/font_sizes/font_size = 30
 Heading/fonts/font = ExtResource("2_bold")
+Hint/base_type = &"Label"
+Hint/colors/font_color = Color(0.82, 0.74, 0.6, 1)
+Hint/font_sizes/font_size = 21
+Label/colors/font_color = Color(0.95, 0.88, 0.74, 1)
+LineEdit/colors/caret_color = Color(0.98, 0.84, 0.5, 1)
+LineEdit/colors/font_color = Color(1, 0.95, 0.82, 1)
+LineEdit/colors/font_placeholder_color = Color(0.7, 0.6, 0.45, 1)
+LineEdit/font_sizes/font_size = 28
+LineEdit/fonts/font = ExtResource("2_bold")
+LineEdit/styles/focus = SubResource("edit_focus")
+LineEdit/styles/normal = SubResource("edit_normal")
+PanelContainer/styles/panel = SubResource("panel")
+PrimaryButton/base_type = &"Button"
+PrimaryButton/colors/font_color = Color(0.2, 0.09, 0.02, 1)
+PrimaryButton/colors/font_focus_color = Color(0.2, 0.09, 0.02, 1)
+PrimaryButton/colors/font_hover_color = Color(0.2, 0.09, 0.02, 1)
+PrimaryButton/colors/font_hover_pressed_color = Color(0.13, 0.05, 0.01, 1)
+PrimaryButton/colors/font_pressed_color = Color(0.13, 0.05, 0.01, 1)
+PrimaryButton/constants/outline_size = 0
+PrimaryButton/styles/hover = SubResource("primary_hover")
+PrimaryButton/styles/hover_pressed = SubResource("primary_hover_pressed")
+PrimaryButton/styles/normal = SubResource("primary_normal")
+PrimaryButton/styles/pressed = SubResource("primary_pressed")
+SettingLabel/base_type = &"Label"
+SettingLabel/font_sizes/font_size = 26
+SettingLabel/fonts/font = ExtResource("2_bold")
 Title/base_type = &"Label"
 Title/colors/font_color = Color(0.98, 0.82, 0.48, 1)
 Title/colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
@@ -294,23 +311,3 @@ TitleEdit/constants/outline_size = 6
 TitleEdit/font_sizes/font_size = 40
 TitleEdit/fonts/font = ExtResource("3_title")
 TitleEdit/styles/normal = SubResource("title_edit_normal")
-Hint/base_type = &"Label"
-Hint/colors/font_color = Color(0.82, 0.74, 0.6, 1)
-Hint/font_sizes/font_size = 21
-SettingLabel/base_type = &"Label"
-SettingLabel/font_sizes/font_size = 26
-SettingLabel/fonts/font = ExtResource("2_bold")
-HSlider/icons/grabber = ExtResource("slider_grabber")
-HSlider/icons/grabber_disabled = ExtResource("slider_grabber")
-HSlider/icons/grabber_highlight = ExtResource("slider_grabber")
-HSlider/styles/grabber_area = SubResource("slider_filled")
-HSlider/styles/grabber_area_highlight = SubResource("slider_filled")
-HSlider/styles/slider = SubResource("slider_track")
-LineEdit/colors/font_color = Color(1, 0.95, 0.82, 1)
-LineEdit/colors/font_placeholder_color = Color(0.7, 0.6, 0.45, 1)
-LineEdit/colors/caret_color = Color(0.98, 0.84, 0.5, 1)
-LineEdit/font_sizes/font_size = 28
-LineEdit/fonts/font = ExtResource("2_bold")
-LineEdit/styles/focus = SubResource("edit_focus")
-LineEdit/styles/normal = SubResource("edit_normal")
-PanelContainer/styles/panel = SubResource("panel")

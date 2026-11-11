@@ -19,8 +19,10 @@ const HEALTH_COUNT_SEC := 1.2
 const PORTRAIT_FACTOR := 1.6
 ## The marks beside each hero: the boss's attack on their left, what it does besides on
 ## their right, MARK_GAP from the portrait, and the badge with their actions right above it.
-const THREAT_ICON_SIZE := 34
-const MARK_GAP := 4.0
+const THREAT_ICON_SIZE := 46
+const THREAT_FONT_SIZE := 42
+## Clear of the portrait's ring and the glows around it.
+const MARK_GAP := 10.0
 ## Negative: the badge overlaps the portrait's ring a little.
 const BADGE_GAP := -3.0
 ## A column for each attack type: its shield, the shield's value below it, and the
@@ -40,14 +42,16 @@ const SHIELD_VALUE_COLORS := {
 	"ranged": Color("#fcbe03"),
 	"magic": Color("#3b9cf2"),
 }
+const SHIELD_VALUE_FONT: Font = preload("res://assets/onboarding/fonts/Acme-Bold.tres")
+const SHIELD_VALUE_SIZE := 52
+const SHIELD_VALUE_SHADER := preload("res://assets/fight/shield_value.gdshader")
+## Negative: the value overlaps the bottom of the shield picture a little.
+const SHIELD_VALUE_GAP := -26
 const GRAY_SHADER := preload("res://assets/fight/gray.gdshader")
 ## The shield pictures are dark iron, over a dark box and background: their dark parts are
 ## lifted a little (see gray.gdshader).
 const SHIELD_LIFT := 0.35
-## An attack type not attacked yet is a light grey, not quite opaque, so that it stays
-## readable over the dark box, but clearly apart from the coloured ones.
-const ATTACK_GRAY_SCALE := 0.9
-const ATTACK_GRAY_LIFT := 0.3
+## An attack type not attacked yet is grey (as bright as in colour), and a little faint.
 const ATTACK_CLOSED_ALPHA := 0.85
 ## How long the boss takes to plan its attack against each hero, while the message says
 ## so: the attack smashes in at the hero and counts up, then what it does besides, then
@@ -88,7 +92,9 @@ const SHIELD_COUNT_MAX_SEC := 1.2
 ## A breaking shield trembles and glows, bursts into shards, then shows broken.
 const SHIELD_TREMBLE_SEC := 0.45
 const SHIELD_BROKEN_SEC := 0.9
-const BROKEN_ALPHA := 0.45
+## Once a shield is gone, its box collapses down onto the attack type's icon and fades.
+const BOX_COLLAPSE_SEC := 0.45
+const BOX_EXPAND_SEC := 0.3
 ## A shield the players can tap (Fight.Request.Kind.SHIELD) grows, shrinks and glows.
 const SHIELD_PULSE_SCALE := 1.12
 const SHIELD_PULSE_SEC := 0.45
@@ -709,7 +715,7 @@ func _make_badges() -> void:
 		var value := Label.new()
 		value.name = "Value"
 		value.theme_type_variation = &"Title"
-		value.add_theme_font_size_override("font_size", 32)
+		value.add_theme_font_size_override("font_size", THREAT_FONT_SIZE)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(value)
 		column.add_child(_icon("res://assets/fight/icon_claw.png", THREAT_ICON_SIZE))
@@ -807,7 +813,7 @@ func _effect(token_name: String, count: int) -> Control:
 	column.add_theme_constant_override("separation", 0)
 	var value := Label.new()
 	value.theme_type_variation = &"Title"
-	value.add_theme_font_size_override("font_size", 32)
+	value.add_theme_font_size_override("font_size", THREAT_FONT_SIZE)
 	value.add_theme_color_override("font_color", Color(0.714, 0.878, 0.29) if token_name == "poison" else Color(0.98, 0.88, 0.62))
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	value.text = str(count)
@@ -864,48 +870,46 @@ func _on_phase_changed(phase: Fight.Phase) -> void:
 ## which pulses, counts and breaks as a whole. A dark box behind each column, for
 ## readability over the boss, has the shield sitting on its top edge.
 func _make_shields() -> void:
-	var box: StyleBoxFlat = _plate.duplicate() if _plate is StyleBoxFlat else StyleBoxFlat.new()
-	box.set_corner_radius_all(18)
+	var base: StyleBoxFlat = _plate.duplicate() if _plate is StyleBoxFlat else StyleBoxFlat.new()
+	base.set_corner_radius_all(18)
 	for kind in Fight.DAMAGE_TYPES:
+		# Each column its own box, as each fades on its own (_set_box).
+		var box: StyleBoxFlat = base.duplicate()
 		var column := VBoxContainer.new()
 		column.name = kind.to_pascal_case()
 		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.custom_minimum_size.x = SHIELD_SIZE.x
 		column.size_flags_vertical = Control.SIZE_SHRINK_END
 		column.add_theme_constant_override("separation", 2)
+		column.set_meta("box", 1.0)
+		column.set_meta("box_style", box)
+		column.set_meta("box_colors", [base.bg_color, base.border_color, base.shadow_color])
 		column.draw.connect(func() -> void:
-			var top := SHIELD_SIZE.y / 2.0
+			var shown: float = column.get_meta("box", 1.0)
+			if shown <= 0.0:
+				return
+			# Collapsing, its top comes down onto the attack type's icon.
+			var low := (column.get_node("Attack") as Control).position.y - SHIELD_BOX_PADDING
+			var top := lerpf(low, SHIELD_SIZE.y / 2.0, shown)
 			var left := (column.size.x - SHIELD_BOX_WIDTH) / 2.0
 			column.draw_style_box(box, Rect2(left, top, SHIELD_BOX_WIDTH, column.size.y - top)))
 		var shield := VBoxContainer.new()
 		shield.name = "Shield"
 		shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		shield.add_theme_constant_override("separation", -6)
+		shield.add_theme_constant_override("separation", SHIELD_VALUE_GAP)
 		var picture := _icon(fight.boss.shield_icon(kind), 0)
 		picture.name = "Icon"
 		picture.custom_minimum_size = SHIELD_SIZE
 		picture.material = _gray_material()
 		(picture.material as ShaderMaterial).set_shader_parameter("lift", SHIELD_LIFT)
 		shield.add_child(picture)
-		var value := Label.new()
-		value.name = "Value"
-		value.theme_type_variation = &"Title"
-		value.add_theme_font_size_override("font_size", 36)
-		value.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0))
-		value.add_theme_constant_override("outline_size", 8)
-		value.add_theme_color_override("font_color", SHIELD_VALUE_COLORS[kind])
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		value.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		value.text = "0"
-		shield.add_child(value)
+		shield.add_child(_shield_value(kind))
 		column.add_child(shield)
 
 		var state := _icon(SHIELD_ICONS[kind], ATTACK_STATE_SIZE)
 		state.name = "Attack"
 		state.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		state.material = _gray_material()
-		(state.material as ShaderMaterial).set_shader_parameter("gray_scale", ATTACK_GRAY_SCALE)
-		(state.material as ShaderMaterial).set_shader_parameter("gray_lift", ATTACK_GRAY_LIFT)
 		column.add_child(state)
 		var padding := Control.new()
 		padding.custom_minimum_size.y = SHIELD_BOX_PADDING
@@ -918,17 +922,76 @@ func _make_shields() -> void:
 	_on_attacked_changed(fight.attacked)
 
 
+## The value below a shield: big, bold digits in its damage type's colour, with a thick
+## dark outline, a glow in the same colour and a metal shine (shield_value.gdshader).
+func _shield_value(kind: String) -> Label:
+	var value := Label.new()
+	value.name = "Value"
+	value.add_theme_font_override("font", SHIELD_VALUE_FONT)
+	value.add_theme_font_size_override("font_size", SHIELD_VALUE_SIZE)
+	value.add_theme_color_override("font_color", SHIELD_VALUE_COLORS[kind])
+	value.add_theme_color_override("font_outline_color", Color(0.08, 0.02, 0.0))
+	value.add_theme_constant_override("outline_size", 12)
+	# The shadow is a glow in the damage type's colour, around the outline.
+	value.add_theme_color_override("font_shadow_color", Color(SHIELD_VALUE_COLORS[kind], 0.45))
+	value.add_theme_constant_override("shadow_offset_x", 0)
+	value.add_theme_constant_override("shadow_offset_y", 0)
+	value.add_theme_constant_override("shadow_outline_size", 26)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	value.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	value.text = "0"
+	var material := ShaderMaterial.new()
+	material.shader = SHIELD_VALUE_SHADER
+	# The digits reach from the font's ascent down to its baseline, less the space above
+	# the capitals.
+	var ascent := SHIELD_VALUE_FONT.get_ascent(SHIELD_VALUE_SIZE)
+	material.set_shader_parameter("top", ascent - 0.72 * SHIELD_VALUE_SIZE)
+	material.set_shader_parameter("bottom", ascent)
+	value.material = material
+	return value
+
+
 func _gray_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = GRAY_SHADER
 	return material
 
 
-## A shield at 0 is broken: grey and faint.
-func _show_shield_state(shield: Control, value: int) -> void:
+## A shield at 0 is gone: the shield, its value and the box behind it. animate: the box
+## collapses or grows instead of going or coming at once.
+func _show_shield_state(shield: Control, value: int, animate := false) -> void:
 	var broken := value <= 0
-	shield.modulate.a = 0.45 if broken else 1.0
-	((shield.get_node("Icon") as CanvasItem).material as ShaderMaterial).set_shader_parameter("gray", 1.0 if broken else 0.0)
+	shield.modulate.a = 0.0 if broken else 1.0
+	_show_box(shield.get_parent(), not broken, animate)
+
+
+func _show_box(column: Control, shown: bool, animate: bool) -> void:
+	var to := 1.0 if shown else 0.0
+	if column.has_meta("box_tween"):
+		(column.get_meta("box_tween") as Tween).kill()
+		column.remove_meta("box_tween")
+	var from: float = column.get_meta("box", 1.0)
+	if not animate or is_equal_approx(from, to):
+		_set_box(to, column)
+		return
+	var tween := create_tween()
+	column.set_meta("box_tween", tween)
+	if shown:
+		tween.tween_method(_set_box.bind(column), from, to, BOX_EXPAND_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		tween.tween_method(_set_box.bind(column), from, to, BOX_COLLAPSE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+
+
+## How much of a column's box shows: 1 all of it, 0 none. It fades as it collapses.
+func _set_box(shown: float, column: Control) -> void:
+	column.set_meta("box", shown)
+	var box: StyleBoxFlat = column.get_meta("box_style")
+	var colors: Array = column.get_meta("box_colors")
+	var alpha := clampf(shown, 0.0, 1.0)
+	box.bg_color = Color(colors[0], (colors[0] as Color).a * alpha)
+	box.border_color = Color(colors[1], (colors[1] as Color).a * alpha)
+	box.shadow_color = Color(colors[2], (colors[2] as Color).a * alpha)
+	column.queue_redraw()
 
 
 ## The attack types attacked this round are in colour, those not yet grey. One that has
@@ -983,7 +1046,7 @@ func _set_shield(kind: String, value: int) -> void:
 		create_tween().tween_property(_shields, "modulate:a", 1.0, 0.4)
 	var plate: Control = _shield_plates[kind]
 	(plate.get_node("Value") as Label).text = str(value)
-	_show_shield_state(plate, value)
+	_show_shield_state(plate, value, true)
 	_pop(plate)
 
 
@@ -1019,7 +1082,8 @@ func _count_shield(kind: String, from: int, to: int) -> void:
 	tween.tween_property(plate, "scale", Vector2.ONE, 0.2)
 
 
-## The shield at 0 breaks: it trembles and glows, bursts into shards, and shows broken.
+## The shield at 0 breaks: it trembles and glows, bursts into shards, and is gone, its
+## box collapsing.
 func _break_shield(kind: String) -> void:
 	var plate: Control = _shield_plates[kind]
 	var picture: TextureRect = plate.get_node("Icon")
@@ -1036,10 +1100,8 @@ func _break_shield(kind: String) -> void:
 		plate.rotation = 0.0
 		plate.scale = Vector2.ONE
 		picture.self_modulate = Color.WHITE
-		_show_shield_state(plate, 0)
-		plate.modulate.a = 0.0)
-	tween.tween_interval(SHIELD_BROKEN_SEC - 0.4)
-	tween.tween_property(plate, "modulate:a", BROKEN_ALPHA, 0.4)
+		_show_shield_state(plate, 0, true))
+	tween.tween_interval(SHIELD_BROKEN_SEC)
 
 
 ## Instead of a message: the shields smash in one after the other, each shaking the
@@ -1083,14 +1145,14 @@ func _raise_shields(shields: Dictionary) -> void:
 		var value: Label = plate.get_node("Value")
 		var to: int = shields.get(kind, 0)
 		if to <= 0:
-			# No shield of this kind: it shows broken, without a fuss.
+			# No shield of this kind: it is not there, without a fuss.
 			tween.tween_callback(func() -> void:
-				_show_shield_state(plate, 0)
+				_show_shield_state(plate, 0, true)
 				plate.pivot_offset = plate.size / 2.0
 				plate.scale = Vector2.ONE)
 			tween.tween_interval(SHIELD_GAP_SEC)
 			continue
-		tween.tween_callback(_show_shield_state.bind(plate, to))
+		tween.tween_callback(_show_shield_state.bind(plate, to, true))
 		_smash(tween, plate, 0.6 + 0.06 * to)
 		tween.tween_callback(_effects.spark.bind(plate))
 		_count_up(tween, value, 0, to)

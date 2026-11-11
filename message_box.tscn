@@ -1,9 +1,9 @@
 [gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/message_box.gd" id="1_script"]
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Regular.ttf" id="2_regular"]
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Almendra-Bold.ttf" id="3_bold"]
-[ext_resource type="FontFile" path="res://assets/onboarding/fonts/CinzelDecorative-Bold.ttf" id="4_title"]
+[ext_resource type="FontFile" path="res://assets/onboarding/fonts/Acme-Regular.ttf" id="2_regular"]
+[ext_resource type="FontVariation" path="res://assets/onboarding/fonts/Acme-Bold.tres" id="3_bold"]
+[ext_resource type="FontVariation" path="res://assets/onboarding/fonts/GoudyMediaeval.tres" id="4_title"]
 [ext_resource type="Texture2D" path="res://assets/fight/icon_check.svg" id="5_check"]
 [ext_resource type="AudioStream" path="res://assets/sounds/reveal.ogg" id="6_sound"]
 [ext_resource type="Texture2D" path="res://assets/onboarding/icons/corner.png" id="7_corner"]
