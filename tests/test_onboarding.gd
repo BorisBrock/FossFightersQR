@@ -331,10 +331,10 @@ func _run() -> void:
 	await get_tree().process_frame
 	_check(done.text == "Done" and prompt.text == "Your class card", "the open editor follows the language")
 	_tap_table()
-	_check(done.text == "To Battle!", "the table stays in that language")
+	_check(done.text == "Let's go!", "the table stays in that language")
 	TranslationServer.set_locale("de")
 	await get_tree().process_frame
-	_check(done.text == "Zum Kampf!" and _scene._party_name_edit.placeholder_text == "Name der Gruppe", "the table follows the language")
+	_check(done.text == "Los geht's!" and _scene._party_name_edit.placeholder_text == "Name der Gruppe", "the table follows the language")
 
 
 func _open_scene() -> void:

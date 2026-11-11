@@ -94,6 +94,8 @@ class Game:
 	var enraged_round := 0
 	var spits := 0
 	var poison_shield_hits := 0
+	## The most poison tokens on the table at once, all heroes together.
+	var max_poison_table := 0
 	var cards_played := 0
 	var passes := 0
 	var unhandled := {}
@@ -115,6 +117,8 @@ var _options := {
 	"set": {},
 	"seed": 1,
 	"max_rounds": 40,
+	## Poison tokens in the game box.
+	"tokens": 16,
 	"csv": "",
 	"log": false,
 }
@@ -220,6 +224,7 @@ func _play(players: int, difficulty: String, game_seed: int, log := false) -> Di
 		"passes": game.passes,
 		"party": game.heroes.map(func(h: SimHero) -> String: return "%s/%s" % [h.race, h.hero_class]),
 		"max_poison": game.heroes.reduce(func(m: int, h: SimHero) -> int: return maxi(m, h.max_poison), 0),
+		"max_poison_table": game.max_poison_table,
 		"lost": {},
 	}
 	for hero in game.heroes:
@@ -770,6 +775,10 @@ func _add_tokens(hero: SimHero, tokens: Dictionary) -> void:
 	for token: String in tokens:
 		hero.tokens[token] = hero.tokens.get(token, 0) + int(tokens[token])
 	hero.max_poison = maxi(hero.max_poison, hero.tokens.poison)
+	var table := 0
+	for each in _game.heroes:
+		table += each.tokens.poison
+	_game.max_poison_table = maxi(_game.max_poison_table, table)
 
 
 ## Poison goes first, as it hurts most.
@@ -881,7 +890,7 @@ func _parse_args(args: PackedStringArray) -> bool:
 			"--boss", "--csv":
 				_options[arg.substr(2)] = next
 				i += 1
-			"--games", "--level", "--loot", "--health", "--hand", "--seed", "--max-rounds":
+			"--games", "--level", "--loot", "--health", "--hand", "--seed", "--max-rounds", "--tokens":
 				_options[arg.substr(2).replace("-", "_")] = int(next)
 				i += 1
 			"--players":
@@ -925,6 +934,7 @@ const HELP := """Usage: godot --headless -s tools/balance/simulate.gd -- [option
   --set key=value    changes a variable of the boss, value as JSON, e.g.
                      --set health=70 --set shield_value=2 --set 'dive_below=[0.66,0.33]'
                      --set 'bite={"easy":{"damage":10,"poison":2},"normal":{"damage":12,"poison":2},"hard":{"damage":15,"poison":3}}'
+  --tokens N         poison tokens in the box, for the >box column (16)
   --max-rounds N     a fight still running then counts as a timeout (40)
   --seed N           first seed; the same options give the same results (1)
   --csv PATH         one line per fight
@@ -999,6 +1009,8 @@ func _summarize(players: int, difficulty: String, results: Array[Dictionary]) ->
 		"spits": mean.call(results, "spits"),
 		"poison_hits": mean.call(results, "poison_shield_hits"),
 		"max_poison": mean.call(results, "max_poison"),
+		"max_poison_table": mean.call(results, "max_poison_table"),
+		"over_tokens": float(results.filter(func(r: Dictionary) -> bool: return r.max_poison_table > _options.tokens).size()) / results.size(),
 		"passes": mean.call(results, "passes"),
 		"causes": causes,
 		"damage": damage,
@@ -1007,7 +1019,7 @@ func _summarize(players: int, difficulty: String, results: Array[Dictionary]) ->
 
 func _print_summaries(summaries: Array[Dictionary]) -> void:
 	print("")
-	print("pl diff    win%  rnd(won) rnd(lost) boss%left margin  dives enraged spits psh.hits maxpsn  hero dmg/round: attack bite poison other   deaths: attack/bite/poison/other")
+	print("pl diff    win%  rnd(won) rnd(lost) boss%left margin  dives enraged spits psh.hits maxpsn tblpsn >box  hero dmg/round: attack bite poison other   deaths: attack/bite/poison/other")
 	for s in summaries:
 		var d: Dictionary = s.damage
 		var other := 0.0
@@ -1019,9 +1031,9 @@ func _print_summaries(summaries: Array[Dictionary]) -> void:
 		for cause: String in c:
 			if not cause in ["attack", "bite", "poison"]:
 				c_other += c[cause]
-		print("%2d %-6s %5.1f %8s %9s %9s %6s %6.2f %6.0f%% %5.2f %8.2f %6.1f  %20.1f %4.1f %6.1f %5.1f   %d/%d/%d/%d%s" % [
+		print("%2d %-6s %5.1f %8s %9s %9s %6s %6.2f %6.0f%% %5.2f %8.2f %6.1f %6.1f %3.0f%%  %20.1f %4.1f %6.1f %5.1f   %d/%d/%d/%d%s" % [
 			s.players, s.difficulty, 100.0 * s.win, _num(s.rounds_won), _num(s.rounds_lost),
-			_pct(s.boss_left), _pct(s.margin), s.dives, 100.0 * s.enraged, s.spits, s.poison_hits, s.max_poison,
+			_pct(s.boss_left), _pct(s.margin), s.dives, 100.0 * s.enraged, s.spits, s.poison_hits, s.max_poison, s.max_poison_table, 100.0 * s.over_tokens,
 			d.get("attack", 0.0), d.get("bite", 0.0), d.get("poison", 0.0), other,
 			c.get("attack", 0), c.get("bite", 0), c.get("poison", 0), c_other,
 			"   (%d timeouts)" % s.timeouts if s.timeouts > 0 else ""])
@@ -1033,6 +1045,8 @@ func _print_summaries(summaries: Array[Dictionary]) -> void:
   dives      mean dives per fight; enraged: fights in which it got enraged
   spits      venom spits per fight; psh.hits: hits on the poison shield per fight
   maxpsn     mean of the most poison tokens any hero had at once
+  tblpsn     mean of the most poison tokens on the table at once, all heroes together
+  >box       fights in which that was more than the box has (--tokens)
   hero dmg   health each hero lost per round, by cause (poison = their tokens at round end)
   deaths     fights lost, by what took the hero to 0""")
 
@@ -1066,7 +1080,7 @@ func _write_csv(path: String) -> void:
 		push_error("Cannot write ", path)
 		return
 	var keys := ["players", "difficulty", "seed", "outcome", "rounds", "boss_health", "boss_max", "dives", "enraged_round",
-		"spits", "poison_shield_hits", "death_cause", "dead_hero", "lowest_health", "max_poison", "cards_played", "passes"]
+		"spits", "poison_shield_hits", "death_cause", "dead_hero", "lowest_health", "max_poison", "max_poison_table", "cards_played", "passes"]
 	file.store_line(",".join(keys + ["party", "lost_attack", "lost_bite", "lost_poison", "lost_other"]))
 	for r in _rows:
 		var line := PackedStringArray()

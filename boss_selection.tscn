@@ -1,16 +1,10 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_selection.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
-[ext_resource type="Texture2D" path="res://assets/onboarding/table.png" id="3_table"]
-[ext_resource type="Shader" path="res://assets/onboarding/shaders/table.gdshader" id="4_table_shader"]
 [ext_resource type="Texture2D" path="res://assets/icon_settings.png" id="5_settings_icon"]
 [ext_resource type="Script" path="res://scripts/settings_button.gd" id="6_settings"]
 [ext_resource type="AudioStream" path="res://assets/sounds/seat.ogg" id="7_select"]
-
-[sub_resource type="ShaderMaterial" id="table_material"]
-shader = ExtResource("4_table_shader")
-shader_parameter/dim = 0.5
 
 [node name="BossSelection" type="Control"]
 layout_mode = 3
@@ -19,21 +13,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme = ExtResource("2_theme")
 script = ExtResource("1_script")
-
-[node name="Table" type="TextureRect" parent="."]
-material = SubResource("table_material")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("3_table")
-expand_mode = 1
-stretch_mode = 6
 
 [node name="Stage" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -109,15 +91,6 @@ custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 focus_mode = 0
-
-[node name="Fade" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 1)
 
 [node name="SelectSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("7_select")

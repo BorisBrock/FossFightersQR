@@ -1,9 +1,10 @@
-extends MenuScreen
-## The list of bosses, shown after the party is set up. Tapping one shows what it is about
-## before the fight starts.
+extends "res://scripts/menu_panel.gd"
+## The list of bosses, which the table shows once the party is set up. Tapping one shows
+## what it is about before the fight starts (scripts/boss_overview.gd).
 
-const ONBOARDING_SCENE := "res://onboarding.tscn"
-const OVERVIEW_SCENE := "res://boss_overview.tscn"
+## A boss was tapped. Encounter.boss is set to it already.
+signal chosen(id: String)
+
 const ENTRY_HEIGHT := 300.0
 const SCROLL_TOLERANCE := 12
 const FRAME_COLOR := Color(0.72, 0.54, 0.22)
@@ -21,47 +22,64 @@ var _entries := {}
 ## was scrolling, not choosing.
 var _scroll_at_press := 0
 
+@onready var _header: Control = $Stage/Margin/Layout/Header
 @onready var _title: Label = $Stage/Margin/Layout/Header/Title
 @onready var _hint: Label = $Stage/Margin/Layout/Hint
 @onready var _scroll: ScrollContainer = $Stage/Margin/Layout/Scroll
 @onready var _list: VBoxContainer = $Stage/Margin/Layout/Scroll/List
+@onready var _footer: Control = $Stage/Margin/Layout/Footer
 @onready var _back: Button = $Stage/Margin/Layout/Footer/Back
 @onready var _select_sound: AudioStreamPlayer = $SelectSound
 
 
 func _ready() -> void:
-	super()
-	_back.pressed.connect(go_back)
-	var index := 0
+	_back.pressed.connect(request_back)
 	for id: String in Bosses.IDS:
 		var entry := _make_entry(id)
 		_list.add_child(entry)
 		_entries[id] = entry
-		_animate_entry_in(entry, index)
-		index += 1
 	_refresh_text()
 
 
 func _notification(what: int) -> void:
-	super(what)
 	if what == NOTIFICATION_TRANSLATION_CHANGED and is_node_ready():
 		_refresh_text()
 
 
-func go_back() -> void:
-	var onboarding: Node = load(ONBOARDING_SCENE).instantiate()
-	# The logo was shown when the app started.
-	onboarding.show_splash = false
-	leave_to(onboarding)
+## Coming back to the list marks the last boss chosen.
+func play_in() -> void:
+	_scroll.scroll_vertical = 0
+	_refresh_frames()
+	await super()
 
 
 func choose(id: String) -> void:
-	if _leaving:
+	if not active:
 		return
+	active = false
 	Encounter.boss = id
 	_select_sound.play()
 	_pop(_entries[id])
-	leave_to(load(OVERVIEW_SCENE).instantiate())
+	chosen.emit(id)
+
+
+## Where the entry of a boss is on screen, for its picture to fly on from there.
+func entry_rect(id: String) -> Rect2:
+	return (_entries[id] as Control).get_global_rect()
+
+
+## The entry the picture flies on from is gone at once, as the picture takes its place.
+func play_out_without(id: String) -> void:
+	_entries[id].modulate.a = 0.0
+	await play_out()
+
+
+func _parts() -> Array[Control]:
+	var parts: Array[Control] = [_header, _hint]
+	for entry: Control in _list.get_children():
+		parts.append(entry)
+	parts.append(_footer)
+	return parts
 
 
 func _on_entry_pressed(id: String) -> void:
@@ -137,16 +155,21 @@ func _make_entry(id: String) -> Control:
 	caption.add_child(_make_label("Tagline", &"Hint", 22))
 
 	var frame := Panel.new()
+	frame.name = "Frame"
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var style := StyleBoxFlat.new()
-	style.draw_center = false
-	style.set_border_width_all(4 if id == Encounter.boss else 3)
-	style.border_color = CHOSEN_FRAME_COLOR if id == Encounter.boss else FRAME_COLOR
-	style.set_corner_radius_all(6)
-	frame.add_theme_stylebox_override("panel", style)
 	entry.add_child(frame)
 	return entry
+
+
+func _refresh_frames() -> void:
+	for id: String in _entries:
+		var style := StyleBoxFlat.new()
+		style.draw_center = false
+		style.set_border_width_all(4 if id == Encounter.boss else 3)
+		style.border_color = CHOSEN_FRAME_COLOR if id == Encounter.boss else FRAME_COLOR
+		style.set_corner_radius_all(6)
+		(_entries[id].get_node("Frame") as Control).add_theme_stylebox_override("panel", style)
 
 
 func _make_label(label_name: String, variation: StringName, font_size: int) -> Label:
@@ -157,13 +180,6 @@ func _make_label(label_name: String, variation: StringName, font_size: int) -> L
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
-
-
-func _animate_entry_in(entry: Control, index: int) -> void:
-	entry.modulate.a = 0.0
-	var appear := create_tween()
-	appear.tween_interval(0.1 + index * 0.08)
-	appear.tween_property(entry, "modulate:a", 1.0, 0.3)
 
 
 func _pop(control: Control) -> void:

@@ -1,20 +1,24 @@
 # Choosing the boss
 
-Two screens between the [onboarding](onboarding.md) and the fight: the boss list (`boss_selection.tscn`,
-`scripts/boss_selection.gd`) and the boss overview (`boss_overview.tscn`, `scripts/boss_overview.gd`).
+The boss is chosen on the table's screen (`onboarding.tscn`), without a change of scene. Two panels take the place of
+the party there, one after the other: the boss list (`boss_selection.tscn`, `scripts/boss_selection.gd`) and the boss
+overview (`boss_overview.tscn`, `scripts/boss_overview.gd`).
 
 ## Flow
 
-*To Battle!* at the table leads to the boss list.
+*Let's go!* at the table leads to the boss list: the seats slide off the edges of the screen, the party and the
+table's buttons fade, the table darkens, and the list comes in, its parts one after the other.
 
 - **Boss list:** one entry per boss, a picture across the whole width with the boss's name and a tagline. Tapping one
-  opens its overview. *Back* returns to the table, without the logo this time. The last boss chosen has a brighter
-  frame.
+  opens its overview: its picture flies from the list to its place in the overview, while the rest of the list fades
+  and the overview's parts come in around it. *Back* returns to the table, whose seats slide back in. The last boss
+  chosen has a brighter frame.
 - **Boss overview:** the name and tagline, a large picture, the story and a list of strategy hints. Below them, always
   in view, the difficulty: *Easy*, *Normal* or *Hard*, with one line explaining the choice. *Back* returns to the list,
-  *Fight!* starts the fight.
+  *Fight!* (*Zum Kampf!*) fades to black and starts the fight.
 
 Escape and the back button of a phone do the same as *Back*. With the settings open, they only close the settings.
+At the table, the back button of a phone quits the app, as before. Cards shown to the camera only count at the table.
 
 The chosen boss and difficulty are in the autoload `Encounter` (`scripts/encounter.gd`), which is where the fight will
 read them. They last while the app runs, so coming back shows the last choice again. They are not saved between runs.
@@ -121,25 +125,28 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
   [balance simulator](balance.md)). Fewer heroes have fewer actions and fewer cards to protect, heal and remove poison,
   and each of them is bitten more often. On *Normal*:
 
-  | Heroes | Health | Attacks | Poison per attack | Shields | Bite |
+  | Heroes | Health | Attacks | Poison per attack | Shields (around) | Bite |
   |--------|--------|---------|-------------------|---------|------|
-  | 1 | 40 | 2 to 5 | 1 | 1 | 6 + 1 poison |
-  | 2 | 60 | 2 to 5 | 1 to 3 | 2 | 10 + 3 poison |
-  | 3 | 80 | 2 to 5 | 1 to 3 | 3 | 15 + 3 poison |
-  | 4 | 100 | 3 to 6 | 1 to 3 | 4 | 18 + 3 poison |
+  | 1 | 25 | 2 to 6 | 1 | 3 | 6 + 1 poison |
+  | 2 | 42 | 6 to 10 | 1 | 4 | 10 + 2 poison |
+  | 3 | 60 | 7 to 11 | 1 | 5 | 15 + 2 poison |
+  | 4 | 88 | 7 to 11 | 1 | 6 | 18 + 2 poison |
 
   The difficulty changes health and attacks as for every boss, and the bite as below. In the script:
   `health_by_heroes`, `attack_by_heroes`, `shield_by_heroes`, and its own `bite_by_heroes` (added to the bite's
   damage) and `poison_by_heroes` (added to the poison of its attacks and bite, never below 1).
-- **Attacks:** 2 to 5 against each hero, each with 1 to 3 poison (with 3 heroes).
-- **Shields:** 3 of each type every round (with 3 heroes). One of them, at random, is the **poison shield**: whoever hits it gets 1
-  poison (`mirefang_poison_shield`). Cards that ignore a shield's effect ignore that too.
-- **Dive:** when its health falls below 75 %, 50 % and 25 % (60, 40 and 20 on *Normal* with 3 heroes), it dives
+- **Attacks:** 7 to 11 against each hero, each with 1 poison (with 3 heroes). Its poison is low and its attacks strong,
+  as the game box has only 16 poison tokens for all heroes together (the simulator's `tblpsn` and `>box`).
+- **Shields:** around 5 (with 3 heroes), new each round: one type at random is 1 or 2 lower, the other two are 0 to
+  2 higher, each on its own (3 or 4, and 5 to 7). So the heroes attack with other types from round to round. In the
+  script: `shield_value`, `shield_low` and `shield_high`. One of the three, chosen at random on its own, is the
+  **poison shield**: whoever hits it gets 1 poison (`mirefang_poison_shield`). Cards that ignore a shield's effect ignore that too.
+- **Dive:** when its health falls below 75 %, 50 % and 25 % (45, 30 and 15 on *Normal* with 3 heroes), it dives
   (`mirefang_dive`), each mark once. A hit past several marks makes it dive once only; the marks passed are gone.
   - It goes out of reach (`Fight.set_boss_away`): its shields are gone, and attacks and poison from cards do not reach
     it (`mirefang_out_of_reach`).
-  - All its attacks are gone. Instead one hero, at random, is marked for its bite: 12 + 2 poison on *Easy*,
-    15 + 3 on *Normal*, 18 + 3 on *Hard*, with 3 heroes. Protection lowers it as any attack.
+  - All its attacks are gone. Instead one hero, at random, is marked for its bite: 12 + 1 poison on *Easy*,
+    15 + 2 on *Normal*, 18 + 2 on *Hard*, with 3 heroes. Protection lowers it as any attack.
   - Every hero gets an action more this round (a yellow orb) to prepare.
   - It dives right after the card that took it past the mark. Past a mark outside the action phase, such as by its
     own poison at the end of a round, it dives when the next action phase starts.
@@ -173,9 +180,13 @@ The pictures are in `assets/bosses/`. The ones there now are placeholders, made 
 
 ## How it fits together
 
-Both screens extend `MenuScreen` (`scripts/menu_screen.gd`), which fades in from black and out to the next screen,
-handles Escape and the back button of a phone, and lets tests catch the change of scene through `change_scene`. While
-one of them is shown, the back button of a phone does not quit the app.
+`scripts/onboarding.gd` knows which phase the screen is in (`Phase`: `TABLE`, `BOSSES`, `BOSS`) and moves between them:
+it slides the table's parts away and back itself, and calls `play_in()` and `play_out()` of the panels. Taps wait
+while it moves. Both panels extend `scripts/menu_panel.gd`, which animates their parts in and out and
+only takes taps while fully shown; they tell the table what was tapped through signals (`chosen`, `back_pressed`,
+`fight_pressed`).
 
-Going back to the table sets `show_splash = false` on the onboarding scene before it starts, so the logo only shows
-when the app starts.
+Tests catch the start of the fight through `change_scene` of the onboarding scene. The fight and the game over screen
+extend `MenuScreen` (`scripts/menu_screen.gd`), which fades in from black and out to the next screen. Going back to
+the table from the game over screen sets `show_splash = false` on the onboarding scene before it starts, so the logo
+only shows when the app starts.

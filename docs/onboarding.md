@@ -14,7 +14,9 @@ at the table:
   their other card, gives a name and taps their seat. A card of a hero already at the table does nothing there (it
   may just be lying in view), and with 4 heroes no card does.
 
-*To Battle!* appears once there is a hero, and leads to [choosing the boss](bosses.md). With 4 heroes, free seats can no longer be tapped.
+*Let's go!* (*Los geht's!*) appears once there is a hero, and leads to [choosing the boss](bosses.md), on the same
+screen: the seats slide off the edges of the screen, the party sinks back and the boss list comes in. With 4 heroes,
+free seats can no longer be tapped.
 
 The name of the party is at the top of the screen. Tap it to type another one; the placeholder makes way while typing. It is optional, and long names get
 smaller so that they stay readable between the seats.

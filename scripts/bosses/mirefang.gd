@@ -15,9 +15,9 @@ extends Boss
 var dive_below: Array[float] = [0.75, 0.5, 0.25]
 ## Its bite when it surfaces, by difficulty: damage and poison.
 var bite := {
-	"easy": { "damage": 12, "poison": 2 },
-	"normal": { "damage": 15, "poison": 3 },
-	"hard": { "damage": 18, "poison": 3 },
+	"easy": { "damage": 12, "poison": 1 },
+	"normal": { "damage": 15, "poison": 2 },
+	"hard": { "damage": 18, "poison": 2 },
 }
 ## Added to the bite's damage with 1, 2, 3 and 4 heroes: with fewer, each one is bitten
 ## more often. Empty: nothing.
@@ -37,11 +37,17 @@ const ENRAGED_EYES := Color(1.0, 0.18, 0.1)
 # The numbers above and below are variables, not constants, so that the balance simulator
 # (tools/balance/simulate.gd) can try other values.
 
-## Every shield has this value, the poison shield too.
-var shield_value := 3
-## The poison of each attack, at random.
+## Its shields are around this value, the poison shield too.
+var shield_value := 5
+## Each round, one shield at random is lower than shield_value by one of these, at random,
+## and the other two are higher by one of these, each its own: so that the heroes attack
+## with other types from round to round.
+var shield_low: Array[int] = [1, 2]
+var shield_high: Array[int] = [0, 1, 2]
+## The poison of each attack, at random. Low, as the game box has only so many poison
+## tokens: its attacks are strong instead.
 var poison_min := 1
-var poison_max := 3
+var poison_max := 1
 ## Under water, until it surfaces at the end of the action phase.
 var submerged := false
 var enraged := false
@@ -76,13 +82,13 @@ func _init() -> void:
 	figure = "res://assets/bosses/FigureMirefang.png"
 	background = "res://assets/bosses/BackgroundMirefang.png"
 	health = 80
-	attack_min = 2
-	attack_max = 5
+	attack_min = 4
+	attack_max = 8
 	# By the number of heroes, so that 1 to 4 have about the same chance: fewer heroes have
 	# fewer actions, cards to protect, heal and remove poison, and each is bitten more
 	# often. Found with the balance simulator, see docs/balance.md.
-	health_by_heroes = [40, 60, 80, 100]
-	attack_by_heroes = [0, 0, 0, 1]
+	health_by_heroes = [25, 42, 60, 88]
+	attack_by_heroes = [-2, 2, 3, 3]
 	shield_by_heroes = [-2, -1, 0, 1]
 	bite_by_heroes = [-9, -5, 0, 3]
 	poison_by_heroes = [-2, 0, 0, 0]
@@ -135,11 +141,21 @@ func plan_attacks(fight: Fight) -> void:
 			{ "poison": maxi(1, fight.rng.randi_range(poison_min, poison_max) + by_heroes(poison_by_heroes, fight.heroes.size())) })
 
 
-## Three shields of the same value, one of them poisonous, chosen at random each round.
+## Three shields each round: one lower, two higher, and one of them, chosen on its own,
+## poisonous. All at random.
 func raise_shields(fight: Fight) -> void:
 	poison_shield = Fight.DAMAGE_TYPES[fight.rng.randi() % Fight.DAMAGE_TYPES.size()]
-	var value := maxi(0, shield_value + (enraged_bonus if enraged else 0) + by_heroes(shield_by_heroes, fight.heroes.size()))
-	fight.set_shields({ "melee": value, "ranged": value, "magic": value })
+	var value := shield_value + (enraged_bonus if enraged else 0) + by_heroes(shield_by_heroes, fight.heroes.size())
+	var low: String = Fight.DAMAGE_TYPES[fight.rng.randi() % Fight.DAMAGE_TYPES.size()]
+	var shields := {}
+	for kind: String in Fight.DAMAGE_TYPES:
+		var change := -_pick(fight, shield_low) if kind == low else _pick(fight, shield_high)
+		shields[kind] = maxi(1, value + change)
+	fight.set_shields(shields)
+
+
+func _pick(fight: Fight, values: Array[int]) -> int:
+	return values[fight.rng.randi() % values.size()] if not values.is_empty() else 0
 
 
 func shield_icon(kind: String) -> String:

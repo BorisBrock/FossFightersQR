@@ -1,6 +1,6 @@
 class_name MenuScreen
 extends Control
-## What the screens between the table and the fight have in common: they fade in from
+## What the screens after the table have in common: they fade in from
 ## black and out to the next screen, and Escape and the back button of a phone lead back
 ## to the screen before, as the Back button on screen does.
 
@@ -67,4 +67,9 @@ func leave_to(next: Node, fade_sec := FADE_SEC) -> void:
 ## The back button of a phone, or Escape, should only close the dialog then.
 ## The screen hears the back button first, as notifications go from parents to children.
 func _dialog_open() -> bool:
-	return get_tree().get_node_count_in_group(DIALOG_GROUP) > 0
+	return is_dialog_open(get_tree())
+
+
+## For screens that are not a MenuScreen but handle the back button, too.
+static func is_dialog_open(tree: SceneTree) -> bool:
+	return tree.get_node_count_in_group(DIALOG_GROUP) > 0

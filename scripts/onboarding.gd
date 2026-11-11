@@ -1,14 +1,30 @@
 extends Control
 ## The first screen: the table with its seats. Tapping a seat opens the editor for the hero
 ## sitting there, where cards choose the character and the class. The party is kept for the
-## next run.
+## next run. Then the boss is chosen on the same screen: the seats and the party make way
+## for the boss list, and the list for the chosen boss's overview, without a change of scene.
 
 enum View { PARTY, EDITOR }
+## What the screen shows: the table with the party, the boss list or a boss's overview.
+enum Phase { TABLE, BOSSES, BOSS }
 
 const CARD_ICON := preload("res://assets/onboarding/icons/card_scan.png")
 const PEN_ICON := preload("res://assets/onboarding/icons/pen.png")
 const ERROR_ICON := preload("res://assets/onboarding/icons/error.png")
-const BOSS_SCENE := "res://boss_selection.tscn"
+## By path instead of class_name, so that they work before the editor has scanned them.
+const BossSelection := preload("res://scripts/boss_selection.gd")
+const BossOverview := preload("res://scripts/boss_overview.gd")
+const FIGHT_SCENE := "res://boss_fight.tscn"
+const FIGHT_FADE_SEC := 0.7
+## How far the seats slide past the edge of the screen when the table makes way.
+const SEAT_SLIDE := 260.0
+const TABLE_OUT_SEC := 0.45
+const TABLE_IN_SEC := 0.5
+## How dark the table gets behind the boss screens.
+const TABLE_DIM := 0.72
+const TABLE_DIM_BOSSES := 0.5
+## The settings and camera buttons are a little see-through.
+const CORNER_BUTTON_ALPHA := 0.75
 const CARDS_PATH := "res://cards/cards.json"
 ## A code seen this recently is taken to be still in view. It is what lets a player keep
 ## holding a card while the screen moves on, without that card counting for the next hero.
@@ -46,14 +62,16 @@ const TEXT := {
 	"done": { "de": "Fertig", "en": "Done" },
 	"delete": { "de": "Löschen", "en": "Delete" },
 	"delete_confirm": { "de": "Sicher?", "en": "Really?" },
-	"battle": { "de": "Zum Kampf!", "en": "To Battle!" },
+	"battle": { "de": "Los geht's!", "en": "Let's go!" },
 	"party_hint": { "de": "Tippe auf deinen Platz am Tisch oder zeig deine Charakterkarte, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table or show your character card to create or change a hero." },
 	"party_hint_full": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
 	"party_name_placeholder": { "de": "Name der Gruppe", "en": "Party name" },
 }
 
-## False when coming back from the boss list, as the logo was shown when the app started.
+## False when coming back from a fight, as the logo was shown when the app started.
 var show_splash := true
+## Replaced by tests, which catch the fight instead of starting it.
+var change_scene := func(next: Node) -> void: get_tree().change_scene_to_node(next)
 ## Where the party is saved. Set before adding the scene to the tree to use another file.
 var party_path := Party.SAVE_PATH
 ## Where the cards come from. Set before adding the scene to the tree to use another file.
@@ -85,6 +103,9 @@ var _name_font_size := 0
 var _message_shown := ""
 var _step_pulse: Tween
 var _styles := {}
+var _phase := Phase.TABLE
+## The screen is moving on from one phase to the next. Taps and cards wait for it.
+var _moving := false
 
 @onready var _scanner: QrCameraScanner = $QrCameraScanner
 @onready var _table: TextureRect = $Table
@@ -120,6 +141,10 @@ var _styles := {}
 @onready var _primary: Button = $Stage/Margin/Layout/Footer/Primary
 @onready var _footer_spacer: Control = $Stage/Margin/Layout/Footer/Spacer
 @onready var _switch_camera: TextureButton = $SwitchCamera
+@onready var _settings: Control = $Settings
+@onready var _seats_layer: Control = $Seats
+@onready var _boss_selection: BossSelection = $BossSelection
+@onready var _boss_overview: BossOverview = $BossOverview
 @onready var _overlay: Control = $Overlay
 @onready var _sparks: CPUParticles2D = $Sparks
 @onready var _fade: ColorRect = $Fade
@@ -164,6 +189,10 @@ func _ready() -> void:
 	_fit_title(_party_name_edit, _party_name_font_size)
 	for token: SeatToken in _seats:
 		token.pressed.connect(_on_seat_pressed.bind(token.seat))
+	_boss_selection.back_pressed.connect(_back_to_table)
+	_boss_selection.chosen.connect(_show_boss)
+	_boss_overview.back_pressed.connect(_back_to_bosses)
+	_boss_overview.fight_pressed.connect(_start_fight)
 
 	resized.connect(_on_resized)
 	_on_resized()
@@ -192,6 +221,18 @@ func _t(key: String) -> String:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED and is_node_ready():
 		_refresh_language()
+	elif what == NOTIFICATION_WM_GO_BACK_REQUEST and not MenuScreen.is_dialog_open(get_tree()):
+		_go_back()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _phase != Phase.TABLE and event.is_action_pressed("ui_cancel") and not MenuScreen.is_dialog_open(get_tree()):
+		get_viewport().set_input_as_handled()
+		_go_back()
+
+
+func _exit_tree() -> void:
+	get_tree().quit_on_go_back = true
 
 
 ## Nothing of what is on screen may stay in the old language.
@@ -213,7 +254,8 @@ func _on_camera_started() -> void:
 	_camera_running = true
 	_camera_problem = ""
 	_show_camera_preview()
-	_switch_camera.visible = _scanner.can_switch_camera()
+	# The button is for aiming at cards, which only count at the table.
+	_switch_camera.visible = _scanner.can_switch_camera() and _phase == Phase.TABLE
 	_switch_camera.disabled = false
 	_refresh_hint()
 
@@ -267,7 +309,8 @@ func _on_code_confirmed(text: String) -> void:
 ## Only character and class cards do anything, all others are ignored. At the table, one
 ## opens the editor (see _start_from_card).
 func _apply_card(card: Card) -> void:
-	if card == null:
+	# Cards only count at the table.
+	if card == null or _phase != Phase.TABLE or _moving:
 		return
 	if _view == View.PARTY:
 		_start_from_card(card)
@@ -282,8 +325,8 @@ func _apply_card(card: Card) -> void:
 ## with it, who chooses their seat last. A card of a hero already at the table does
 ## nothing: it may just be lying in view.
 func _start_from_card(card: Card) -> void:
-	# Not while a hero flies to their seat, or the battle is about to begin.
-	if _overlay.mouse_filter == Control.MOUSE_FILTER_STOP or _fade.visible:
+	# Not while a hero flies to their seat.
+	if _overlay.mouse_filter == Control.MOUSE_FILTER_STOP:
 		return
 	if _party.heroes.size() >= Party.MAX_HEROES:
 		return
@@ -472,7 +515,7 @@ func _open_editor() -> void:
 func _on_primary_pressed() -> void:
 	_name_edit.release_focus()
 	if _view == View.PARTY:
-		_start_battle()
+		_to_bosses()
 	else:
 		_finish_editing()
 
@@ -592,16 +635,144 @@ func _finish_editing() -> void:
 	_show_view(View.PARTY)
 
 
-func _start_battle() -> void:
+# Choosing the boss --------------------------------------------------------------
+
+
+## Moves on from the table to the boss list.
+func _to_bosses() -> void:
+	if _moving or _phase != Phase.TABLE:
+		return
 	_fanfare_sound.play()
 	_burst_sparks(_primary.global_position + _primary.size / 2.0)
+	_begin_move(Phase.BOSSES)
+	await _leave_table()
+	await _boss_selection.play_in()
+	_end_move()
+
+
+## The picture of the chosen boss flies on from the list into its overview, while the
+## rest of the list makes way.
+func _show_boss(id: String) -> void:
+	if _moving:
+		return
+	_begin_move(Phase.BOSS)
+	_boss_overview.show_boss(id)
+	var from := _boss_selection.entry_rect(id)
+	_boss_selection.play_out_without(id)
+	await _boss_overview.play_in(from)
+	_end_move()
+
+
+func _back_to_bosses() -> void:
+	if _moving:
+		return
+	_begin_move(Phase.BOSSES)
+	await _boss_overview.play_out()
+	await _boss_selection.play_in()
+	_end_move()
+
+
+func _back_to_table() -> void:
+	if _moving:
+		return
+	_begin_move(Phase.TABLE)
+	await _boss_selection.play_out()
+	await _return_to_table()
+	_end_move()
+
+
+## Escape and the back button of a phone lead back a step, as Back does. At the table,
+## the back button of a phone quits the app.
+func _go_back() -> void:
+	if _moving:
+		return
+	match _phase:
+		Phase.BOSSES:
+			_boss_selection.request_back()
+		Phase.BOSS:
+			_boss_overview.request_back()
+
+
+## Taps wait until the next phase is shown.
+func _begin_move(phase: Phase) -> void:
+	_moving = true
+	_phase = phase
+	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	get_tree().quit_on_go_back = false
+
+
+func _end_move() -> void:
+	_moving = false
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	get_tree().quit_on_go_back = _phase == Phase.TABLE
+
+
+## Fight! leaves the screen at last, for the boss fight.
+func _start_fight() -> void:
+	if _moving:
+		return
+	_begin_move(Phase.BOSS)
 	_fade.modulate.a = 0.0
 	_fade.show()
 	var fade := create_tween()
-	fade.tween_interval(0.35)
-	fade.tween_property(_fade, "modulate:a", 1.0, 0.7)
+	fade.tween_property(_fade, "modulate:a", 1.0, FIGHT_FADE_SEC)
 	await fade.finished
-	get_tree().change_scene_to_file(BOSS_SCENE)
+	change_scene.call(load(FIGHT_SCENE).instantiate())
+
+
+## The seats slide off the edges they sit at, and the party sinks back into the table.
+func _leave_table() -> void:
+	_party_name_edit.release_focus()
+	for token: SeatToken in _seats:
+		token.set_mode(SeatToken.Mode.IDLE)
+	var away := create_tween().set_parallel()
+	for i in _seats.size():
+		var token: SeatToken = _seats[i]
+		away.tween_method(_slide_seat.bind(token), 0.0, 1.0, TABLE_OUT_SEC).set_delay(i * 0.03).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	away.tween_property(_stage, "scale", Vector2(0.9, 0.9), TABLE_OUT_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	away.tween_property(_stage, "modulate:a", 0.0, TABLE_OUT_SEC * 0.8).set_delay(TABLE_OUT_SEC * 0.2)
+	away.tween_property(_ornaments, "modulate:a", 0.0, TABLE_OUT_SEC * 0.6)
+	away.tween_property(_settings, "modulate:a", 0.0, TABLE_OUT_SEC * 0.6)
+	away.tween_property(_switch_camera, "modulate:a", 0.0, TABLE_OUT_SEC * 0.6)
+	away.tween_property(_table.material, "shader_parameter/dim", TABLE_DIM_BOSSES, TABLE_OUT_SEC * 1.5)
+	await away.finished
+	for control: Control in [_seats_layer, _stage, _ornaments, _settings, _switch_camera]:
+		control.hide()
+
+
+## The way back: the seats slide in again, and the party comes up.
+func _return_to_table() -> void:
+	for control: Control in [_seats_layer, _stage, _ornaments, _settings]:
+		control.show()
+	_switch_camera.visible = _camera_running and _scanner.can_switch_camera()
+	# A card held up meanwhile must first be taken away.
+	_ignore_codes_in_view()
+	_refresh_seats()
+	var back := create_tween().set_parallel()
+	for i in _seats.size():
+		var token: SeatToken = _seats[i]
+		back.tween_method(_slide_seat.bind(token), 1.0, 0.0, TABLE_IN_SEC).set_delay(i * 0.03).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	back.tween_property(_stage, "scale", Vector2.ONE, TABLE_IN_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	back.tween_property(_stage, "modulate:a", 1.0, TABLE_IN_SEC * 0.7)
+	back.tween_property(_ornaments, "modulate:a", 1.0, TABLE_IN_SEC).set_delay(TABLE_IN_SEC * 0.3)
+	back.tween_property(_settings, "modulate:a", CORNER_BUTTON_ALPHA, TABLE_IN_SEC)
+	back.tween_property(_switch_camera, "modulate:a", CORNER_BUTTON_ALPHA, TABLE_IN_SEC)
+	back.tween_property(_table.material, "shader_parameter/dim", TABLE_DIM, TABLE_IN_SEC * 1.5)
+	await back.finished
+
+
+## away is how far along the way out the seat is: 0 at its place, 1 past the edge of the
+## screen. Moves by the offsets, which keep the seat anchored to its edge.
+func _slide_seat(away: float, token: SeatToken) -> void:
+	if not token.has_meta(&"home"):
+		token.set_meta(&"home", Vector4(token.offset_left, token.offset_top, token.offset_right, token.offset_bottom))
+	var home: Vector4 = token.get_meta(&"home")
+	# A seat faces the edge it is at: 0 degrees the bottom, 90 the left, -90 the right.
+	var shift := Vector2.DOWN.rotated(deg_to_rad(token.facing_degrees)) * SEAT_SLIDE * away
+	token.offset_left = home.x + shift.x
+	token.offset_top = home.y + shift.y
+	token.offset_right = home.z + shift.x
+	token.offset_bottom = home.w + shift.y
 
 
 # Showing a view ------------------------------------------------------------------
@@ -663,7 +834,7 @@ func _refresh_controls() -> void:
 	_dice.modulate.a = 0.35 if _dice.disabled else 1.0
 	# In the editor, "Delete" and "Done" share the width in equal halves, and "Done" stays
 	# on the right even for a new hero, where the spacer keeps the place of "Delete".
-	# Alone, "To Battle!" sits centered.
+	# Alone, "Let's go!" sits centered.
 	_delete.visible = editing and _editing != null
 	_footer_spacer.visible = editing and _editing == null
 	_primary.size_flags_horizontal = Control.SIZE_EXPAND_FILL if editing else Control.SIZE_SHRINK_CENTER

@@ -258,10 +258,11 @@ func _check_round() -> void:
 	Encounter.boss = "mirefang"
 	Encounter.difficulty = "normal"
 	var screen := await _open()
-	# With this seed, Mirefang's poison shield is not the melee one, which the axe hits.
 	screen.fight.rng.seed = 2
 	screen.fight.boss.shield_value = 2
 	screen.fight.boss.shield_by_heroes.clear()
+	screen.fight.boss.shield_low.clear()
+	screen.fight.boss.shield_high.clear()
 	var box: MessageBox = screen.messages
 	var tokens := {}
 	for token: SeatToken in screen.get_node("Seats").get_children():
@@ -300,6 +301,8 @@ func _check_round() -> void:
 	var spheres: ActionSpheres = tokens[3].get_node("Badge/Row/Actions")
 	_check(spheres.visible and spheres.actions().size() == 3, "each hero sees the actions they have left")
 
+	# Mirefang's poison shield is not the melee one, which the axe hits.
+	screen.fight.boss.poison_shield = "magic"
 	var health: int = screen.fight.health
 	var pling: AudioStreamPlayer = screen.get_node("Pling")
 	screen._on_code_read("AXE", PackedVector2Array(), Vector2i())

@@ -56,6 +56,8 @@ One line for each player count and difficulty:
 | `dives`, `enraged` | mean dives per fight, and the share of fights in which it was enraged |
 | `spits`, `psh.hits` | venom spits and hits on the poison shield per fight |
 | `maxpsn` | mean of the most poison tokens any hero had at once |
+| `tblpsn` | mean of the most poison tokens on the table at once, all heroes together |
+| `>box` | fights in which `tblpsn` was more than the game box has: 16 tokens, or `--tokens` |
 | `hero dmg/round` | health each hero lost per round: from the boss's attacks, its bite, their poison tokens at the end of the round, and other things such as cards |
 | `deaths` | the fights lost, by what took the hero to 0 |
 
@@ -67,7 +69,7 @@ the first fight message by message.
 
 `--set key=value` changes a variable of the boss before each fight, the value as JSON. All of Boss's variables can be
 set (`health`, `health_by_heroes`, `attack_min`, `attack_max`, `attack_by_heroes`, `shields`, `shield_by_heroes`), and
-those of the boss's own script. Mirefang's tuning values are variables for this: `shield_value`, `poison_min`,
+those of the boss's own script. Mirefang's tuning values are variables for this: `shield_value`, `shield_low`, `shield_high`, `poison_min`,
 `poison_max`, `poison_by_heroes`, `dive_below`, `bite`, `bite_by_heroes`, `enraged_below`, `enraged_bonus`,
 `spit_damage` and `spit_poison`. A boss with `health_by_heroes` ignores `health`.
 
