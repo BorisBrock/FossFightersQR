@@ -91,6 +91,14 @@ var taunt := {
 	"de": "Muahaha! Ihr werdet alle untergehen!",
 	"en": "Muahaha! You are all going to die!",
 }
+## A line for the start of each round, one after the other, beginning again after the
+## last: the boss's mood or what it does, each { "de": …, "en": … }. See round_text().
+var round_texts: Array[Dictionary] = [
+	{ "de": "Der Boden bebt. Der Kampf geht weiter!", "en": "The ground trembles. The fight goes on!" },
+	{ "de": "Euer Gegner mustert euch mit kaltem Blick.", "en": "Your enemy eyes you coldly." },
+	{ "de": "Ein Grollen erfüllt die Luft.", "en": "A rumble fills the air." },
+	{ "de": "Haltet stand, Helden!", "en": "Stand firm, heroes!" },
+]
 ## Its own sounds (assets/sounds/<name>.ogg) instead of the fight's usual ones: by the
 ## name of the sound it replaces (see Sfx.NAMES), or by a message id for the sound of
 ## that message. Two have no usual sound and play only if a boss has its own:
@@ -145,6 +153,13 @@ func shields_for(fight: Fight) -> Dictionary:
 	for kind: String in shields:
 		result[kind] = maxi(0, shields[kind] + bonus)
 	return result
+
+
+## The line for the start of round round_number (from 1), from round_texts.
+func round_text(round_number: int) -> Dictionary:
+	if round_texts.is_empty():
+		return {}
+	return round_texts[(maxi(1, round_number) - 1) % round_texts.size()]
 
 
 ## What the boss tells comes with its name, such as its armour weakening an attack.

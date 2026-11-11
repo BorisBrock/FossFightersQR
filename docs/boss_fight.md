@@ -27,7 +27,7 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   a player taps them. See [Messages](messages.md).
 - **Marks at the seats,** facing each hero: on the hero's left the boss's attack against them this round, on their
   right the tokens it gives besides (such as 1 poison), each with its count. They appear one hero after the other
-  in the planning phase. Above the portrait, a badge shows the actions the hero has left. The portraits are 1.6 times as
+  in the planning phase: the attack smashes in, shaking the screen, and counts up with a tack at each step. Above the portrait, a badge shows the actions the hero has left. The portraits are 1.6 times as
   large as at the table, without the class crest, and the marks have no frames. The heroes' own status
   tokens are not shown: they are real tokens on the table.
 - **Choosing a hero:** the heroes the players can tap pulse, growing and shrinking a little, with a golden glow.
@@ -42,9 +42,14 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   together, and a broken shield is grey and faint. Below that the attack type's icon: grey each round until a hero
   attacks with it (`Fight.attacked_changed`), then in colour, as supports of that type can now be played. Each column
   has a dark box behind it for readability, with the shield sitting on its top edge.
-- **The prompt** in the upper half, between the seats at the sides, while the fight waits for the players: whose turn it is, or which hero to tap,
+- **The prompt** in the upper half, between the seats at the sides, in large type for small screens, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
+- **The card's name** large over the boss, as a card is played (`Fight.card_started`). The fight waits a moment
+  for it before the card takes effect.
+- **Screen shake:** the whole screen shakes like in a small earthquake (`shake_screen()`) when a planned attack or a
+  shield smashes in, when a shield breaks, and at the hits of a big attack (`BIG_ATTACK`, 5 or more) by a hero, or by
+  the boss as it lunges.
 - **Attacks:** a hero's attack plays a big effect over the boss, with a sound, before any number changes
   (`AttackEffects`, `scripts/attack_effects.gd`): for **magic**, four or five bolts fly in from the heroes around
   the table and splash on the boss in coloured rings, runes and sparks; for **melee**, a blade slashes across it,
@@ -72,15 +77,20 @@ on and take off themselves.
 
 1. **Start:** the heroes appear at their seats, the boss appears, its health counts up, and it greets the heroes
    (`Boss.taunt`).
-2. **Each round:** *Round n: the boss is planning its attacks*, in one message without a check mark.
-3. **Planning:** the boss plans an attack against each hero (`Boss.plan_attacks`). While the message shows, the
-   attack pops up at one seat after the other and counts up, and the tokens it gives besides pop up beside it.
+   Then everyone draws their cards (*Draw cards*, with a check mark), once, before the first round.
+2. **Each round:** *Round n* with a line from the boss (`Boss.round_text()`, another each round), which closes by
+   itself. The round counter shows the new round.
+3. **Planning:** *The boss is preparing its attacks*, in a message without a check mark. The boss plans an attack
+   against each hero (`Boss.plan_attacks`). While the message shows, the attack smashes in at one seat after the
+   other, shaking the screen, and counts up with a tack at each step; the tokens it gives besides pop up beside it.
    Then the message closes by itself.
 4. **Shields:** the boss raises its shields (`Boss.raise_shields`). There is no message: a short *Shields* banner
-   shows, the shields appear one after the other and count up to their values (`Fight.shields_raised`), and the
-   fight waits until they are done. Knowing the boss's attacks and shields, the players then tap the hero who
-   starts. With one hero, nobody is asked.
-5. **Actions:** curses are revealed, then the heroes take turns clockwise from the starter, three each. Each turn is one
+   shows, the shields smash in one after the other, each shaking the screen, and count up to their values with a
+   tack at each step (`Fight.shields_raised`), and the fight waits until they are done. Knowing the boss's attacks
+   and shields, the players are told *It's your turn. Who starts this round?*, and the heroes' portraits pulse until
+   they tap the one who starts. With one hero, nobody is asked.
+5. **Actions:** from the second round on, curses are revealed first (*Curses*; in the first round nobody can have
+   one). Then the heroes take turns clockwise from the starter, three each, each asked to play a card. Each turn is one
    action: show a card, or *Pass*. Lightning gives another action within the same turn.
    Each hero's badge shows the actions they have left this round as orbs: **blue** for their three turns,
    **yellow** for extra ones (Lightning, a free card from another hero, a Warhorse's turn) and **red** for extra
@@ -114,7 +124,6 @@ away when the players stop the fight, the [game over screen](game_over.md) shows
   tap, and at exactly 0 its effects are gone too. **Direct damage** (the broken heart) hurts the boss past its shields. **Lightning** gives another action. **Heal**, **Draw**, **Take from draw pile** (the deck
   with two arrows) and **Health loss** (the red heart) tell the players what to do. **Remove from game** (the ripped
   card) tells them to put the card away, and refuses it for the rest of the fight. **Special** (the `*`) only marks a card with a special effect, which its ability does.
-- The actions message reminds heroes with panic to play at random.
 
 ## How it fits together
 

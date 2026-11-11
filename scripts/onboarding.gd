@@ -34,6 +34,8 @@ const TEXT := {
 	"hint_show": { "de": "Über die Kamera halten.", "en": "Hold it over the camera." },
 	"prompt_name": { "de": "Wie heißt dein Held?", "en": "What is your hero called?" },
 	"hint_name": { "de": "Tippe oben auf den Namen, oder würfle einen.", "en": "Type it at the top, or roll the dice." },
+	"prompt_seat": { "de": "Wo sitzt du?", "en": "Where are you sitting?" },
+	"hint_seat": { "de": "Tippe auf deinen Platz am Tisch.", "en": "Tap your place at the table." },
 	"prompt_ready": { "de": "%s ist bereit!", "en": "%s is ready!" },
 	"prompt_taken": { "de": "Schon vergeben", "en": "Already taken" },
 	"prompt_problem": { "de": "Da klemmt etwas", "en": "Something went wrong" },
@@ -45,7 +47,7 @@ const TEXT := {
 	"delete": { "de": "Löschen", "en": "Delete" },
 	"delete_confirm": { "de": "Sicher?", "en": "Really?" },
 	"battle": { "de": "Zum Kampf!", "en": "To Battle!" },
-	"party_hint": { "de": "Tippe auf deinen Platz am Tisch, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table to create or change a hero." },
+	"party_hint": { "de": "Tippe auf deinen Platz am Tisch oder zeig deine Charakterkarte, um einen Helden anzulegen oder zu ändern.", "en": "Tap your place at the table or show your character card to create or change a hero." },
 	"party_hint_full": { "de": "Tippe einen Helden an, um ihn zu ändern.", "en": "Tap a hero to change them." },
 	"party_name_placeholder": { "de": "Name der Gruppe", "en": "Party name" },
 }
@@ -262,14 +264,39 @@ func _on_code_confirmed(text: String) -> void:
 		_apply_card(_cards.find(text))
 
 
-## Only character and class cards do anything while editing, all others are ignored.
+## Only character and class cards do anything, all others are ignored. At the table, one
+## opens the editor (see _start_from_card).
 func _apply_card(card: Card) -> void:
-	if card == null or _view != View.EDITOR:
+	if card == null:
+		return
+	if _view == View.PARTY:
+		_start_from_card(card)
 		return
 	if HeroOptions.RACES.has(card.race):
 		_select_race(card.race, card.qr)
 	elif HeroOptions.CLASSES.has(card.hero_class):
 		_select_class(card.hero_class, card.qr)
+
+
+## At the table, a character or class card no hero has yet opens the editor for a new hero
+## with it, who chooses their seat last. A card of a hero already at the table does
+## nothing: it may just be lying in view.
+func _start_from_card(card: Card) -> void:
+	# Not while a hero flies to their seat, or the battle is about to begin.
+	if _overlay.mouse_filter == Control.MOUSE_FILTER_STOP or _fade.visible:
+		return
+	if _party.heroes.size() >= Party.MAX_HEROES:
+		return
+	if HeroOptions.RACES.has(card.race):
+		if _party.hero_with_race(card.race) != null:
+			return
+	elif HeroOptions.CLASSES.has(card.hero_class):
+		if _party.hero_with_class(card.hero_class) != null:
+			return
+	else:
+		return
+	_start_new_hero(-1)
+	_apply_card(card)
 
 
 ## A card that is still in view must first be taken away before it counts for a new hero.
@@ -436,8 +463,10 @@ func _open_editor() -> void:
 	_name_is_suggested = false
 	_message_shown = ""
 	_show_view(View.EDITOR)
-	var token: SeatToken = _seats[_draft.seat]
-	token.pop()
+	# A hero started from a card has no seat yet.
+	if _draft.seat >= 0:
+		var token: SeatToken = _seats[_draft.seat]
+		token.pop()
 
 
 func _on_primary_pressed() -> void:
@@ -504,6 +533,7 @@ func _move_draft(seat: int) -> void:
 	_name_edit.release_focus()
 	_draft.seat = seat
 	_refresh_seats()
+	_refresh_controls()
 	var token: SeatToken = _seats[seat]
 	token.pop()
 	_seat_sound.play()
@@ -641,7 +671,7 @@ func _refresh_controls() -> void:
 	_party_hint.text = _t("party_hint") if _party.heroes.size() < Party.MAX_HEROES else _t("party_hint_full")
 	_primary.text = _t("done") if editing else _t("battle")
 	if editing:
-		_set_primary_shown(not _draft.race.is_empty() and not _draft.hero_class.is_empty() and not _draft.name.is_empty())
+		_set_primary_shown(not _draft.race.is_empty() and not _draft.hero_class.is_empty() and not _draft.name.is_empty() and _draft.seat >= 0)
 	else:
 		_set_primary_shown(not _party.heroes.is_empty())
 
@@ -742,6 +772,10 @@ func _refresh_hint() -> void:
 		icon = PEN_ICON
 		_prompt.text = _t("prompt_name")
 		_hint.text = _t("hint_name")
+	elif _draft.seat < 0:
+		icon = null
+		_prompt.text = _t("prompt_seat")
+		_hint.text = _t("hint_seat")
 	else:
 		style = "ready"
 		icon = null
@@ -832,7 +866,8 @@ func _refresh_seats() -> void:
 			if token.seat == _draft.seat:
 				mode = SeatToken.Mode.ACTIVE
 			elif hero == null or hero == _editing:
-				mode = SeatToken.Mode.QUIET_SELECTABLE
+				# A hero without a seat yet calls for one.
+				mode = SeatToken.Mode.SELECTABLE if _draft.seat < 0 else SeatToken.Mode.QUIET_SELECTABLE
 		elif has_room or hero != null:
 			mode = SeatToken.Mode.SELECTABLE
 		token.set_mode(mode)

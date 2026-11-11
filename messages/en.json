@@ -4,17 +4,22 @@
 		"body": "[i]»{taunt}«[/i]",
 		"auto": true
 	},
+	"draw_start": {
+		"title": "Draw cards",
+		"body": "Draw your cards :card: up to your hand limit."
+	},
 	"round_started": {
 		"title": "Round {round}",
-		"body": "[boss]{boss}[/boss] is planning its attacks …",
+		"body": "[i]{flavor}[/i]",
+		"auto": true
+	},
+	"boss_planning": {
+		"body": "[boss]{boss}[/boss] is preparing its attacks …",
 		"animation": true
 	},
 	"phase_action": {
-		"title": "Phase 3 · Actions",
-		"body": [
-			"Reveal your curses now, if you have any.",
-			"Heroes with panic :panic: play their hand cards at random, and discard 1 panic token after each."
-		]
+		"title": "Curses",
+		"body": "Reveal your curses now, if you have any."
 	},
 	"boss_attacks": {
 		"title": "Phase 4 · Attack",
@@ -87,7 +92,7 @@
 		"body": "[boss]{boss}[/boss] has won this time. Rest, and try again!"
 	},
 	"prompt_choose_starter": {
-		"body": "Who starts this round?\n[b]Tap a hero![/b]"
+		"body": "It's your turn. Who starts this round?\n[b]Tap a hero![/b]"
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], your turn: play a card :card:."

@@ -10,7 +10,8 @@ const FOLDER := "res://assets/sounds/"
 const NAMES: Array[String] = [
 	"turn", "choose", "select", "rejected", "lightning", "hit", "shield_block",
 	"shield_break", "shields_up", "poison", "protect", "round", "boss_attack", "hurt",
-	"heal", "victory", "defeat", "boss_appears", "magic_hit", "arrow_hit", "slash",
+	"heal", "victory", "defeat", "boss_appears", "magic_hit", "arrow_hit", "slash", "tack",
+	"slam",
 ]
 ## Enough for a volley of arrows or bolts of magic, whose hits follow closely.
 const POLYPHONY := 6

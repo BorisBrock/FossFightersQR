@@ -114,6 +114,16 @@ func _init() -> void:
 		"de": "Ssssso viele kleine Helden ... und ich bin ssso hungrig.",
 		"en": "Ssssso many little heroes ... and I am ssso hungry.",
 	}
+	round_texts = [
+		{ "de": "Das schwarze Wasser kräuselt sich. Zwei gelbe Augen fixieren euch.", "en": "The black water ripples. Two yellow eyes fix on you." },
+		{ "de": "Moorzahn zischt und lässt seine Zunge über die Giftzähne gleiten.", "en": "Mirefang hisses and runs its tongue over its fangs." },
+		{ "de": "Fauliger Nebel steigt aus dem Moor auf.", "en": "Rotten mist rises from the mire." },
+		{ "de": "Der riesige Leib windet sich durch den Schlamm, immer näher.", "en": "The huge body coils through the mud, ever closer." },
+		{ "de": "Gift tropft von seinen Zähnen und zischt im Wasser.", "en": "Venom drips from its fangs and sizzles in the water." },
+		{ "de": "»Ihr ssseid zäher, als ihr ausssseht ...«", "en": "»You are tougher than you look ...«" },
+		{ "de": "Blasen steigen auf. Etwas lauert unter der Oberfläche.", "en": "Bubbles rise. Something lurks beneath the surface." },
+		{ "de": "Moorzahn bäumt sich auf und wirft einen gewaltigen Schatten.", "en": "Mirefang rears up and casts a vast shadow." },
+	]
 
 
 ## Every attack poisons, the stronger ones not more than the others.

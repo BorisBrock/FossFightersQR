@@ -23,8 +23,7 @@ check mark below it. Tapping the check mark confirms that the players have read 
   message stops the bar**, and the message waits for the check mark like any other. The bar also stops while a
   dialog is open, such as the settings, where the players can make messages stay longer (*Slowly*, 1.75 times as
   long) or never close by themselves.
-- **A message that goes with an animation** (`"animation": true`), such as *Round 2: the boss is planning its
-  attacks*, has no check mark and leaves the fight undimmed, and is narrower, so that the seats at the sides stay in
+- **A message that goes with an animation** (`"animation": true`), such as *The boss is preparing its attacks*, has no check mark and leaves the fight undimmed, and is narrower, so that the seats at the sides stay in
   view. The screen plays the animation as it shows, and closes it once the animation is done.
 - A message that asks the players to do something (draw, heal, lose health, take tokens, discard) always waits for the
   check mark, as confirming it says that they did it.

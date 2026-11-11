@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 101
+const EXPECTED_CHECKS := 106
 
 var _failures := 0
 var _checks_run := 0
@@ -62,7 +62,9 @@ func _check_fight_state() -> void:
 	fight.start()
 	_check(boss.calls == ["fight_started"] and told == ["boss_taunt <null>"], "a fight starts with the boss's greeting")
 	fight.players_ready()
-	_check(boss.calls[-1] == "round_started 1" and told[-1] == "round_started 1", "then round 1 is announced, and the boss told")
+	_check(told[-1] == "draw_start <null>" and boss.calls[-1] == "fight_started", "then everyone draws their cards")
+	fight.players_ready()
+	_check(boss.calls[-1] == "round_started 1" and told.has("round_started 1"), "then round 1 is announced, and the boss told")
 	fight.deal_damage(5, "melee")
 	_check(fight.health == 15, "an attack takes off health")
 	fight.deal_damage(5, "magic")
@@ -179,7 +181,7 @@ func _check_messages() -> void:
 	confirm.pressed.emit()
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
 	_check(confirmed == ["boss_taunt", "example_magic_potion", "example_reminder"] and all_confirmed[0], "each message is confirmed in turn")
-	_check(box.current() == "round_started", "and once all are read, the fight goes on")
+	_check(box.current() == "draw_start", "and once all are read, the fight goes on")
 	screen.queue_free()
 
 
@@ -205,10 +207,15 @@ func _check_countdown() -> void:
 
 	await _confirm(box)
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "draw_start" and not box.is_counting_down(), "drawing the cards waits for the check mark")
+	await _confirm(box)
+	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
+	_check(box.current() == "round_started" and box.is_counting_down(), "the round, with a word from the boss, runs down by itself")
+	await _run_down(box, "round_started")
 	var check_mark: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm")
-	_check(box.current() == "round_started" and not box.is_counting_down() and not check_mark.visible and not box.get_node("Dim").visible, "while the boss plans its attacks, its message has no check mark and leaves the fight undimmed")
-	await _until(func() -> bool: return box.current() != "round_started", 6.0)
-	_check(box.current() != "round_started", "once the attacks are shown, it closes by itself")
+	_check(box.current() == "boss_planning" and not box.is_counting_down() and not check_mark.visible and not box.get_node("Dim").visible, "while the boss plans its attacks, its message has no check mark and leaves the fight undimmed")
+	await _until(func() -> bool: return box.current() != "boss_planning", 8.0)
+	_check(box.current() != "boss_planning", "once the attacks are shown, it closes by itself")
 	# Then maybe Mirefang's bite, which asks nothing either.
 	while box.is_showing():
 		box._countdown_left = 0.1
@@ -261,7 +268,11 @@ func _check_round() -> void:
 		tokens[token.seat] = token
 	await get_tree().create_timer(screen.INTRO_SEC).timeout
 	await _confirm(box)
-	_check(box.current() == "round_started", "after the boss's words, the round begins, and the boss plans its attacks")
+	await _confirm(box)
+	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
+	_check(box.current() == "round_started" and screen.get_node("Hud/Round/Row/Value").text == "1", "after the boss's words and drawing, round 1 begins")
+	await _run_down(box, "round_started")
+	_check(box.current() == "boss_planning", "and the boss plans its attacks")
 	var threats: Array[Control] = [tokens[1].get_node("Threat"), tokens[3].get_node("Threat")]
 	_check(not threats[0].visible and not threats[1].visible, "the attacks are not shown yet")
 	await get_tree().create_timer(screen.PLAN_START_SEC + 0.1).timeout
@@ -274,6 +285,7 @@ func _check_round() -> void:
 	_check(shield.text == "0" and not prompt.visible, "the boss's shields rise, and the players wait")
 	await get_tree().create_timer(1.6).timeout
 	_check(shield.text == "2", "they count up to the shields the boss raised")
+	await _until(func() -> bool: return prompt.visible, 3.0)
 	_check(prompt.visible and tokens[1].mode == SeatToken.Mode.SELECTABLE and tokens[3].mode == SeatToken.Mode.SELECTABLE, "then the players are asked who starts")
 	await get_tree().create_timer(0.2).timeout
 	_check(tokens[1].get_node("Portrait").scale.x > 1.0, "the heroes to choose from pulse")
@@ -282,9 +294,7 @@ func _check_round() -> void:
 	_check(screen.fight.starter.name == "Borin", "tapping a hero chooses them")
 	_check(tokens[1].get_node("Portrait").scale.x == 1.0, "and stop once one is chosen")
 	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
-	_check(box.current() == "phase_action" and box.visible, "then the action phase begins")
-	await _confirm(box)
-	await get_tree().create_timer(MessageBox.FADE_SEC + 0.1).timeout
+	_check(not box.is_showing(), "in the first round nobody has curses to reveal: the action phase begins at once")
 	var text: RichTextLabel = screen.get_node("Prompt/Layout/Text")
 	_check(prompt.visible and text.get_parsed_text().contains("Borin") and tokens[3].mode == SeatToken.Mode.ACTIVE, "the chosen hero is asked for a card")
 	var spheres: ActionSpheres = tokens[3].get_node("Badge/Row/Actions")
@@ -298,6 +308,7 @@ func _check_round() -> void:
 	_check(screen.fight.health == health, "the card waits for the pling")
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0 + 0.1).timeout
 	_check(screen.fight.health == health - 2 and screen.is_showing_steps(), "after the pling, the card is played, and its attack shows")
+	_check(screen.get_node("CardName").visible and screen.get_node("CardName").text == "Axe", "with the card's name over the boss")
 	var melee: Control = screen.get_node("Shields/Melee/Attack")
 	var magic: Control = screen.get_node("Shields/Magic/Attack")
 	_check(melee.get_meta("open") and not magic.get_meta("open"), "the attack type it attacked with lights up, the others stay grey")
@@ -349,7 +360,7 @@ func _check_shield_choice() -> void:
 	_check(answers == ["magic"], "tapping a shield chooses it")
 	fight.request = null
 	fight.request_changed.emit(null)
-	await get_tree().create_timer(0.3).timeout
+	await get_tree().create_timer(0.5).timeout
 	_check(magic.scale.x == 1.0 and melee.scale.x == 1.0 and magic.mouse_filter == Control.MOUSE_FILTER_IGNORE and not screen.get_node("Prompt").visible, "then the shields stop pulsing, and the prompt goes")
 	screen.queue_free()
 
@@ -373,6 +384,16 @@ func _check_boss_look() -> void:
 	boss.look_changed.emit()
 	_check(figure.get_shader_parameter("eye_color") == Color.RED and figure.get_shader_parameter("seconds") == 2.0, "its look can change during the fight")
 	screen.queue_free()
+
+
+## Lets the message id, which closes by itself, run down at once.
+func _run_down(box: MessageBox, id: String) -> void:
+	var deadline := Time.get_ticks_msec() + 6000
+	while box.current() == id and Time.get_ticks_msec() < deadline:
+		if box.is_counting_down():
+			box._countdown_left = minf(box._countdown_left, 0.1)
+		await get_tree().process_frame
+	await _until(func() -> bool: return box.is_showing(), 2.0)
 
 
 func _until(condition: Callable, seconds: float) -> void:

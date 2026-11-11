@@ -58,6 +58,7 @@ What a boss has:
 | `waterline` | for a boss rising from water: the bottom edge of its figure fades into it |
 | `eyes`, `eye_color`, `eye_radius`, `eye_glow` | a glow over its eyes, which moves along with it: where they are in the figure (0 to 1 of its width and height), its colour, size in pixels of the picture and strength |
 | `taunt` | what it says when the fight begins |
+| `round_texts` | a line for the start of each round, one after the other, beginning again after the last (`Boss.round_text()`): its mood or what it does |
 | `attack_min`, `attack_max` | its attack against each hero per round, on *Normal*. Each difficulty adds its `attack_bonus`. |
 | `attack_by_heroes` | added to its attack with 1, 2, 3 and 4 heroes, or empty |
 | `shields` | the shields it raises each round, such as `{ "melee": 2, "ranged": 2, "magic": 2 }` |

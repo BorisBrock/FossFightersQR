@@ -46,6 +46,8 @@ signal boss_hit(kind: String, absorbed: int, dealt: int)
 ## time, or a new round cleared them.
 signal attacked_changed(kinds: Array[String])
 signal card_played(play: CardPlay)
+## A card begins to be played, before anything it does: the screen shows its name.
+signal card_started(play: CardPlay)
 ## A rule that shows on screen (FightRule.buff) came or went, or its buff changed. See
 ## buffs().
 signal buffs_changed
@@ -492,6 +494,7 @@ func _play_card(play: CardPlay) -> void:
 		hero.uses[play.card.qr] = hero.uses.get(play.card.qr, 0) + 1
 		history.append(play)
 		play.ability = CardAbility.create(play.card)
+		card_started.emit(play)
 	if play.ability != null:
 		play.ability.set_strength(self, play)
 	await _each_rule("card_playing", [play])
@@ -774,6 +777,11 @@ func _run() -> void:
 	await _each_rule("fight_started")
 	tell("boss_taunt", { "boss": boss.title, "taunt": boss.taunt })
 	await until_read()
+	if over:
+		return
+	# Before the first round, everyone draws their starting hand.
+	tell("draw_start")
+	await until_read()
 	while not over:
 		await _play_round()
 
@@ -793,13 +801,15 @@ func _play_round() -> void:
 		hero.pending.clear()
 		hero_changed.emit(hero)
 	round_changed.emit(round_number)
-	# One message for the new round and its planning, which the badges show as it happens.
-	tell("round_started", { "round": round_number, "boss": boss.title })
+	# The new round with a word from the boss, then its planning, which the screen shows
+	# as it happens.
+	tell("round_started", { "round": round_number, "boss": boss.title, "flavor": boss.round_text(round_number) })
 	await _each_rule("round_started")
 	if over:
 		return
 
 	await _phase(Phase.PLANNING)
+	tell("boss_planning", { "boss": boss.title })
 	await _rule_hook(boss, "plan_attacks")
 	await _each_rule("attacks_planned")
 	await until_read()
@@ -819,7 +829,9 @@ func _play_round() -> void:
 		return
 
 	await _phase(Phase.ACTION)
-	tell("phase_action", { "player": starter.name if starter != null else "" })
+	# In the first round nobody can have a curse yet.
+	if round_number > 1:
+		tell("phase_action", { "player": starter.name if starter != null else "" })
 	await _each_rule("action_phase_started")
 	await until_read()
 	if over:

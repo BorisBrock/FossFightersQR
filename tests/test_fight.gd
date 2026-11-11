@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 499
+const EXPECTED_CHECKS := 502
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -122,8 +122,11 @@ func _check_round() -> void:
 	_check(fight.request == null, "and the fight waits until they have read it")
 	_check(fight.scan(_card("AXE", [["attack", 5, "melee"]], "dwarf")) == "ignored" and fight.health == 30, "cards are only taken when one is asked for")
 	_ready(fight)
-	_check(_told[-1] == "round_started" and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins")
-	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in the same message")
+	_check(_told[-1] == "draw_start" and fight.round_number == 0 and fight.request == null, "then everyone draws their cards, before the first round")
+	_ready(fight)
+	_check(_told.slice(-2) == ["round_started", "boss_planning"] and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins")
+	_check(_values[-2].flavor == boss.round_text(1) and not boss.round_text(1).is_empty() and boss.round_text(2) != boss.round_text(1), "with a word from the boss, another each round")
+	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in a message of its own")
 	_check(fight.hero_at(1).threat == 4 and fight.hero_at(5).threat_effects == { "poison": 1 }, "against each hero")
 	var attacked := []
 	fight.boss_attacked.connect(func(kind: String, amount: int) -> void: attacked.append([kind, amount]))
@@ -137,8 +140,7 @@ func _check_round() -> void:
 	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.HERO and fight.request.heroes.size() == 3, "knowing the attacks and shields, the players choose who starts")
 	fight.choose(fight.hero_at(3))
 	_check(fight.starter == fight.hero_at(3), "tapping a hero chooses them")
-	_check(_told[-1] == "phase_action" and _values[-1].player == "Borin", "the action phase starts with the chosen hero")
-	_ready(fight)
+	_check(not _told.has("phase_action"), "in the first round, nobody has curses to reveal")
 	_check(_asks_card_of(fight, 3), "whose card is asked for first")
 
 	# Borin: a melee attack breaks the shield first.
@@ -187,10 +189,11 @@ func _check_round() -> void:
 	_ready(fight)
 	_check(_told.slice(-3) == ["round_end_status", "round_end_discard", "round_end_draw"] and fight.phase == Fight.Phase.ROUND_END, "then the players apply their status tokens, discard and draw, told in a message each")
 	_ready(fight)
-	_check(_told[-1] == "round_started" and fight.round_number == 2, "and the next round begins")
+	_check(_told.slice(-2) == ["round_started", "boss_planning"] and fight.round_number == 2, "and the next round begins")
 	_ready(fight)
 	_check(fight.request.kind == Fight.Request.Kind.HERO and fight.hero_at(1).threat > 0, "again by planning, then choosing who starts")
 	fight.choose(fight.hero_at(5))
+	_check(_told[-1] == "phase_action" and _values[-1].player == "Sonja", "from the second round on, the action phase starts with revealing curses")
 	_ready(fight)
 	_ready(fight)
 	_check(fight.scan(_card("SUP", [["support", 3, "magic"]], "dryad")) == "", "cards can be played again in a new round")
@@ -2275,7 +2278,7 @@ func _pass_until_asked(fight: Fight) -> void:
 func _pass_until(fight: Fight, id: String) -> void:
 	var start := _told.size()
 	for i in 200:
-		if fight.over or (_told.size() > start and _told[-1] == id):
+		if fight.over or _told.slice(start).has(id):
 			return
 		if fight.request != null and fight.request.kind == Fight.Request.Kind.ACTION:
 			fight.pass_action()
@@ -2377,6 +2380,7 @@ func _check_mirefang() -> void:
 	fight.start()
 	_ready(fight)
 	_ready(fight)
+	_ready(fight)
 	_check(fight.max_health == 80, "Mirefang has 80 health on normal")
 	_check(fight.heroes.all(func(hero: FightHero) -> bool:
 		var poison: int = hero.threat_effects.get("poison", 0)
@@ -2455,6 +2459,7 @@ func _check_mirefang() -> void:
 	fight.start()
 	_ready(fight)
 	_ready(fight)
+	_ready(fight)
 	fight.deal_damage(30, Fight.POISON)
 	_check(not fight.boss_away, "passing a mark outside the action phase, as by its poison, it waits")
 	fight.choose(fight.hero_at(1))
@@ -2519,6 +2524,7 @@ func _fight(boss: Boss, difficulty := "normal", levels := false, rosie_class := 
 func _started(boss: Boss, difficulty := "normal", to_cards := true, levels := false) -> Fight:
 	var fight := _fight(boss, difficulty, levels)
 	fight.start()
+	_ready(fight)
 	_ready(fight)
 	_ready(fight)
 	if to_cards:

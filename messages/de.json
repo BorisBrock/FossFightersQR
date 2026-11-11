@@ -4,17 +4,22 @@
 		"body": "[i]»{taunt}«[/i]",
 		"auto": true
 	},
+	"draw_start": {
+		"title": "Karten ziehen",
+		"body": "Zieht eure Karten :card: bis zum Handkartenlimit."
+	},
 	"round_started": {
 		"title": "Runde {round}",
-		"body": "[boss]{boss}[/boss] plant seine Angriffe …",
+		"body": "[i]{flavor}[/i]",
+		"auto": true
+	},
+	"boss_planning": {
+		"body": "[boss]{boss}[/boss] bereitet seine Attacken vor …",
 		"animation": true
 	},
 	"phase_action": {
-		"title": "Phase 3 · Aktionen",
-		"body": [
-			"Deckt jetzt eure Flüche auf, falls ihr welche habt.",
-			"Helden mit Panik :panic: spielen ihre Handkarten zufällig und werfen danach jeweils 1 Panik-Marker ab."
-		]
+		"title": "Flüche",
+		"body": "Deckt jetzt eure Flüche auf, falls ihr welche habt."
 	},
 	"boss_attacks": {
 		"title": "Phase 4 · Angriff",
@@ -87,7 +92,7 @@
 		"body": "[boss]{boss}[/boss] hat diesmal gewonnen. Ruht euch aus und versucht es noch einmal!"
 	},
 	"prompt_choose_starter": {
-		"body": "Wer beginnt diese Runde?\n[b]Tippt einen Helden an![/b]"
+		"body": "Ihr seid am Zug. Wer beginnt diese Runde?\n[b]Tippt einen Helden an![/b]"
 	},
 	"prompt_action": {
 		"body": "[player]{player}[/player], du bist dran: spiel eine Karte :card:."

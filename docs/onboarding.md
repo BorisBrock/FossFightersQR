@@ -10,6 +10,9 @@ at the table:
 
 - **A free seat** opens the editor for a new hero.
 - **A taken seat** opens the editor for the hero sitting there. So does tapping a hero in the middle of the screen.
+- **A character or class card** shown to the camera opens the editor for a new hero with that card, who then shows
+  their other card, gives a name and taps their seat. A card of a hero already at the table does nothing there (it
+  may just be lying in view), and with 4 heroes no card does.
 
 *To Battle!* appears once there is a hero, and leads to [choosing the boss](bosses.md). With 4 heroes, free seats can no longer be tapped.
 
@@ -27,11 +30,12 @@ Everything about a hero is on one page, and can be done in any order:
 The buttons at the bottom, side by side and the same size:
 
 - *Delete* (left) is there for a hero that already exists, and asks once more.
-- *Done* (right) saves the hero and appears once there is a character, a class and a name.
+- *Done* (right) saves the hero and appears once there is a character, a class, a name and a seat.
 
 Tapping the table outside the panel (but not on a seat) leaves without saving.
 
-To move a hero, tap a free seat while the editor is open. The seats show the move at once. *Done* saves it and
+A hero started from a card has no seat yet: the free seats pulse, and the hint asks *Where are you sitting?* once
+the cards and the name are there. To move a hero, tap a free seat while the editor is open. The seats show the move at once. *Done* saves it and
 tapping the table puts the hero back.
 
 The party is saved in `user://party.json` (`scripts/party.gd`) after every change. If a saved party exists, a returning
@@ -39,8 +43,8 @@ group only needs one tap. A hero that is still in the editor is not saved.
 
 ## Rules for cards
 
-- Only character and class cards count, and only in the editor. All other cards and unknown codes do nothing, without
-  any message.
+- Only character and class cards count, in the editor and at the table (see [Flow](#flow)). All other cards and
+  unknown codes do nothing, without any message.
 - Showing another card of the same kind replaces the choice.
 - The card shown is kept with the hero (`race_card`, `class_card` in the party file), as it says their level: a level 5
   or 8 card gives the hero its ability in the fight (see [Cards](cards.md#hero-levels)). Showing a card of the same

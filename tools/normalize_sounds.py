@@ -32,9 +32,9 @@ TIERS = {
     # Cues and notices: someone has to act, a card was read, a message pops up.
     "cue": (-22.0, ["turn", "choose", "seat", "reveal", "card_scanned", "rejected", "round"]),
     # Hits that come in quick volleys (arrows, bolts, a shield counting down): they add up.
-    "volley": (-21.0, ["magic_hit", "arrow_hit", "shield_block"]),
+    "volley": (-21.0, ["magic_hit", "arrow_hit", "shield_block", "tack"]),
     # The fight's effects.
-    "effect": (-19.0, ["hit", "slash", "shield_break", "shields_up", "poison", "protect",
+    "effect": (-19.0, ["hit", "slash", "slam", "shield_break", "shields_up", "poison", "protect",
                        "lightning", "heal", "hurt"]),
     # The big moments: the boss appears, attacks and dies, the fight is won or lost.
     "event": (-16.0, ["boss_appears", "boss_attack", "victory", "defeat", "fanfare", "boss_*"]),

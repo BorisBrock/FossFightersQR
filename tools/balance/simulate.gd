@@ -42,7 +42,7 @@ const PASS_BELOW := 0.5
 
 ## Messages that are only to read, or ask for nothing that matters to the simulated table.
 const READ_ONLY: Array[String] = [
-	"boss_taunt", "phase_action", "phase_attack_blocked", "boss_poison", "victory", "defeat",
+	"boss_taunt", "draw_start", "boss_planning", "phase_action", "phase_attack_blocked", "boss_poison", "victory", "defeat",
 	"support_without_attack", "mirefang_surfaces", "mirefang_out_of_reach", "boss_ability_prevented",
 	"totems_returned", "totem_lightning", "shield_breaker", "card_repeated", "nothing_to_repeat",
 	"attacks_weakened", "attacks_weakened_next_round", "attack_redirected", "attack_halved",

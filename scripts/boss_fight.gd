@@ -50,17 +50,33 @@ const ATTACK_GRAY_SCALE := 0.9
 const ATTACK_GRAY_LIFT := 0.3
 const ATTACK_CLOSED_ALPHA := 0.85
 ## How long the boss takes to plan its attack against each hero, while the message says
-## so: the attack pops up and counts up, then what it does besides.
+## so: the attack smashes in at the hero and counts up, then what it does besides, then
+## the next hero after a pause.
 const PLAN_START_SEC := 0.5
-const PLAN_COUNT_SEC := 0.45
-const PLAN_HERO_SEC := 0.75
+const PLAN_GAP_SEC := 0.35
 const PLAN_END_SEC := 0.9
-## How long the shields take to rise, one after the other, each counting up. Messages wait
+## Numbers that count up, such as a planned attack or a rising shield, tack at each step
+## (the "tack" sound), COUNT_TICK_SEC apart, and take COUNT_MAX_SEC at most.
+const COUNT_TICK_SEC := 0.09
+const COUNT_MAX_SEC := 1.0
+## A planned attack or a rising shield smashes onto the screen: it shrinks from this
+## large to its size, and lands with a thud that shakes the screen.
+const SMASH_SCALE := 2.4
+const SMASH_SEC := 0.18
+## The whole screen shakes, as in an earthquake: this far at strength 1, for this long.
+const SCREEN_SHAKE_PX := 16.0
+const SCREEN_SHAKE_SEC := 0.4
+## An attack at least this strong, by a hero or the boss, shakes the screen.
+const BIG_ATTACK := 5
+## The shields rise one after the other, each smashing in and counting up. Messages wait
 ## meanwhile.
 const SHIELD_APPEAR_SEC := 0.35
-const SHIELD_STAGGER_SEC := 0.2
-const SHIELD_COUNT_SEC := 0.6
+const SHIELD_GAP_SEC := 0.25
 const SHIELD_BANNER_SEC := 1.4
+## The name of a card being played shows over the boss: the fight waits CARD_NAME_LEAD_SEC
+## for it before the card takes effect, and it stays CARD_NAME_SEC in all.
+const CARD_NAME_LEAD_SEC := 0.55
+const CARD_NAME_SEC := 2.2
 ## A hit on the boss shows one step after the other, and the fight waits meanwhile (see
 ## _show_step): the attack (AttackEffects), its shield counting down, the shield breaking,
 ## and the damage that is left coming off its health.
@@ -178,6 +194,11 @@ var _shown_shields := {}
 var _raising := false
 var _flash_tween: Tween
 var _shake_tween: Tween
+var _screen_shake: Tween
+## The attack whose effect plays now is a big one (BIG_ATTACK): its hits shake the screen.
+var _big_attack := false
+## The name of the card being played, over the boss.
+var _card_name: Label
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
@@ -223,6 +244,7 @@ func _ready() -> void:
 	fight.boss_away_changed.connect(_on_boss_away_changed)
 	fight.shields_raised.connect(_on_shields_raised)
 	fight.boss_attacked.connect(_on_boss_attacked)
+	fight.card_started.connect(_on_card_started)
 	fight.hero_changed.connect(_refresh_badge)
 	fight.hero_changed.connect(_refresh_form)
 	fight.phase_changed.connect(_on_phase_changed)
@@ -247,7 +269,7 @@ func _ready() -> void:
 	_shown_shields = fight.shields.duplicate()
 	_effects = AttackEffects.new()
 	_effects.sfx = _sfx
-	_effects.impact.connect(_on_impact)
+	_effects.impact.connect(_on_effect_impact)
 	add_child(_effects)
 	# Over the boss, the heroes and the shields, under the prompt, messages and HUD.
 	move_child(_effects, _shields.get_index() + 1)
@@ -1001,6 +1023,7 @@ func _break_shield(kind: String) -> void:
 		picture.self_modulate = Color.WHITE.lerp(Color(2.4, 2.1, 1.7), t), 0.0, 1.0, SHIELD_TREMBLE_SEC).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func() -> void:
 		_sfx.play("shield_break")
+		shake_screen(0.6)
 		_effects.shatter(picture)
 		plate.rotation = 0.0
 		plate.scale = Vector2.ONE
@@ -1011,12 +1034,18 @@ func _break_shield(kind: String) -> void:
 	tween.tween_property(plate, "modulate:a", BROKEN_ALPHA, 0.4)
 
 
-## Instead of a message: the shields appear one after the other and count up to their
-## values. The fight and the next message wait until they are done.
+## Instead of a message: the shields smash in one after the other, each shaking the
+## screen, and count up to their values with a tack at each step. The fight and the next
+## message wait until they are done.
 func _on_shields_raised(shields: Dictionary) -> void:
 	_raising = false
 	_shown_shields = shields.duplicate()
-	var seconds := SHIELD_APPEAR_SEC + SHIELD_STAGGER_SEC * (_shield_plates.size() - 1) + SHIELD_COUNT_SEC
+	var seconds := SHIELD_APPEAR_SEC
+	for kind: String in _shield_plates:
+		var value: int = shields.get(kind, 0)
+		seconds += SHIELD_GAP_SEC
+		if value > 0:
+			seconds += SMASH_SEC + _count_seconds(value)
 	_show_step(_raise_shields.bind(shields.duplicate()), seconds + 0.2)
 
 
@@ -1032,39 +1061,99 @@ func _raise_shields(shields: Dictionary) -> void:
 	if not none:
 		_sfx.play("shields_up")
 	show_banner(_t("no_shields" if none else "shields_raised"), SHIELD_BANNER_SEC)
-	var appearing := _shields.modulate.a < 1.0
-	if appearing:
+	if _shields.modulate.a < 1.0:
 		create_tween().tween_property(_shields, "modulate:a", 1.0, SHIELD_APPEAR_SEC)
-	for i in kinds.size():
-		var kind: String = kinds[i]
+	# The new shields replace what is left of the last ones: all are gone at first.
+	for kind: String in kinds:
+		var plate: Control = _shield_plates[kind]
+		(plate.get_node("Value") as Label).text = "0"
+		plate.scale = Vector2.ZERO
+	var tween := create_tween()
+	tween.tween_interval(SHIELD_APPEAR_SEC)
+	for kind: String in kinds:
 		var plate: Control = _shield_plates[kind]
 		var value: Label = plate.get_node("Value")
-		var from := 0 if appearing else value.text.to_int()
 		var to: int = shields.get(kind, 0)
-		var delay := SHIELD_STAGGER_SEC * i
-		var tween := create_tween()
-		if appearing:
-			value.text = "0"
-			_show_shield_state(plate, 0)
-			plate.pivot_offset = plate.size / 2.0
-			plate.scale = Vector2.ZERO
-			tween.tween_property(plate, "scale", Vector2.ONE, SHIELD_APPEAR_SEC).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		else:
-			tween.tween_interval(SHIELD_APPEAR_SEC + delay)
-		if from != to:
-			tween.tween_callback(_show_shield_state.bind(plate, to))
-			tween.tween_method(func(shown: int) -> void: value.text = str(shown), from, to, SHIELD_COUNT_SEC)
-			tween.tween_callback(_pop.bind(plate))
+		if to <= 0:
+			# No shield of this kind: it shows broken, without a fuss.
+			tween.tween_callback(func() -> void:
+				_show_shield_state(plate, 0)
+				plate.pivot_offset = plate.size / 2.0
+				plate.scale = Vector2.ONE)
+			tween.tween_interval(SHIELD_GAP_SEC)
+			continue
+		tween.tween_callback(_show_shield_state.bind(plate, to))
+		_smash(tween, plate, 0.6 + 0.06 * to)
+		tween.tween_callback(_effects.spark.bind(plate))
+		_count_up(tween, value, 0, to)
 		tween.tween_callback(func() -> void:
 			value.text = str(to)
-			_show_shield_state(plate, to))
+			_pop(plate))
+		tween.tween_interval(SHIELD_GAP_SEC)
 
 
 ## A hero attacks: the big effect of the attack's kind plays over the boss first.
 func _on_boss_attacked(kind: String, amount: int) -> void:
 	var seconds := AttackEffects.duration(kind, amount)
 	if seconds > 0.0:
-		_show_step(func() -> void: _effects.play(kind, amount, _boss_area()), seconds)
+		_show_step(func() -> void:
+			_big_attack = amount >= BIG_ATTACK
+			_effects.play(kind, amount, _boss_area()), seconds)
+
+
+## A hit of an attack's effect: the boss lights up and shakes, and with a big attack the
+## screen too.
+func _on_effect_impact(point: Vector2, strength: float, color: Color) -> void:
+	_on_impact(point, strength, color)
+	if _big_attack:
+		shake_screen(0.35 + 0.5 * strength)
+
+
+## A card is being played: its name shows over the boss, and the fight waits a moment for
+## it before the card takes effect.
+func _on_card_started(play: CardPlay) -> void:
+	var title := CardDatabase.localized(play.card.title, TranslationServer.get_locale())
+	if title.is_empty():
+		return
+	_show_step(_show_card_name.bind(title), CARD_NAME_LEAD_SEC)
+
+
+func _show_card_name(title: String) -> void:
+	if _card_name == null:
+		_card_name = Label.new()
+		_card_name.name = "CardName"
+		_card_name.theme_type_variation = &"Title"
+		_card_name.add_theme_font_size_override("font_size", 52)
+		_card_name.add_theme_constant_override("outline_size", 14)
+		_card_name.add_theme_color_override("font_outline_color", Color(0.08, 0.03, 0.01))
+		_card_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_card_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_card_name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_card_name)
+		# A band across the upper part of the boss, the name centred in it.
+		_card_name.set_anchor_and_offset(SIDE_LEFT, 0.06, 0.0)
+		_card_name.set_anchor_and_offset(SIDE_RIGHT, 0.94, 0.0)
+		_card_name.set_anchor_and_offset(SIDE_TOP, 0.12, 0.0)
+		_card_name.set_anchor_and_offset(SIDE_BOTTOM, 0.27, 0.0)
+		# Over the boss and its effects, under the prompt and the messages.
+		move_child(_card_name, _effects.get_index() + 1)
+	var tween_name := &"card_name_tween"
+	if _card_name.has_meta(tween_name):
+		(_card_name.get_meta(tween_name) as Tween).kill()
+	_card_name.text = title
+	_card_name.pivot_offset = _card_name.size / 2.0
+	_card_name.show()
+	_card_name.modulate.a = 0.0
+	_card_name.scale = Vector2.ONE * 1.6
+	var tween := create_tween()
+	_card_name.set_meta(tween_name, tween)
+	tween.set_parallel()
+	tween.tween_property(_card_name, "modulate:a", 1.0, 0.15)
+	tween.tween_property(_card_name, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_interval(CARD_NAME_SEC - 0.6)
+	tween.chain().tween_property(_card_name, "modulate:a", 0.0, 0.35)
+	tween.chain().tween_callback(_card_name.hide)
 
 
 func _on_boss_hit(_kind: String, _absorbed: int, dealt: int) -> void:
@@ -1156,10 +1245,13 @@ func _run_steps() -> void:
 
 func _on_message_shown(id: String) -> void:
 	if id == "boss_attacks":
-		_lunge()
+		var strongest := 0
+		for hero in fight.heroes:
+			strongest = maxi(strongest, hero.threat)
+		_lunge(strongest >= BIG_ATTACK)
 	if not Messages.is_animated(id):
 		return
-	if id == "round_started":
+	if id == "boss_planning":
 		_animate_planning()
 	else:
 		messages.finish(id)
@@ -1170,46 +1262,96 @@ func _on_message_shown(id: String) -> void:
 ## message closes. There is nothing to confirm, the players see it all happen.
 func _animate_planning() -> void:
 	await get_tree().create_timer(PLAN_START_SEC).timeout
-	if not is_inside_tree() or messages.current() != "round_started":
+	if not is_inside_tree() or messages.current() != "boss_planning":
 		return
-	# A rule that waits for the players as the round starts would hold up the planning:
+	# A rule that waits for the players while the boss plans would hold up the planning:
 	# then the attacks show as they come.
 	if fight.phase != Fight.Phase.PLANNING:
 		for seat: int in _revealed:
 			_revealed[seat] = true
-		messages.finish("round_started")
+		messages.finish("boss_planning")
 		return
 	for hero in fight.heroes:
 		if not is_inside_tree() or fight.over:
 			return
-		_reveal_threat(hero)
-		await get_tree().create_timer(PLAN_HERO_SEC).timeout
+		var seconds := _reveal_threat(hero)
+		await get_tree().create_timer(seconds + PLAN_GAP_SEC).timeout
 	if not is_inside_tree():
 		return
 	await get_tree().create_timer(PLAN_END_SEC).timeout
 	if is_inside_tree():
-		messages.finish("round_started")
+		messages.finish("boss_planning")
 
 
-func _reveal_threat(hero: FightHero) -> void:
+## The attack against hero smashes in at their seat, shaking the screen, and counts up
+## with a tack at each step, then what it does besides pops up. Returns how long it takes.
+func _reveal_threat(hero: FightHero) -> float:
 	_revealed[hero.seat] = true
 	_refresh_badge(hero)
 	var token: SeatToken = _badges[hero.seat].get_parent()
 	var threat: Control = token.get_node("Threat")
 	var effects: Control = token.get_node("Effects")
 	var value: Label = threat.get_node("Column/Value")
-	_sfx.play("select")
-	threat.pivot_offset = threat.size / 2.0
-	threat.scale = Vector2.ZERO
+	var amount := hero.threat
+	value.text = "0"
 	var tween := create_tween()
-	tween.tween_property(threat, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_method(func(shown: int) -> void: value.text = str(shown), 0, hero.threat, PLAN_COUNT_SEC)
-	tween.tween_callback(func() -> void: value.text = str(hero.threat))
+	_smash(tween, threat, 0.35 + 0.08 * amount)
+	_count_up(tween, value, 0, amount)
+	tween.tween_callback(func() -> void:
+		value.text = str(hero.threat)
+		_pop(threat))
+	var seconds := SMASH_SEC + _count_seconds(amount)
 	if effects.visible:
 		effects.pivot_offset = effects.size / 2.0
 		effects.scale = Vector2.ZERO
 		tween.tween_callback(_sfx.play.bind("poison" if hero.threat_effects.has("poison") else "select"))
 		tween.tween_property(effects, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		seconds += 0.3
+	return seconds
+
+
+## Adds to tween: control smashes onto the screen, shrinking from large to its size, and
+## lands with a thud that shakes the screen by strength (see shake_screen).
+func _smash(tween: Tween, control: Control, strength: float) -> void:
+	tween.tween_callback(func() -> void:
+		control.pivot_offset = control.size / 2.0
+		control.scale = Vector2.ONE * SMASH_SCALE)
+	tween.tween_property(control, "scale", Vector2.ONE, SMASH_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func() -> void:
+		_sfx.play("slam")
+		shake_screen(strength))
+
+
+## Adds to tween: label counts from from to to, a step each tick, with a tack each,
+## higher and higher.
+func _count_up(tween: Tween, label: Label, from: int, to: int) -> void:
+	var tick := _count_tick(to - from)
+	for shown in range(from + 1, to + 1):
+		tween.tween_callback(func() -> void:
+			label.text = str(shown)
+			_sfx.play("tack", 1.0 + 0.04 * mini(shown - from, 12)))
+		tween.tween_interval(tick)
+
+
+func _count_tick(steps: int) -> float:
+	return minf(COUNT_TICK_SEC, COUNT_MAX_SEC / maxi(1, steps))
+
+
+## How long _count_up() takes for that many steps.
+func _count_seconds(steps: int) -> float:
+	return _count_tick(steps) * maxi(0, steps)
+
+
+## The whole screen shakes, as in an earthquake, and settles: strength 1 is a heavy blow.
+func shake_screen(strength := 1.0) -> void:
+	if _screen_shake != null:
+		_screen_shake.kill()
+	var phase := randf() * TAU
+	var amplitude := SCREEN_SHAKE_PX * clampf(strength, 0.0, 1.5)
+	_screen_shake = create_tween()
+	_screen_shake.tween_method(func(t: float) -> void:
+		position = Vector2(sin(phase + t * 70.0), cos(phase * 1.7 + t * 53.0)) * amplitude * (1.0 - t) * (1.0 - t), 0.0, 1.0, SCREEN_SHAKE_SEC)
+	_screen_shake.tween_callback(func() -> void: position = Vector2.ZERO)
 
 
 ## The boss goes out of reach and sinks, its shields and attack types fading, or comes back
@@ -1269,13 +1411,16 @@ func _splash(strength: float) -> void:
 	splash.finished.connect(splash.queue_free)
 
 
-## The boss strikes: it rears back, then lunges at the heroes and settles again.
-func _lunge() -> void:
+## The boss strikes: it rears back, then lunges at the heroes and settles again. A big
+## attack shakes the screen as it lands.
+func _lunge(big := false) -> void:
 	var area := _boss_area()
 	_figure.pivot_offset = Vector2(_figure.size.x / 2.0, area.end.y - _figure.position.y)
 	var tween := create_tween()
 	tween.tween_property(_figure, "scale", Vector2(0.96, 0.96), LUNGE_SEC * 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_figure, "scale", Vector2(1.12, 1.12), LUNGE_SEC * 0.2).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	if big:
+		tween.tween_callback(shake_screen.bind(1.2))
 	tween.tween_property(_figure, "scale", Vector2.ONE, LUNGE_SEC * 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 

@@ -18,7 +18,7 @@ const READ_TIMEOUT_SEC := 2.0
 const AWAY_SEC := 2.3
 ## Time for a read if the card were going to count.
 const IGNORE_SEC := 1.0
-const EXPECTED_CHECKS := 77
+const EXPECTED_CHECKS := 81
 
 var _feed: FakeCameraFeed
 var _scene: Node
@@ -299,6 +299,20 @@ func _run() -> void:
 	delete.pressed.emit()
 	delete.pressed.emit()
 	_check(_scene._view == VIEW_PARTY and reloaded.heroes.is_empty() and done.disabled, "without heroes it is back at the table, with no way to battle")
+
+	# A card shown at the table opens the editor for a new hero, who chooses their seat last.
+	var new_seat: SeatToken = _scene.get_node("Seats/Seat5")
+	_scene._apply_card(_scene._cards.find("CORE-001"))
+	_check(_scene._view == VIEW_PARTY, "a playing card at the table does nothing")
+	_scene._last_selection_msec = -_scene.SELECTION_DWELL_MSEC
+	_scene._apply_card(_scene._cards.find("CHAR-ELF"))
+	_check(_scene._view == VIEW_EDITOR and _scene._draft.race == "elf" and _scene._draft.seat == -1, "a character card at the table starts a new hero, without a seat yet")
+	_scene._last_selection_msec = -_scene.SELECTION_DWELL_MSEC
+	_scene._apply_card(_scene._cards.find("CLASS-THIEF"))
+	_check(_scene._draft.hero_class == "thief" and done.disabled and _scene._prompt.text == _scene._t("prompt_seat") and new_seat.mode == SeatToken.Mode.SELECTABLE, "with both cards and a name, the free seats call for a seat")
+	new_seat.pressed.emit()
+	_check(_scene._draft.seat == 5 and not done.disabled and new_seat.mode == SeatToken.Mode.ACTIVE, "tapping one chooses it, and the hero can be finished")
+	_tap_table()
 
 	# A laptop webcam delivers colour frames instead of Android's format. The hero's card
 	# was just in view, so it has to leave first.

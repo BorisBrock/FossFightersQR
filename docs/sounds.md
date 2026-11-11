@@ -17,8 +17,8 @@ loudness, as Godot plays it: mono on both speakers) are at the tier's target.
 | Tier     | Target    | Sounds                                                                         |
 |----------|-----------|--------------------------------------------------------------------------------|
 | `event`  | -16 LUFS  | `boss_appears`, `boss_attack`, `victory`, `defeat`, `fanfare`, every `boss_*` sound |
-| `effect` | -19 LUFS  | `hit`, `slash`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
-| `volley` | -21 LUFS  | `magic_hit`, `arrow_hit`, `shield_block`: they come in quick series and add up  |
+| `effect` | -19 LUFS  | `hit`, `slash`, `slam`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
+| `volley` | -21 LUFS  | `magic_hit`, `arrow_hit`, `shield_block`, `tack`: they come in quick series and add up |
 | `cue`    | -22 LUFS  | `turn`, `choose`, `seat`, `reveal`, `card_scanned`, `rejected`, `round`         |
 | `ui`     | -26 LUFS  | `click`, `select`                                                               |
 
@@ -40,7 +40,6 @@ sound. A sound added to the script also has to be added to `Sfx.NAMES`.
 | `turn`         | A hero has to play a card: their turn starts, or they get another action (Lightning, a free card). |
 | `choose`       | The players have to choose: tap a hero (who starts, whom to protect or heal…) or a button. |
 | `select`       | A hero who can be chosen, or a button of the prompt, is tapped.                          |
-|                | Also each attack the boss plans pops up at a hero's seat.                                |
 | `rejected`     | A card shown cannot be played now (any notice but Lightning's).                          |
 | `lightning`    | Lightning gives another action.                                                          |
 | `hit`          | Damage reaches the boss's health.                                                        |
@@ -50,6 +49,8 @@ sound. A sound added to the script also has to be added to `Sfx.NAMES`.
 | `slash`        | A melee attack's blade slashes across the boss.                                          |
 | `arrow_hit`    | An arrow of a ranged attack hits the boss, at a slightly different pitch each time.     |
 | `shields_up`   | The boss raises its shields (not when it has none).                                      |
+| `slam`         | A planned attack or a shield smashes onto the screen, as the screen shakes. Made with sox. |
+| `tack`         | A number counts up a step: a planned attack or a rising shield, a little higher each step. Made with sox. |
 | `poison`       | The boss gets poison tokens; its poison hurts it at the end of a round. A planned attack that poisons pops up its poison token. |
 | `protect`      | An attack against a hero is lowered in the action phase, or every attack was blocked.    |
 | `boss_appears` | The boss appears at the start of the fight, or comes back up after being out of reach.   |
