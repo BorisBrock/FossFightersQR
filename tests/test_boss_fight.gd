@@ -187,9 +187,9 @@ func _check_messages() -> void:
 func _check_countdown() -> void:
 	var screen := await _open()
 	var box: MessageBox = screen.messages
-	var bar: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm/Countdown")
+	var bar: CountdownBar = box.get_node("Margin/Panel/Margin/Layout/Confirm/Countdown")
 	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
-	_check(box.current() == "boss_taunt" and box.is_counting_down() and bar.visible and bar.scale.x < 1.0, "the boss's words, which ask nothing, run down in the check mark")
+	_check(box.current() == "boss_taunt" and box.is_counting_down() and bar.visible and bar.value < 1.0, "the boss's words, which ask nothing, run down in the check mark")
 
 	var panel: Control = box.get_node("Margin/Panel")
 	var tap := InputEventMouseButton.new()

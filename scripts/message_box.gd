@@ -80,7 +80,7 @@ var _default_sound: AudioStream
 @onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Header/Title
 @onready var _body: RichTextLabel = $Margin/Panel/Margin/Layout/Body
 @onready var _confirm: BaseButton = $Margin/Panel/Margin/Layout/Confirm
-@onready var _countdown: Control = $Margin/Panel/Margin/Layout/Confirm/Countdown
+@onready var _countdown: CountdownBar = $Margin/Panel/Margin/Layout/Confirm/Countdown
 @onready var _sound: AudioStreamPlayer = $Sound
 
 
@@ -98,7 +98,7 @@ func _process(delta: float) -> void:
 	if not get_tree().get_nodes_in_group(MenuScreen.DIALOG_GROUP).is_empty():
 		return
 	_countdown_left -= delta
-	_countdown.scale.x = maxf(0.0, _countdown_left / _countdown_total)
+	_countdown.value = _countdown_left / _countdown_total
 	if _countdown_left <= 0.0:
 		confirm()
 
@@ -231,7 +231,7 @@ func _on_ready_to_confirm() -> void:
 	if seconds > 0.0:
 		_countdown_total = seconds
 		_countdown_left = seconds
-		_countdown.scale.x = 1.0
+		_countdown.value = 1.0
 		_countdown.show()
 
 

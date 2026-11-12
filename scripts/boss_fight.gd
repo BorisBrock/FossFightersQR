@@ -103,6 +103,9 @@ const HEALTH_STEP_SEC := 0.8
 ## Between the steps of a hit.
 const STEP_PAUSE_SEC := 0.2
 const HIT_COLOR := Color(1.0, 0.36, 0.28)
+## A shield's value flashes up in its own colour, brightened this much towards white,
+## at each point it loses.
+const SHIELD_HIT_BRIGHTEN := 0.6
 ## The boss goes out of reach (Fight.boss_away): it sinks, and comes back up fast.
 const SINK_SEC := 1.4
 const SURFACE_SEC := 0.5
@@ -1069,7 +1072,7 @@ func _count_shield(kind: String, from: int, to: int) -> void:
 	for shown in range(from - 1, to - 1, -1):
 		tween.tween_callback(func() -> void:
 			value.text = str(shown)
-			value.add_theme_color_override("font_color", HIT_COLOR)
+			value.add_theme_color_override("font_color", (SHIELD_VALUE_COLORS[kind] as Color).lerp(Color.WHITE, SHIELD_HIT_BRIGHTEN))
 			plate.scale = Vector2.ONE * 1.3
 			_sfx.play("shield_block", 1.0 + 0.05 * (from - shown))
 			_effects.spark(plate))
