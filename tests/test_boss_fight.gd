@@ -217,6 +217,8 @@ func _check_countdown() -> void:
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.3).timeout
 	_check(box.current() == "first_round" and not box.is_counting_down(), "round 1, with drawing the cards, waits for the check mark")
 	await _confirm(box)
+	# The dim fades away.
+	await get_tree().create_timer(MessageBox.FADE_SEC + 0.05).timeout
 	var check_mark: Control = box.get_node("Margin/Panel/Margin/Layout/Confirm")
 	_check(box.current() == "boss_planning" and not box.is_counting_down() and not check_mark.visible and not box.get_node("Dim").visible, "while the boss plans its attacks, its message has no check mark and leaves the fight undimmed")
 	await _until(func() -> bool: return box.current() != "boss_planning", 8.0)
@@ -315,7 +317,7 @@ func _check_round() -> void:
 	_check(screen.fight.health == health, "the card waits for the pling")
 	await get_tree().create_timer(QrCameraScanner.CONFIRM_SEC / 2.0 + 0.1).timeout
 	_check(screen.fight.health == health - 2 and screen.is_showing_steps(), "after the pling, the card is played, and its attack shows")
-	_check(screen.get_node("CardName").visible and screen.get_node("CardName").text == "Axe", "with the card's name over the boss")
+	_check(screen.get_node("CardName").visible and screen.get_node("CardName/Text/Title").text == "Axe", "with the card's name over the boss")
 	var melee: Control = screen.get_node("Shields/Melee/Attack")
 	var magic: Control = screen.get_node("Shields/Magic/Attack")
 	_check(melee.get_meta("open") and not magic.get_meta("open"), "the attack type it attacked with lights up, the others stay grey")

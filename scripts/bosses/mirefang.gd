@@ -7,8 +7,10 @@ extends Boss
 ##   attacks cannot reach it, and one hero is marked for its bite. Every hero gets an
 ##   action more to prepare. At the end of the action phase it surfaces and bites.
 ## - From the dive below half its health on, it is enraged: stronger attacks and shields.
-## - A card that costs it spit_damage health or more makes it spit venom on every hero,
-##   once a round.
+## - A card that costs it spit_damage health or more makes it spit venom at the hero who
+##   played it, once a round.
+## - Every tail_every rounds, after its attacks, it lashes its tail: every hero loses
+##   health.
 
 ## It dives when its health falls below these parts of its health, each once. A hit past
 ## several of them makes it dive once only.
@@ -29,9 +31,13 @@ var poison_by_heroes: Array[int] = []
 var enraged_below := 0.5
 ## What enraged adds to its attacks and its shields, and its poison shield's poison.
 var enraged_bonus := 1
-## A card that costs it this much health makes it spit.
-var spit_damage := 7
+## A card that costs it this much health makes it spit venom at the hero who played it.
+var spit_damage := 5
 var spit_poison := 1
+## Its tail lash after its attacks, every tail_every rounds (in round tail_every, twice
+## that, ...): health every hero loses, by difficulty. 0 for none.
+var tail := { "easy": 4, "normal": 5, "hard": 6 }
+var tail_every := 2
 const ENRAGED_EYES := Color(1.0, 0.18, 0.1)
 
 # The numbers above and below are variables, not constants, so that the balance simulator
@@ -76,7 +82,8 @@ func _init() -> void:
 		{ "de": "Jeder Biss von Moorzahn vergiftet. Haltet Gegengift bereit.", "en": "Every bite of Mirefang poisons. Keep an antidote ready." },
 		{ "de": "Einer seiner Schilde ist giftig. Wer ihn trifft, bekommt Gift ab.", "en": "One of its shields is poisonous. Whoever hits it is poisoned." },
 		{ "de": "Verwundet taucht er ab und lauert. Schützt den, den er sich ausgesucht hat.", "en": "Wounded, it dives and lies in wait. Protect the one it has chosen." },
-		{ "de": "Ein zu harter Schlag reizt ihn, Gift zu spucken.", "en": "Hit it too hard, and it spits venom." },
+		{ "de": "Wer ihn zu hart trifft, den bespuckt er mit Gift.", "en": "Hit it too hard, and it spits venom at you." },
+		{ "de": "Jede zweite Runde peitscht sein Schwanz über alle Helden.", "en": "Every second round, its tail lashes all heroes." },
 	]
 	art = "res://assets/bosses/BossMirefang.png"
 	figure = "res://assets/bosses/FigureMirefang.png"
@@ -88,7 +95,7 @@ func _init() -> void:
 	# fewer actions, cards to protect, heal and remove poison, and each is bitten more
 	# often. Found with the balance simulator, see docs/balance.md.
 	health_by_heroes = [25, 42, 60, 88]
-	attack_by_heroes = [-2, 2, 3, 3]
+	attack_by_heroes = [-1, 2, 3, 3]
 	shield_by_heroes = [-2, -1, 0, 1]
 	bite_by_heroes = [-9, -5, 0, 3]
 	poison_by_heroes = [-2, 0, 0, 0]
@@ -113,6 +120,7 @@ func _init() -> void:
 		"boss_attacks": "boss_mirefang_attack",
 		"mirefang_surfaces": "boss_mirefang_lunge",
 		"mirefang_spit": "boss_mirefang_spit",
+		"mirefang_tail": "boss_mirefang_attack",
 		"mirefang_poison_shield": "boss_mirefang_poison_shield",
 		"mirefang_enraged": "boss_mirefang_enraged",
 	}
@@ -181,8 +189,8 @@ func boss_hurt(fight: Fight, _old: int, new: int) -> void:
 func card_played(fight: Fight, play: CardPlay) -> void:
 	if play.damage >= spit_damage and _spat_round != fight.round_number:
 		_spat_round = fight.round_number
-		if await fight.boss_ability("mirefang_spit", spit_poison):
-			fight.tell("mirefang_spit", { "boss": title, "poison": spit_poison })
+		if await fight.boss_ability("mirefang_spit", spit_poison, play.hero):
+			fight.tell("mirefang_spit", { "boss": title, "player": play.hero.name, "poison": spit_poison })
 			await fight.until_read()
 	if _dive_due and fight.phase == Fight.Phase.ACTION:
 		await _dive(fight)
@@ -237,8 +245,12 @@ func attack_hero(fight: Fight, hero: FightHero) -> void:
 	await super(fight, hero)
 
 
-## Surfacing below half its health, it is enraged for the rest of the fight.
+## After its attacks: its tail lash, and surfacing below half its health, it is enraged
+## for the rest of the fight.
 func attack_phase_ended(fight: Fight) -> void:
+	await _lash(fight)
+	if fight.over:
+		return
 	var surfaced := _surfaced
 	_surfaced = false
 	if enraged or not surfaced or fight.health >= fight.max_health * enraged_below:
@@ -251,4 +263,19 @@ func attack_phase_ended(fight: Fight) -> void:
 	motion_amount = 12.0
 	look_changed.emit()
 	fight.tell("mirefang_enraged", { "boss": title })
+	await fight.until_read()
+
+
+## Every tail_every rounds, its tail lashes every hero. An @-ability, which cards can prevent.
+func _lash(fight: Fight) -> void:
+	var damage: int = tail.get(fight.difficulty, tail.normal)
+	if damage <= 0 or tail_every <= 0 or fight.round_number % tail_every != 0:
+		return
+	if not await fight.boss_ability("mirefang_tail", damage):
+		return
+	fight.tell("mirefang_tail", { "boss": title, "damage": damage })
+	for hero in fight.heroes:
+		await fight.hurt_hero(hero, damage, null, true)
+		if fight.over:
+			return
 	await fight.until_read()

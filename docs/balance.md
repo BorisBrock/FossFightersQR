@@ -20,7 +20,8 @@ lists the options.
   0 health loses the fight, as the rules say.
 - **Parties are random:** 1 to 4 heroes, each race and class at most once. Each hero's deck is their race deck and
   class deck, plus one random loot card of each level from 1 to `--loot` (10), none twice in the party. The dryad's
-  forms lie on the table, as do the items with `--items`. `--level 5` or `8` gives the heroes the abilities of their
+  forms lie on the table, as do the base game's items (Heiltrank, Medizintasche, Trinkschlauch, …), unless
+  `--no-items`. Players always have them, and they change the outcome a lot. `--level 5` or `8` gives the heroes the abilities of their
   higher character and class cards.
 - **The AI is greedy.** On each action it scores every card it could play and plays the best one: damage that gets
   past the shields, less for damage to a shield, nothing for an attack while the boss is under water, a minus for
@@ -71,7 +72,7 @@ the first fight message by message.
 set (`health`, `health_by_heroes`, `attack_min`, `attack_max`, `attack_by_heroes`, `shields`, `shield_by_heroes`), and
 those of the boss's own script. Mirefang's tuning values are variables for this: `shield_value`, `shield_low`, `shield_high`, `poison_min`,
 `poison_max`, `poison_by_heroes`, `dive_below`, `bite`, `bite_by_heroes`, `enraged_below`, `enraged_bonus`,
-`spit_damage` and `spit_poison`. A boss with `health_by_heroes` ignores `health`.
+`spit_damage`, `spit_poison`, `tail` and `tail_every`. A boss with `health_by_heroes` ignores `health`.
 
     --set 'health_by_heroes=[40,60,80,100]' --set 'shield_by_heroes=[-2,-1,0,1]'
     --set shield_value=2
@@ -91,7 +92,7 @@ attack against one hero falls on each of them less often. So a boss's numbers ch
 (`health_by_heroes`, `attack_by_heroes`, `shield_by_heroes`, see [Choosing the boss](bosses.md#bosses-and-difficulties)),
 so that 1 to 4 heroes have about the same chance.
 
-**Mirefang** (November 2026, hero level 1, 10 loot cards, no items), 3 heroes left as they were. Without the scaling,
+**Mirefang** (November 2026, hero level 1, 10 loot cards, at first without items), 3 heroes left as they were. Without the scaling,
 with its 80 health for any number, the AI won on *Normal* 0 % alone, 9 % with 2, 53 % with 3 and 84 % with 4. A hero
 alone mostly died of poison: their shields took most of their damage, the fight lasted long, and every bite was theirs.
 Shields, poison and the bite matter as much as health: with 4 heroes, the fight is over in about 4 rounds and the dives
@@ -106,3 +107,20 @@ come at fixed parts of its health, so its health alone hardly changes the outcom
 | 4 | 87 % | 56 % | 24 % |
 
 With another seed, *Normal* came out at 63, 54, 58 and 62 %.
+
+**Then, with items** (Heiltrank, Medizintasche, Trinkschlauch, …, which players always have), the same values were
+far too easy: the AI won *Normal* 56 % alone and 70 to 76 % with 2 to 4 heroes, and a player alone found the fight
+easy, its attacks mostly blocked. So Mirefang got its **tail lash** (5 damage to every hero every second round on
+*Normal*), its **venom spit** went from 7 damage to 5 and now hits only the hero who struck, and the attacks of a hero
+alone went up by 1 (3 to 7). With items, 400 fights each:
+
+| Heroes | Easy | Normal | Hard |
+|--------|------|--------|------|
+| 1 | 83 % | 36 % | 3 % |
+| 2 | 91 % | 39 % | 2 % |
+| 3 | 95 % | 48 % | 5 % |
+| 4 | 91 % | 40 % | 3 % |
+
+The AI plays worse than good players, so *Normal* at about 40 % for the AI should be a fair fight for people. *Hard*
+is very hard for the AI: the lash comes more often in its longer fights. Even a lash of 4 on *Hard* gave only about
+7 %, and none at all about 23 %. The lash counts under `other` in `hero dmg/round` and `deaths`.

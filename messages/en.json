@@ -532,7 +532,11 @@
 	},
 	"mirefang_spit": {
 		"title": "Venom Spit",
-		"body": "Hurt by the blow, [boss]{boss}[/boss] spits venom: every hero takes [poison]{poison} poison[/poison] :poison:."
+		"body": "Hurt by the blow, [boss]{boss}[/boss] spits venom at [player]{player}[/player], who takes [poison]{poison} poison[/poison] :poison:."
+	},
+	"mirefang_tail": {
+		"title": "Tail Lash",
+		"body": "[boss]{boss}[/boss] lashes its huge tail across the mire: every hero loses [damage]{damage} health[/damage] :health:."
 	},
 	"mirefang_enraged": {
 		"title": "Enraged",

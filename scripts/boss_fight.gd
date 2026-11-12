@@ -83,6 +83,9 @@ const SHIELD_BANNER_SEC := 1.4
 ## for it before the card takes effect, and it stays CARD_NAME_SEC in all.
 const CARD_NAME_LEAD_SEC := 0.55
 const CARD_NAME_SEC := 2.2
+## Messages, such as what the card did, wait this long after its name shows, so that the
+## name can be read first. The card takes effect meanwhile.
+const CARD_NAME_HOLD_SEC := 1.8
 ## A hit on the boss shows one step after the other, and the fight waits meanwhile (see
 ## _show_step): the attack (AttackEffects), its shield counting down, the shield breaking,
 ## and the damage that is left coming off its health.
@@ -208,8 +211,8 @@ var _shake_tween: Tween
 var _screen_shake: Tween
 ## The attack whose effect plays now is a big one (BIG_ATTACK): its hits shake the screen.
 var _big_attack := false
-## The name of the card being played, over the boss.
-var _card_name: Label
+## The name of the card being played, over the boss (_make_card_name).
+var _card_name: Control
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
@@ -1196,45 +1199,210 @@ func _on_card_started(play: CardPlay) -> void:
 	var title := CardDatabase.localized(play.card.title, TranslationServer.get_locale())
 	if title.is_empty():
 		return
-	_show_step(_show_card_name.bind(title), CARD_NAME_LEAD_SEC)
+	_show_step(_show_card_name.bind(title, play.hero.name, _card_color(play)), CARD_NAME_LEAD_SEC)
 
 
-func _show_card_name(title: String) -> void:
+## The colour of the glow behind a card's name: that of the damage type it attacks with,
+## green for healing, otherwise gold.
+func _card_color(play: CardPlay) -> Color:
+	for effect in play.effects:
+		if SHIELD_VALUE_COLORS.has(effect.damage_type):
+			return SHIELD_VALUE_COLORS[effect.damage_type]
+	for effect in play.effects:
+		if effect.type == "heal":
+			return Color(0.45, 0.95, 0.55)
+	return Color(1.0, 0.78, 0.38)
+
+
+## The name of a card being played, as a banner across the upper part of the boss: a dark
+## band opens between two golden lines, the name slams in with the hero's name above it, a
+## glow in the card's colour (_card_color) behind it, and a gleam runs across.
+func _show_card_name(title: String, hero: String, color: Color) -> void:
 	if _card_name == null:
-		_card_name = Label.new()
-		_card_name.name = "CardName"
-		_card_name.theme_type_variation = &"Title"
-		_card_name.add_theme_font_size_override("font_size", 52)
-		_card_name.add_theme_constant_override("outline_size", 14)
-		_card_name.add_theme_color_override("font_outline_color", Color(0.08, 0.03, 0.01))
-		_card_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_card_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_card_name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_card_name = _make_card_name()
 		add_child(_card_name)
-		# A band across the upper part of the boss, the name centred in it.
-		_card_name.set_anchor_and_offset(SIDE_LEFT, 0.06, 0.0)
-		_card_name.set_anchor_and_offset(SIDE_RIGHT, 0.94, 0.0)
-		_card_name.set_anchor_and_offset(SIDE_TOP, 0.12, 0.0)
-		_card_name.set_anchor_and_offset(SIDE_BOTTOM, 0.27, 0.0)
 		# Over the boss and its effects, under the prompt and the messages.
 		move_child(_card_name, _effects.get_index() + 1)
+	var band: Control = _card_name.get_node("Band")
+	var sweep: Control = band.get_node("Sweep")
+	var glow: Control = _card_name.get_node("Glow")
+	var lines: Array[Control] = [_card_name.get_node("LineTop"), _card_name.get_node("LineBottom")]
+	var kicker: Label = _card_name.get_node("Text/Kicker")
+	var label: Label = _card_name.get_node("Text/Title")
+	messages.hold(CARD_NAME_HOLD_SEC)
 	var tween_name := &"card_name_tween"
 	if _card_name.has_meta(tween_name):
 		(_card_name.get_meta(tween_name) as Tween).kill()
-	_card_name.text = title
-	_card_name.pivot_offset = _card_name.size / 2.0
+	label.text = title
+	kicker.text = hero.to_upper()
+	kicker.visible = not hero.is_empty()
+	glow.modulate = Color(color, 0.0)
 	_card_name.show()
-	_card_name.modulate.a = 0.0
-	_card_name.scale = Vector2.ONE * 1.6
-	var tween := create_tween()
+	_card_name.modulate.a = 1.0
+	band.scale = Vector2(1.0, 0.0)
+	label.modulate.a = 0.0
+	label.scale = Vector2.ONE * 1.8
+	kicker.modulate.a = 0.0
+	sweep.modulate.a = 0.0
+	for line in lines:
+		line.scale = Vector2(0.0, 1.0)
+	var tween := create_tween().set_parallel()
 	_card_name.set_meta(tween_name, tween)
-	tween.set_parallel()
-	tween.tween_property(_card_name, "modulate:a", 1.0, 0.15)
-	tween.tween_property(_card_name, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.chain().tween_interval(CARD_NAME_SEC - 0.6)
-	tween.chain().tween_property(_card_name, "modulate:a", 0.0, 0.35)
+	# Sizes are known from the first step on, after the layout.
+	tween.tween_callback(func() -> void:
+		for node: Control in [band, glow, label, kicker] + lines:
+			node.pivot_offset = node.size / 2.0)
+	tween.tween_property(band, "scale:y", 1.0, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	for line in lines:
+		tween.tween_property(line, "scale:x", 1.0, 0.45).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 1.0, 0.12).set_delay(0.06)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.32).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(kicker, "modulate:a", 1.0, 0.3).set_delay(0.22)
+	# The glow flares as the name lands, then settles.
+	tween.tween_property(glow, "modulate:a", 1.0, 0.18).set_delay(0.12)
+	tween.tween_property(glow, "scale", Vector2(1.25, 1.25), 0.18).from(Vector2(0.6, 0.6)).set_delay(0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(glow, "modulate:a", 0.55, 0.6).set_delay(0.3)
+	tween.tween_property(glow, "scale", Vector2.ONE, 0.6).set_delay(0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# A gleam runs across the band.
+	tween.tween_callback(func() -> void:
+		sweep.position.x = -sweep.size.x
+		sweep.modulate.a = 1.0).set_delay(0.3)
+	tween.tween_method(func(t: float) -> void:
+		sweep.position.x = lerpf(-sweep.size.x, band.size.x, t), 0.0, 1.0, 0.55).set_delay(0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Then it all goes: the name drifts up and grows a little as it fades, the band closes.
+	var out_at := CARD_NAME_SEC - 0.4
+	tween.tween_property(_card_name, "modulate:a", 0.0, 0.4).set_delay(out_at).set_ease(Tween.EASE_IN)
+	tween.tween_property(label, "scale", Vector2.ONE * 1.12, 0.4).set_delay(out_at).set_ease(Tween.EASE_IN)
+	tween.tween_property(band, "scale:y", 0.2, 0.4).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	for line in lines:
+		tween.tween_property(line, "scale:x", 0.3, 0.4).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.chain().tween_callback(_card_name.hide)
+
+
+## The nodes of the card name's banner (see _show_card_name).
+func _make_card_name() -> Control:
+	var root := Control.new()
+	root.name = "CardName"
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.set_anchor_and_offset(SIDE_LEFT, 0.0, 0.0)
+	root.set_anchor_and_offset(SIDE_RIGHT, 1.0, 0.0)
+	root.set_anchor_and_offset(SIDE_TOP, 0.12, 0.0)
+	root.set_anchor_and_offset(SIDE_BOTTOM, 0.27, 0.0)
+	var add := CanvasItemMaterial.new()
+	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+
+	# A soft light behind the name, in the card's colour.
+	var glow_gradient := Gradient.new()
+	glow_gradient.offsets = PackedFloat32Array([0.0, 0.45, 1.0])
+	glow_gradient.colors = PackedColorArray([Color(1, 1, 1, 0.6), Color(1, 1, 1, 0.18), Color(1, 1, 1, 0)])
+	var glow_texture := GradientTexture2D.new()
+	glow_texture.gradient = glow_gradient
+	glow_texture.fill = GradientTexture2D.FILL_RADIAL
+	glow_texture.fill_from = Vector2(0.5, 0.5)
+	glow_texture.fill_to = Vector2(0.5, 0.0)
+	glow_texture.width = 256
+	glow_texture.height = 128
+	var glow := _banner_rect("Glow", glow_texture, root)
+	glow.material = add
+	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	glow.offset_left = 120.0
+	glow.offset_right = -120.0
+	glow.offset_top = -30.0
+	glow.offset_bottom = 30.0
+
+	# The dark band, fading out towards the sides.
+	var band := _banner_rect("Band", _fading_strip(Color(0.05, 0.025, 0.015, 0.85), 0.2), root)
+	band.clip_contents = true
+	band.set_anchors_preset(Control.PRESET_FULL_RECT)
+	band.offset_top = 14.0
+	band.offset_bottom = -14.0
+	var sweep_gradient := Gradient.new()
+	sweep_gradient.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	sweep_gradient.colors = PackedColorArray([Color(1, 0.9, 0.7, 0), Color(1, 0.9, 0.7, 0.22), Color(1, 0.9, 0.7, 0)])
+	var sweep_texture := GradientTexture2D.new()
+	sweep_texture.gradient = sweep_gradient
+	sweep_texture.width = 64
+	sweep_texture.height = 4
+	var sweep := _banner_rect("Sweep", sweep_texture, band)
+	sweep.material = add
+	sweep.anchor_bottom = 1.0
+	sweep.size.x = 220.0
+
+	# Golden lines along its edges.
+	for side: String in ["Top", "Bottom"]:
+		var line := _banner_rect("Line" + side, _fading_strip(Color(0.9, 0.7, 0.3, 1.0), 0.35), root)
+		line.anchor_right = 1.0
+		line.offset_left = 30.0
+		line.offset_right = -30.0
+		var top: bool = side == "Top"
+		line.anchor_top = 0.0 if top else 1.0
+		line.anchor_bottom = line.anchor_top
+		line.offset_top = 12.0 if top else -16.0
+		line.offset_bottom = line.offset_top + 3.0
+
+	# The glow lights up the band, behind the text.
+	root.move_child(glow, band.get_index())
+
+	var text := VBoxContainer.new()
+	text.name = "Text"
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text.alignment = BoxContainer.ALIGNMENT_CENTER
+	text.add_theme_constant_override("separation", -4)
+	text.set_anchors_preset(Control.PRESET_FULL_RECT)
+	text.offset_left = 40.0
+	text.offset_right = -40.0
+	root.add_child(text)
+	var kicker := Label.new()
+	kicker.name = "Kicker"
+	var kicker_font := FontVariation.new()
+	kicker_font.base_font = SHIELD_VALUE_FONT
+	kicker_font.spacing_glyph = 4
+	kicker.add_theme_font_override("font", kicker_font)
+	kicker.add_theme_font_size_override("font_size", 26)
+	kicker.add_theme_color_override("font_color", Color(0.86, 0.72, 0.5))
+	kicker.add_theme_color_override("font_outline_color", Color(0.08, 0.03, 0.01))
+	kicker.add_theme_constant_override("outline_size", 6)
+	kicker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.add_child(kicker)
+	var label := Label.new()
+	label.name = "Title"
+	label.theme_type_variation = &"Title"
+	label.add_theme_font_size_override("font_size", 62)
+	label.add_theme_constant_override("outline_size", 14)
+	label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.52))
+	label.add_theme_color_override("font_outline_color", Color(0.08, 0.03, 0.01))
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	label.add_theme_constant_override("shadow_offset_y", 5)
+	label.add_theme_constant_override("shadow_outline_size", 16)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.add_child(label)
+	for node in [kicker, label]:
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return root
+
+
+## A horizontal strip of color that fades out over fade of its width at each end.
+static func _fading_strip(color: Color, fade: float) -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.offsets = PackedFloat32Array([0.0, fade, 1.0 - fade, 1.0])
+	gradient.colors = PackedColorArray([Color(color, 0.0), color, color, Color(color, 0.0)])
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.width = 256
+	texture.height = 4
+	return texture
+
+
+func _banner_rect(node_name: String, texture: Texture2D, parent: Control) -> TextureRect:
+	var rect := TextureRect.new()
+	rect.name = node_name
+	rect.texture = texture
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_SCALE
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(rect)
+	return rect
 
 
 func _on_boss_hit(_kind: String, _absorbed: int, dealt: int) -> void:

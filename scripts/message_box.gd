@@ -25,7 +25,15 @@ signal all_confirmed
 ## A message is now on screen, such as one whose animation the screen plays now.
 signal shown(id: String)
 
-const FADE_SEC := 0.2
+const FADE_SEC := 0.25
+## How a message comes in: it drops DROP pixels into place, in IN_SEC. When it follows
+## another, a copy of that one slides away to the left in SWAP_OUT_SEC, and the new one
+## slides SWAP_SLIDE pixels in from the right.
+const IN_SEC := 0.45
+const DROP := 70.0
+const SWAP_OUT_SEC := 0.2
+const SWAP_IN_FADE_SEC := 0.2
+const SWAP_SLIDE := 140.0
 ## Taps this soon after a message appears do not count, so that a double tap does not
 ## close the next message, unread.
 const CONFIRM_DELAY_SEC := 0.4
@@ -52,6 +60,7 @@ const SOUNDS := {
 	"shield_broken_poison": "shield_break",
 	"mirefang_poison_shield": "poison",
 	"mirefang_spit": "poison",
+	"mirefang_tail": "hurt",
 	"mirefang_surfaces": "boss_attack",
 	"victory": "victory",
 	"defeat": "defeat",
@@ -66,6 +75,14 @@ var queue: Array[Array] = []
 
 var _hold_until := 0.0
 var _tween: Tween
+## How far the message is moved from its place, as it comes and goes.
+var _slide := Vector2.ZERO:
+	set(value):
+		_slide = value
+		_margin.offset_left = value.x
+		_margin.offset_right = value.x
+		_margin.offset_top = value.y
+		_margin.offset_bottom = value.y
 ## The time the message on screen has left before it closes by itself, of
 ## _countdown_total. 0 if it does not, or no longer does.
 var _countdown_left := 0.0
@@ -78,6 +95,7 @@ var _default_sound: AudioStream
 @onready var _header: Control = $Margin/Panel/Margin/Layout/Header
 @onready var _kicker: RichTextLabel = $Margin/Panel/Margin/Layout/Header/Kicker
 @onready var _title: RichTextLabel = $Margin/Panel/Margin/Layout/Header/Title
+@onready var _divider: Control = $Margin/Panel/Margin/Layout/Header/Divider
 @onready var _body: RichTextLabel = $Margin/Panel/Margin/Layout/Body
 @onready var _confirm: BaseButton = $Margin/Panel/Margin/Layout/Confirm
 @onready var _countdown: CountdownBar = $Margin/Panel/Margin/Layout/Confirm/Countdown
@@ -194,23 +212,96 @@ func _show_first() -> void:
 		_tween.tween_interval(wait)
 		_tween.tween_callback(_show_first)
 		return
-	_refresh_text()
 	var already_open := visible and modulate.a > 0.0
 	show()
-	_panel.pivot_offset = _panel.size / 2.0
 	_tween = create_tween().set_parallel()
 	if already_open:
-		_panel.modulate.a = 0.0
-		_tween.tween_property(_panel, "modulate:a", 1.0, FADE_SEC)
+		_slide_away_copy()
 	else:
 		modulate.a = 0.0
-		_panel.modulate.a = 1.0
-		_panel.scale = Vector2(0.9, 0.9)
-		_tween.tween_property(self, "modulate:a", 1.0, FADE_SEC)
-		_tween.tween_property(_panel, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_panel.modulate.a = 0.0
+	_enter(already_open)
 	_tween.tween_callback(_on_ready_to_confirm).set_delay(CONFIRM_DELAY_SEC)
+
+
+## A copy of the message on screen slides away to the left, as the next one comes in.
+func _slide_away_copy() -> void:
+	var ghost: Control = _panel.duplicate(0)
+	ghost.name = "Leaving"
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(ghost)
+	move_child(ghost, _margin.get_index())
+	ghost.position = _panel.global_position - global_position
+	ghost.size = _panel.size
+	ghost.pivot_offset = ghost.size / 2.0
+	ghost.modulate.a = _panel.modulate.a
+	var leave := create_tween().set_parallel()
+	leave.tween_property(ghost, "position:x", ghost.position.x - SWAP_SLIDE * 2.5, SWAP_OUT_SEC).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	leave.tween_property(ghost, "modulate:a", 0.0, SWAP_OUT_SEC).set_ease(Tween.EASE_IN)
+	leave.tween_property(ghost, "rotation", deg_to_rad(-4.0), SWAP_OUT_SEC).set_ease(Tween.EASE_IN)
+	leave.tween_property(ghost, "scale", Vector2(0.92, 0.92), SWAP_OUT_SEC).set_ease(Tween.EASE_IN)
+	leave.chain().tween_callback(ghost.queue_free)
+
+
+## The message on screen comes in: it drops from above, or, after another one (swap),
+## swings in from the right. Its title, ornament, text and check mark follow one by one.
+func _enter(swap: bool) -> void:
+	_refresh_text()
+	var animated := Messages.is_animated(current())
+	var tween := _tween
+	tween.tween_callback(_center_pivots)
+	if swap:
+		_slide = Vector2(SWAP_SLIDE, 0.0)
+		_panel.rotation = deg_to_rad(2.0)
+		_panel.scale = Vector2.ONE
+		tween.tween_property(self, "_slide:x", 0.0, IN_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_panel, "modulate:a", 1.0, SWAP_IN_FADE_SEC).set_delay(SWAP_OUT_SEC * 0.5)
+		tween.tween_property(self, "modulate:a", 1.0, SWAP_IN_FADE_SEC)
+		tween.tween_property(_panel, "rotation", 0.0, IN_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		_slide = Vector2(0.0, -DROP)
+		_panel.scale = Vector2(0.82, 0.82)
+		_panel.rotation = deg_to_rad(-3.0)
+		tween.tween_property(self, "modulate:a", 1.0, FADE_SEC)
+		tween.tween_property(_panel, "modulate:a", 1.0, FADE_SEC)
+		tween.tween_property(self, "_slide:y", 0.0, IN_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_panel, "scale", Vector2.ONE, IN_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_panel, "rotation", 0.0, IN_SEC + 0.1).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	# A message that goes with an animation leaves the fight undimmed.
+	if animated:
+		tween.tween_property(_dim, "modulate:a", 0.0, FADE_SEC)
+		tween.tween_callback(_dim.hide).set_delay(FADE_SEC)
+	else:
+		if not _dim.visible:
+			_dim.modulate.a = 0.0
+			_dim.show()
+		tween.tween_property(_dim, "modulate:a", 1.0, FADE_SEC)
+	# The parts of the message, one after the other.
+	var delay := 0.06
+	if _header.visible:
+		_title.modulate.a = 0.0
+		_title.scale = Vector2(1.25, 1.25)
+		tween.tween_property(_title, "modulate:a", 1.0, 0.2).set_delay(delay)
+		tween.tween_property(_title, "scale", Vector2.ONE, 0.35).set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_kicker.modulate.a = 0.0
+		tween.tween_property(_kicker, "modulate:a", 1.0, 0.25).set_delay(delay + 0.08)
+		_divider.scale = Vector2(0.0, 1.0)
+		tween.tween_property(_divider, "scale:x", 1.0, 0.4).set_delay(delay + 0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		delay += 0.12
+	_body.modulate.a = 0.0
+	tween.tween_property(_body, "modulate:a", 1.0, 0.3).set_delay(delay)
+	if _confirm.visible:
+		_confirm.modulate.a = 0.0
+		tween.tween_property(_confirm, "modulate:a", 1.0, 0.2).set_delay(delay + 0.1)
 	_play_sound(current())
 	shown.emit(current())
+
+
+## Scales and turns about their middles, once they have their size.
+func _center_pivots() -> void:
+	_panel.pivot_offset = _panel.size / 2.0
+	_title.pivot_offset = _title.size / 2.0
+	_divider.pivot_offset = _divider.size / 2.0
 
 
 ## The message is in view and can be confirmed. One that asks nothing of the players
@@ -253,7 +344,6 @@ func _refresh_text() -> void:
 	_body.text = "[center]%s[/center]" % text.body
 	var animated := Messages.is_animated(queue[0][0])
 	_confirm.visible = not animated
-	_dim.visible = not animated
 	# What happens meanwhile is at the seats, so the message leaves those at the sides clear.
 	for side in ["margin_left", "margin_right"]:
 		_margin.add_theme_constant_override(side, ANIMATED_MARGIN if animated else MARGIN)
@@ -263,9 +353,13 @@ func _fade_out() -> void:
 	_stop_tween()
 	stop_countdown()
 	_confirm.disabled = true
-	_tween = create_tween()
-	_tween.tween_property(self, "modulate:a", 0.0, FADE_SEC)
-	_tween.tween_callback(hide)
+	_center_pivots()
+	# The message shrinks back up and away, and the fight brightens again.
+	_tween = create_tween().set_parallel()
+	_tween.tween_property(self, "modulate:a", 0.0, FADE_SEC).set_ease(Tween.EASE_IN)
+	_tween.tween_property(_panel, "scale", Vector2(0.85, 0.85), FADE_SEC).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	_tween.tween_property(self, "_slide:y", -DROP * 0.5, FADE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_tween.chain().tween_callback(hide)
 
 
 ## Symbols as tall as the text around them, a little larger.

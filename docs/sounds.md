@@ -21,8 +21,9 @@ loudness, as Godot plays it: mono on both speakers) are at the tier's target.
 
 | Tier     | Target    | Sounds                                                                         |
 |----------|-----------|--------------------------------------------------------------------------------|
+| `impact` | -12 LUFS  | `slam`: a planned attack or a shield lands with a thud as the screen shakes      |
 | `event`  | -16 LUFS  | `boss_appears`, `boss_attack`, `victory`, `defeat`, `fanfare`, every `boss_*` sound |
-| `effect` | -19 LUFS  | `hit`, `slash`, `slam`, `smash`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
+| `effect` | -19 LUFS  | `hit`, `slash`, `smash`, `shield_break`, `shields_up`, `poison`, `protect`, `lightning`, `heal`, `hurt` |
 | `volley` | -21 LUFS  | `magic_hit`, `arrow_hit`, `shield_block`, `tack`: they come in quick series and add up |
 | `cue`    | -22 LUFS  | `turn`, `choose`, `seat`, `reveal`, `card_scanned`, `rejected`, `round`         |
 | `ui`     | -26 LUFS  | `click`, `select`                                                               |
@@ -93,7 +94,8 @@ Mirefang's sounds (`scripts/bosses/mirefang.gd`):
 | message `boss_taunt`             | `boss_mirefang_hiss`          | Its taunt at the start ("Ssssso many little heroes …"). |
 | message `boss_attacks`           | `boss_mirefang_attack`        | It attacks the heroes.                             |
 | message `mirefang_surfaces`      | `boss_mirefang_lunge`         | It bursts out of the water at the marked hero.     |
-| message `mirefang_spit`          | `boss_mirefang_spit`          | It spits venom on every hero.                      |
+| message `mirefang_spit`          | `boss_mirefang_spit`          | It spits venom at the hero who hit it too hard.    |
+| message `mirefang_tail`          | `boss_mirefang_attack`        | Its tail lashes every hero.                        |
 | message `mirefang_poison_shield` | `boss_mirefang_poison_shield` | A hero hits its poison shield.                     |
 | message `mirefang_enraged`       | `boss_mirefang_enraged`       | It becomes enraged.                                |
 

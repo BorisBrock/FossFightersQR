@@ -532,7 +532,11 @@
 	},
 	"mirefang_spit": {
 		"title": "Giftspucke",
-		"body": "Getroffen spuckt [boss]{boss}[/boss] Gift: Jeder Held erhält [poison]{poison} Gift[/poison] :poison:."
+		"body": "Getroffen spuckt [boss]{boss}[/boss] Gift auf [player]{player}[/player]: [player]{player}[/player] erhält [poison]{poison} Gift[/poison] :poison:."
+	},
+	"mirefang_tail": {
+		"title": "Schwanzhieb",
+		"body": "[boss]{boss}[/boss] peitscht mit seinem riesigen Schwanz über das Moor: Jeder Held verliert [damage]{damage} Leben[/damage] :health:."
 	},
 	"mirefang_enraged": {
 		"title": "Rasend",

@@ -147,7 +147,8 @@ itself. The fight waits until every message so far is confirmed before it goes o
   there**, plus its row in the tables above.
 - `MessageBox` (`scripts/message_box.gd`, `message_box.tscn`) is the panel in the fight. `tell()` queues a message,
   `confirmed(id)` says that the players confirmed one and `all_confirmed` that none is left. `hold()` keeps messages
-  back for a while. A message that closes by itself is confirmed by the box, as if the check mark was tapped, so the
+  back for a while. A message drops in from above, its title, ornament, text and check mark following one by one;
+  the next one swings in from the right as the last slides away, and the last one shrinks away. A message that closes by itself is confirmed by the box, as if the check mark was tapped, so the
   fight cannot tell the difference. `Messages.is_auto(id)` says which do, `MessageBox.auto_seconds()` for how long,
   and `Settings.message_time` holds the players' choice. `MessageBox.shown(id)` says that a message is now on
   screen; for one that goes with an animation (`Messages.is_animated(id)`) the screen plays it then and closes the

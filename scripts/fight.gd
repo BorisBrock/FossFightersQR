@@ -351,11 +351,13 @@ func confirm(prompt: String, values := {}) -> bool:
 
 
 ## hero loses amount health, from play or something else (null). The players are told,
-## as the heroes' health is on the table.
-func hurt_hero(hero: FightHero, amount: int, play: CardPlay = null) -> void:
+## as the heroes' health is on the table, unless told: a message has already told them,
+## such as one for several heroes at once.
+func hurt_hero(hero: FightHero, amount: int, play: CardPlay = null, told := false) -> void:
 	if amount <= 0 or over:
 		return
-	tell("health_loss", { "player": hero.name, "amount": amount })
+	if not told:
+		tell("health_loss", { "player": hero.name, "amount": amount })
 	await _each_rule("hero_hurt", [hero, amount, play])
 
 

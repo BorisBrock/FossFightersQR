@@ -13,7 +13,7 @@ const CATALOG := "res://cards/cards.json"
 const RACES: Array[String] = ["halfling", "dwarf", "elf", "troll", "goblin", "dryad"]
 const CLASSES: Array[String] = ["paladin", "magician", "warrior", "thief", "druid", "shaman"]
 
-## The items of the base game, by German title, for --items. Fackel and Machete are only
+## The items of the base game, by German title, unless --no-items. Fackel and Machete are only
 ## for a boss of the board game, Passen is the pass card.
 const ITEMS: Array[String] = ["Heiltrank", "Rucksack", "Medizintasche", "Trinkschlauch", "Glücksbringer", "Opas Glasauge"]
 const SEATS: Array[int] = [0, 2, 3, 5]
@@ -92,7 +92,7 @@ var _options := {
 	"difficulty": ["easy", "normal", "hard"],
 	"level": 1,
 	"loot": 10,
-	"items": false,
+	"items": true,
 	"health": 0,
 	"hand": 0,
 	"set": {},
@@ -625,8 +625,10 @@ func _on_message(id: String, values: Dictionary) -> void:
 			_add_tokens(hero, { "poison": int(values.poison) })
 		"mirefang_spit":
 			game.spits += 1
+			_add_tokens(hero, { "poison": int(values.poison) })
+		"mirefang_tail":
 			for each in game.heroes:
-				_add_tokens(each, { "poison": int(values.poison) })
+				_hurt(each, int(values.damage), "tail")
 		"mirefang_dive":
 			game.dives += 1
 			game.bitten = values.player
@@ -866,6 +868,8 @@ func _parse_args(args: PackedStringArray) -> bool:
 				return false
 			"--items":
 				_options.items = true
+			"--no-items":
+				_options.items = false
 			"--log":
 				_options.log = true
 			"--boss", "--csv":
@@ -909,7 +913,8 @@ const HELP := """Usage: godot --headless -s tools/balance/simulate.gd -- [option
   --boss ID          (mirefang)
   --level 1|5|8      hero level: the character and class cards up to it (1)
   --loot N           loot cards per hero, one of each level 1..N (10)
-  --items            each hero has the base game's items
+  --no-items         without the base game's items (each hero has them by default:
+                     Heiltrank, Medizintasche, Trinkschlauch, ...)
   --health N         start health of every hero (else from HeroOptions: character + class)
   --hand N           hand limit of every hero (likewise)
   --set key=value    changes a variable of the boss, value as JSON, e.g.

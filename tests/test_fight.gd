@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 506
+const EXPECTED_CHECKS := 509
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -2359,7 +2359,7 @@ func _check_bosses() -> void:
 	_check(hard.x == easy.x + 2 and hard.y == easy.y + 2, "the difficulty changes the boss's attacks")
 	var scaled := Bosses.create("mirefang")
 	_check([1, 2, 3, 4].map(func(count: int) -> int: return scaled.max_health("normal", count)) == [25, 42, 60, 88], "Mirefang's health grows with the number of heroes")
-	_check(scaled.attack_range("normal", 1) == Vector2i(2, 6) and scaled.attack_range("normal", 3) == Vector2i(7, 11), "and with more heroes, its attacks")
+	_check(scaled.attack_range("normal", 1) == Vector2i(3, 7) and scaled.attack_range("normal", 3) == Vector2i(7, 11), "and with more heroes, its attacks")
 	var solo_hero := Party.Hero.new()
 	solo_hero.name = "Solo"
 	solo_hero.race = "troll"
@@ -2413,13 +2413,14 @@ func _check_mirefang() -> void:
 	fight.scan(_card("M1", [["attack", 2, boss.poison_shield]], "items"))
 	_check(_told[-1] == "mirefang_poison_shield" and _values[-1].player == "Rosie" and _values[-1].poison == 1, "whoever hits its poison shield is poisoned")
 	_ready(fight)
-	fight.scan(_card("M2", [["attack", 11, kinds[0]]], "items"))
-	_check(fight.health == 54 and not _told.has("mirefang_spit"), "a card that costs it 6 health is not enough to make it spit")
+	fight.scan(_card("M2", [["attack", 9, kinds[0]]], "items"))
+	_check(fight.health == 56 and not _told.has("mirefang_spit"), "a card that costs it 4 health is not enough to make it spit")
 	_ready(fight)
-	fight.scan(_card("M3", [["attack", 12, kinds[1]]], "items"))
-	_check(fight.health == 47 and _told[-1] == "mirefang_spit" and _values[-1].poison == 1, "one that costs it 7 makes it spit venom on every hero")
+	var striker := fight.request.hero
+	fight.scan(_card("M3", [["attack", 10, kinds[1]]], "items"))
+	_check(fight.health == 51 and _told[-1] == "mirefang_spit" and _values[-1].player == striker.name and _values[-1].poison == 1, "one that costs it 5 makes it spit venom at the hero who played it")
 	_ready(fight)
-	fight.scan(_card("M4", [["direct_damage", 2]], "items"))
+	fight.scan(_card("M4", [["direct_damage", 6]], "items"))
 	_check(fight.health == 45 and _told.count("mirefang_spit") == 1, "once a round")
 	_check(not fight.boss_away and not _told.has("mirefang_dive"), "at exactly 75 % of its health, it stays")
 
@@ -2445,6 +2446,7 @@ func _check_mirefang() -> void:
 	var hits: Array = _values[_told.find("boss_attacks")].hits
 	_check(hits.size() == 1 and hits[0][1].player == bitten[0].name and hits[0][1].damage == 15, "and bites the hero it chose")
 	_check(not boss.enraged, "above half its health, it is not enraged")
+	_check(not _told.has("mirefang_tail"), "in the first round, its tail stays still")
 	# The rest of round 1, then round 2 up to the first card.
 	for i in 6:
 		_ready(fight)
@@ -2462,6 +2464,10 @@ func _check_mirefang() -> void:
 	while fight.phase == Fight.Phase.ACTION and fight.request != null and fight.request.kind == Fight.Request.Kind.ACTION:
 		fight.pass_action()
 	_ready(fight)
+	var lost := _told.count("health_loss")
+	_check(_told[-1] == "mirefang_tail" and _values[-1].damage == 5, "every second round, after its attacks, its tail lashes every hero for 5")
+	_ready(fight)
+	_check(_told.count("health_loss") == lost, "told in one message, not one per hero")
 	_check(boss.enraged and _told[-1] == "mirefang_enraged" and looks[0] == 1, "surfacing below half its health, it is enraged, and looks it")
 	for i in 6:
 		_ready(fight)

@@ -47,8 +47,11 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The prompt** in the upper half, between the seats at the sides, in large type for small screens, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
   prompt's text, short notes come and go, such as *This card is already in play this round*.
-- **The card's name** large over the boss, as a card is played (`Fight.card_started`). The fight waits a moment
-  for it before the card takes effect.
+- **The card's name** large over the boss, as a card is played (`Fight.card_started`): a dark band opens between
+  two golden lines, the name slams in under the hero's name, with a glow in the colour of the card's damage type
+  (green for healing, otherwise gold), and a gleam runs across. The fight waits a moment for it before the card takes
+  effect, and messages, such as what the card did, wait a little longer (`CARD_NAME_HOLD_SEC`), so that the name
+  can be read first.
 - **Screen shake:** the whole screen shakes like in a small earthquake (`shake_screen()`) when a planned attack or a
   shield smashes in, when a shield breaks, and at the hits of a big attack (`BIG_ATTACK`, 5 or more) by a hero, or by
   the boss as it lunges.

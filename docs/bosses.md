@@ -127,7 +127,7 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
 
   | Heroes | Health | Attacks | Poison per attack | Shields (around) | Bite |
   |--------|--------|---------|-------------------|---------|------|
-  | 1 | 25 | 2 to 6 | 1 | 3 | 6 + 1 poison |
+  | 1 | 25 | 3 to 7 | 1 | 3 | 6 + 1 poison |
   | 2 | 42 | 6 to 10 | 1 | 4 | 10 + 2 poison |
   | 3 | 60 | 7 to 11 | 1 | 5 | 15 + 2 poison |
   | 4 | 88 | 7 to 11 | 1 | 6 | 18 + 2 poison |
@@ -155,9 +155,14 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
     new shields and attacks.
 - **Enraged:** surfacing below half its health, it is enraged for the rest of the fight (`mirefang_enraged`): +1 on
   its attacks and its shields, and its poison shield gives 2 poison. Its eyes glow red and it moves faster.
-- **Venom spit:** a card that costs it 7 health or more makes it spit venom on every hero, 1 poison each
-  (`mirefang_spit`), at most once a round. An @-ability of strength 1 (`mirefang_spit`). If the same card takes it
-  past a mark, it spits first, then dives.
+- **Venom spit:** a card that costs it 5 health or more makes it spit venom at the hero who played it, 1 poison
+  (`mirefang_spit`), at most once a round. An @-ability of strength 1 (`mirefang_spit`) against that hero. If the same
+  card takes it past a mark, it spits first, then dives. In the script: `spit_damage` and `spit_poison`.
+- **Tail lash:** every second round (rounds 2, 4, 6, …), after its attacks, it lashes its tail across the mire: every
+  hero loses 4 health on *Easy*, 5 on *Normal*, 6 on *Hard* (`mirefang_tail`), for any number of heroes. Protection
+  does not lower it, as it is not an attack, but it is an @-ability (`mirefang_tail`), which cards can prevent. It
+  comes in rounds in which it surfaced and bit, too, and before it becomes enraged. In the script: `tail` and
+  `tail_every`.
 - **Tuning:** its numbers are variables at the top of its script, so that the [balance simulator](balance.md) can try
   others with `--set`.
 - **Look:** it slithers (`Motion.SLITHER`), rises from the water (`waterline`) and its eyes glow (`eyes`, measured on
