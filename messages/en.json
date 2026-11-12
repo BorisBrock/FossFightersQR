@@ -15,7 +15,7 @@
 			"[i]One card less per paralysis :paralysis:.[/i]"
 		]
 	},
-	"first_round_draw": {
+	"hand_limit_draw": {
 		"body": "[player]{player}[/player]: [b]{count}[/b] :card:"
 	},
 	"round_started": {
@@ -62,7 +62,12 @@
 	},
 	"round_end_draw": {
 		"title": "End of the Round · Draw",
-		"body": "Up to your hand limit :card:, [damage]1 fewer[/damage] per paralysis :paralysis:."
+		"body": [
+			"Draw your cards :card: up to your hand limit:",
+			"{draws}",
+			"",
+			"[i]One card less per paralysis :paralysis:.[/i]"
+		]
 	},
 	"support_without_attack": {
 		"title": "No effect",

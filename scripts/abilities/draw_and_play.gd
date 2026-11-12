@@ -13,9 +13,11 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 		return
 	fight.tell("draw_and_play", { "player": hero.name, "draw": draw, "play": count, "discard": maxi(0, draw - count) })
 	await fight.until_read()
+	var settings := { "prompt": "prompt_play_drawn", "limited": true, "reserved": true }
+	fight.reserve_actions(hero, count, settings)
 	var extra := 0
 	for i in count:
-		var drawn := await fight.take_action(hero, { "prompt": "prompt_play_drawn", "limited": true })
+		var drawn := await fight.take_action(hero, settings)
 		if drawn != null:
 			extra += drawn.extra_actions
 	await fight.play_actions(hero, extra, { "prompt": "prompt_free_play", "can_skip": true })

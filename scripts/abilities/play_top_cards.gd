@@ -10,9 +10,11 @@ func after_effects(fight: Fight, play: CardPlay) -> void:
 	var hero := await fight.choose_hero(fight.heroes, "prompt_play_top_who", { "player": play.hero.name, "count": count })
 	if hero == null:
 		return
+	var settings := { "prompt": "prompt_lucky_charm", "limited": true, "reserved": true }
+	fight.reserve_actions(hero, count, settings)
 	var extra := 0
 	for i in count:
-		var top := await fight.take_action(hero, { "prompt": "prompt_lucky_charm", "limited": true })
+		var top := await fight.take_action(hero, settings)
 		if top != null:
 			extra += top.extra_actions
 	await fight.play_actions(hero, extra, { "prompt": "prompt_free_play", "can_skip": true })

@@ -6,11 +6,19 @@ extends HBoxContainer
 ## bar. New chips pop up, so that the players notice them.
 
 const ICON_SIZE := 26
+## A grid's icons (FightBuff.GRIDS), as a part of icon_size.
+const GRID_CELL := 0.7
 const TOTEM_COLOR := Color(0.25, 0.75, 0.7)
 const TEXT_COLOR := Color(0.6, 0.95, 0.55)
 const BAR_WIDTH := 40
 const BAR_COLOR := Color(0.45, 0.85, 0.4)
 const BAR_LOW_COLOR := Color(0.9, 0.3, 0.2)
+
+## How big the chips are: the icons, the text, and the count. The chips at the top of the
+## screen, for everyone, are bigger than those at a seat.
+var icon_size := ICON_SIZE
+var text_size := 22
+var count_size := 16
 
 ## The chips shown, by what they show, to tell which are new.
 var _shown: Array[String] = []
@@ -63,34 +71,60 @@ func _chip(buff: FightBuff, plate: StyleBox) -> Control:
 	chip.add_theme_stylebox_override("panel", style)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 2)
+	row.add_theme_constant_override("separation", maxi(2, icon_size / 8))
 	chip.add_child(row)
 	for key in buff.icons:
+		if FightBuff.GRIDS.has(key):
+			row.add_child(_grid(FightBuff.GRIDS[key]))
+			continue
 		var paths := FightBuff.icon_paths(key)
 		if paths.is_empty():
 			continue
 		# Several pictures for one key overlap, so that they read as one symbol.
 		var group := HBoxContainer.new()
 		group.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		group.add_theme_constant_override("separation", -ICON_SIZE / 2)
+		group.add_theme_constant_override("separation", -icon_size / 2)
 		for path in paths:
-			var icon := TextureRect.new()
-			icon.texture = load(path)
-			icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			group.add_child(icon)
+			group.add_child(_icon(path, icon_size))
 		row.add_child(group)
 	if not buff.text.is_empty():
-		row.add_child(_label(buff.text, 22, TEXT_COLOR))
+		row.add_child(_label(buff.text, text_size, TEXT_COLOR))
 	if buff.count > 0:
-		var count := _label("×%d" % buff.count, 16, Color(0.98, 0.88, 0.62))
+		var count := _label("×%d" % buff.count, count_size, Color(0.98, 0.88, 0.62))
 		count.size_flags_vertical = Control.SIZE_SHRINK_END
 		row.add_child(count)
 	if buff.bar_max > 0:
 		row.add_child(_bar(buff))
 	return chip
+
+
+## Small icons in rows, such as the three attacks above the three supports.
+func _grid(rows: Array) -> Control:
+	var grid := GridContainer.new()
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.columns = (rows[0] as Array).size()
+	grid.add_theme_constant_override("h_separation", 0)
+	grid.add_theme_constant_override("v_separation", 0)
+	grid.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var cell := roundi(icon_size * GRID_CELL)
+	for keys: Array in rows:
+		for key: String in keys:
+			var paths := FightBuff.icon_paths(key)
+			if paths.is_empty():
+				grid.add_child(Control.new())
+			else:
+				grid.add_child(_icon(paths[0], cell))
+	return grid
+
+
+func _icon(path: String, edge: int) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = load(path)
+	icon.custom_minimum_size = Vector2(edge, edge)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
 
 
 ## A small health bar, with what is left as a number beneath it.

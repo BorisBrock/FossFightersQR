@@ -171,7 +171,7 @@ Nachtisch* still boosts, a health bar (`bar`, `bar_max`), such as the battle rob
 for a hero sits in their badge, a buff for everyone (no hero) at the top of the screen (see
 [The boss fight](boss_fight.md#what-is-on-screen)). The fight sends `buffs_changed` when a rule with a buff comes or
 goes; a rule whose buff changes, such as a count going down, sends it itself. The icons are keys of `FightBuff.ICONS`;
-a support of one type is `<type>_support`, and `support` (of any type) shows the three support icons overlapping. The
+a support of one type is `<type>_support`, and `support` (of any type) shows the three support icons overlapping. `every_type` (`FightBuff.GRIDS`) shows the three attacks above the three supports as a small grid, as *Muttis Nachtisch* does: it boosts all of them. The chips for everyone at the top of the screen are bigger than those at a seat. The
 dryad's forms have no chip: her portrait changes to that of the form (`HeroOptions.RACES.dryad.forms`).
 
 | Shows a buff | For |
@@ -180,7 +180,7 @@ dryad's forms have no chip: her portrait changes to that of the form (`HeroOptio
 | `next_card` | the hero with `own`, otherwise everyone |
 | `heal_on_next_protection`, `attack_lowers_threat`, `random_hand_cards` | the hero |
 | `boost_next_cards` (with the count), `toxin` | everyone |
-| `battle_robot` | the goblin: the parts flipped while it is being built, `+2` and its health bar while it works |
+| `battle_robot` | the goblin: how many parts are flipped while it is being built (the players track which on the table), `+2` and its health bar while it works |
 
 A card that takes effect once more (`Fight.play_again()`) or later is a replay (`CardPlay.replay`): the rules and its
 ability see it again, but it does not count as played a second time. Lightning on a card played again gives actions

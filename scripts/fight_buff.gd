@@ -29,9 +29,18 @@ const ICONS := {
 	"robot": "res://assets/fight/icon_robot.png",
 }
 
+## A key that shows a small grid of other keys, row by row, such as "every_type": the
+## three attacks above the three supports, for what boosts all attacks and supports.
+const GRIDS := {
+	"every_type": [
+		["melee", "ranged", "magic"],
+		["melee_support", "ranged_support", "magic_support"],
+	],
+}
+
 ## Whose it is, or null for one that is for everyone.
 var hero: FightHero
-## What it is about, as keys of ICONS, shown one after the other.
+## What it is about, as keys of ICONS or GRIDS, shown one after the other.
 var icons: Array[String] = []
 ## Short, such as "+1". Empty for none.
 var text := ""

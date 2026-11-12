@@ -416,14 +416,24 @@ func play_actions(hero: FightHero, count: int, settings := {}) -> Array[CardPlay
 
 ## Asks hero for one card and plays it, see play_actions(). Returns null if they passed.
 ## Lightning on the card is left to the caller, through CardPlay.extra_actions.
+## With "reserved" in settings, the action is one reserve_actions() already shows.
 func take_action(hero: FightHero, settings := {}) -> CardPlay:
 	if over:
 		return null
-	_reserve(hero, _action_kind(settings), 1)
+	if not settings.get("reserved", false):
+		_reserve(hero, _action_kind(settings), 1)
 	var play := await _take_reserved(hero, settings)
 	if play != null:
 		_unreserve(hero, play.extra_actions)
 	return play
+
+
+## Shows count actions of the kind settings ask for (see play_actions()) among hero's,
+## for abilities that then take them one by one with take_action() and "reserved", so
+## that all of them show from the start. Those the fight ends before are dropped.
+func reserve_actions(hero: FightHero, count: int, settings := {}) -> void:
+	if count > 0 and not over:
+		_reserve(hero, _action_kind(settings), count)
 
 
 ## The card gives its hero count more actions right away, such as from Lightning.
@@ -783,11 +793,12 @@ func _run() -> void:
 		await _play_round()
 
 
-## How many cards each hero draws for their starting hand, as message parts, one per hero.
-func _starting_hands() -> Array:
+## Each hero's hand limit, as message parts, one per hero: how many cards they draw up to,
+## for their starting hand and at the end of each round.
+func _hand_limits() -> Array:
 	var parts := []
 	for hero in heroes:
-		parts.append(["first_round_draw", { "player": hero.name, "count": HeroOptions.hand_limit(hero.hero.race, hero.hero.hero_class) }])
+		parts.append(["hand_limit_draw", { "player": hero.name, "count": HeroOptions.hand_limit(hero.hero.race, hero.hero.hero_class) }])
 	return parts
 
 
@@ -811,7 +822,7 @@ func _play_round() -> void:
 	# waits for the check mark.
 	var values := { "round": round_number, "boss": boss.title, "flavor": boss.round_text(round_number) }
 	if round_number == 1:
-		values.draws = _starting_hands()
+		values.draws = _hand_limits()
 		tell("first_round", values)
 	else:
 		tell("round_started", values)
@@ -880,7 +891,7 @@ func _play_round() -> void:
 	await _each_rule("round_end_started")
 	tell("round_end_status")
 	tell("round_end_discard")
-	tell("round_end_draw")
+	tell("round_end_draw", { "draws": _hand_limits() })
 	await until_read()
 	if over:
 		return

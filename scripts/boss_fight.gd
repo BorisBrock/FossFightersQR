@@ -800,9 +800,13 @@ func _refresh_badge(hero: FightHero) -> void:
 	var was_visible := badge.visible
 	var buffs: BuffChips = badge.get_node("Row/Buffs")
 	badge.visible = actions.visible or buffs.visible
-	# Size the badge to what it holds now, centred over the seat.
+	# Size the badge to what it holds now, centred over the seat and its bottom on the
+	# portrait. Shrinking keeps the top where it is, so without resetting the offsets the
+	# badge would creep up each time it gets smaller and grows again.
 	badge.offset_left = 0.0
 	badge.offset_right = 0.0
+	badge.offset_top = token.portrait_rect().position.y - BADGE_GAP
+	badge.offset_bottom = badge.offset_top
 	badge.reset_size()
 	if badge.visible and (not was_visible or actions.actions().size() > old_actions.size()):
 		badge.pivot_offset = badge.size / 2.0
@@ -834,15 +838,19 @@ func _fit(plate: Control) -> void:
 	plate.reset_size()
 
 
-## The chips for everyone at the top of the screen, between the buttons.
+## The chips for everyone at the top of the screen, between the buttons and as tall as
+## they are, bigger than those at the seats.
 func _make_global_buffs() -> void:
 	_global_buffs = BuffChips.new()
 	_global_buffs.name = "Buffs"
+	_global_buffs.icon_size = 44
+	_global_buffs.text_size = 44
+	_global_buffs.count_size = 32
 	_global_buffs.anchor_left = 0.5
 	_global_buffs.anchor_right = 0.5
 	_global_buffs.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_global_buffs.offset_top = 28.0
-	_global_buffs.offset_bottom = 80.0
+	_global_buffs.offset_top = 16.0
+	_global_buffs.offset_bottom = 92.0
 	$Hud.add_child(_global_buffs)
 
 

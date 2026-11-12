@@ -23,7 +23,7 @@ class Boost extends FightRule:
 			fight.buffs_changed.emit()
 
 	func buff() -> FightBuff:
-		var shown := FightBuff.new(null, ["card"], "%+d" % bonus)
+		var shown := FightBuff.new(null, ["every_type"], "%+d" % bonus)
 		shown.count = left
 		return shown
 

@@ -3,7 +3,7 @@ extends SceneTree
 ## bosses and abilities step in. The fight waits for the players, and the test plays them.
 ## Run with: godot --headless -s tests/test_fight.gd
 
-const EXPECTED_CHECKS := 503
+const EXPECTED_CHECKS := 506
 const EMPOWER := preload("res://scripts/abilities/empower.gd")
 const BOOST_NEXT_CARDS := preload("res://scripts/abilities/boost_next_cards.gd")
 const NEXT_CARD := preload("res://scripts/abilities/next_card.gd")
@@ -124,7 +124,7 @@ func _check_round() -> void:
 	_ready(fight)
 	_check(_told.slice(-2) == ["first_round", "boss_planning"] and fight.round_number == 1 and boss.calls[-1] == "round 1", "then round 1 begins, and everyone draws their cards")
 	var draws: Array = _values[-2].draws
-	_check(draws.map(func(part: Array) -> Array: return [part[0], part[1].player, part[1].count]) == [["first_round_draw", "Rosie", 7], ["first_round_draw", "Borin", 6], ["first_round_draw", "Sonja", 6]], "each hero up to their hand limit, from character and class")
+	_check(draws.map(func(part: Array) -> Array: return [part[0], part[1].player, part[1].count]) == [["hand_limit_draw", "Rosie", 7], ["hand_limit_draw", "Borin", 6], ["hand_limit_draw", "Sonja", 6]], "each hero up to their hand limit, from character and class")
 	_check(_values[-2].flavor == boss.round_text(1) and not boss.round_text(1).is_empty() and boss.round_text(2) != boss.round_text(1), "with a word from the boss, another each round")
 	_check(fight.phase == Fight.Phase.PLANNING and _values[-1].has("boss") and fight.request == null, "and the boss plans its attacks, told in a message of its own")
 	_check(fight.hero_at(1).threat == 4 and fight.hero_at(5).threat_effects == { "poison": 1 }, "against each hero")
@@ -204,6 +204,7 @@ func _check_round() -> void:
 	_check(_told[-1] == "boss_attacks" and _values[-1].hits[-1][0] == "part_hit_with_tokens" and _values[-1].hits[-1][1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
 	_ready(fight)
 	_check(_told[-1] == "round_end_draw", "which the players apply at the end of the round")
+	_check(_values[-1].draws.map(func(part: Array) -> Array: return [part[0], part[1].player, part[1].count]) == [["hand_limit_draw", "Rosie", 7], ["hand_limit_draw", "Borin", 6], ["hand_limit_draw", "Sonja", 6]], "and the draw lists each hero's hand limit, as in round 1")
 
 	# What the game over screen shows of these two rounds.
 	var stats := fight.stats
@@ -907,8 +908,10 @@ func _check_new_loot_cards() -> void:
 	_check(_told[-1] == "draw_and_play" and _values[-1].player == "Borin" and _values[-1].draw == 5 and _values[-1].play == 2 and _values[-1].discard == 3, "Güldis Angel: Borin draws 5, plays 2, discards 3")
 	_ready(fight)
 	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_play_drawn", "Güldis Angel: Borin plays a drawn card")
+	_check(_actions(fight.hero_at(3)).begins_with("LLT"), "Güldis Angel: both drawn cards show as actions from the start")
 	fight.scan(_card("DRAWN1", [["attack", 2, "melee"], ["lightning", 1]], "dwarf"))
 	_check(_asks_card_of(fight, 3) and fight.request.prompt == "prompt_play_drawn", "Güldis Angel: and a second")
+	_check(_actions(fight.hero_at(3)).begins_with("LT"), "Güldis Angel: one of them left, its Lightning comes afterwards")
 	fight.scan(_card("DRAWN2", [["attack", 1, "melee"]], "dwarf"))
 	_ready(fight)
 	_check(fight.health == 27 and _asks_card_of(fight, 3) and fight.request.prompt == "prompt_free_play", "Güldis Angel: both hit, then the Lightning on them")
@@ -1562,7 +1565,7 @@ func _check_battle_robot() -> void:
 	_check(fight.buffs(rosie).size() == 1 and robot.call().text == "0/3" and robot.call().bar_max == 0, "the goblin's seat shows the robot, not built yet")
 	fight.scan(_card("ZAP", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))
 	_check(fight.health == 29 and _told[-1] == "robot_part" and _values[-1].count == 1, "an attack flips its first part")
-	_check(robot.call().text == "1/3" and robot.call().icons == ["robot", "attack"], "which the seat shows")
+	_check(robot.call().text == "1/3" and robot.call().icons == ["robot"], "which the seat shows")
 	_ready(fight)
 	var told_before := _told.size()
 	fight.scan(_card("ZAP2", [["attack", 1, "ranged"], ["lightning", 1]], "goblin"))

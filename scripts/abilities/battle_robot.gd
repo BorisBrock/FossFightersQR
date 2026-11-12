@@ -29,7 +29,6 @@ func buff() -> FightBuff:
 		shown.bar = health
 		shown.bar_max = value("health", 8)
 	else:
-		shown.icons.append_array(parts)
 		shown.text = "%d/%d" % [parts.size(), PARTS.size()]
 	return shown
 

@@ -103,7 +103,8 @@ on and take off themselves.
    every hit, a line per hero, with the tokens the hero takes for poison and the like. What rules do on a hit
    (`hero_struck`, `hero_hurt`) follows it.
 7. **End of the round:** status, discard and draw (phases 5 to 7 of the rules) are a short message each, as the
-   players do them together at the table: what poison and fire do, discarding, and drawing, with paralysis. What
+   players do them together at the table: what poison and fire do, discarding, and drawing, which lists each hero's
+   hand limit and reminds them of paralysis, as *Round 1* does. What
    rules remind them of, such as a card not to discard (`round_end_started`), comes first.
 8. **Then** the boss's poison hurts it, past its shields: 1 health per token, which rules can change
    (`FightRule.poison_damage`, such as the Toxikum). Its tokens stay for the whole fight.

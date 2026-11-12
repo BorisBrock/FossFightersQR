@@ -7,7 +7,7 @@ extends Node
 const PARTY_PATH := "user://test_boss_fight_party.json"
 const SETTINGS_PATH := "user://test_boss_fight_settings.cfg"
 const CARDS_PATH := "res://tests/fixtures/fight_cards.json"
-const EXPECTED_CHECKS := 104
+const EXPECTED_CHECKS := 105
 
 var _failures := 0
 var _checks_run := 0
@@ -141,6 +141,16 @@ func _check_screen() -> void:
 	screen.fight.remove_rule(totem)
 	screen.fight.remove_rule(dessert)
 	_check(not chips.visible and not global.visible and not seat.totem, "and both go once they are over")
+	# A badge that grows and shrinks again, as buffs and actions come and go, stays on the
+	# portrait instead of creeping up.
+	var badge: Control = seat.get_node("Badge")
+	var bottom: float = seat.portrait_rect().position.y - screen.BADGE_GAP
+	for i in 3:
+		screen.fight.add_rule(totem, true)
+		screen.fight.remove_rule(totem)
+	screen.fight.add_rule(totem, true)
+	_check(is_equal_approx(badge.position.y + badge.size.y, bottom), "a badge that grew and shrank stays on its portrait")
+	screen.fight.remove_rule(totem)
 	screen.queue_free()
 
 

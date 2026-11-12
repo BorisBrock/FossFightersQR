@@ -15,7 +15,7 @@
 			"[i]Pro Lähmung :paralysis: eine Karte weniger.[/i]"
 		]
 	},
-	"first_round_draw": {
+	"hand_limit_draw": {
 		"body": "[player]{player}[/player]: [b]{count}[/b] :card:"
 	},
 	"round_started": {
@@ -62,7 +62,12 @@
 	},
 	"round_end_draw": {
 		"title": "Rundenende · Nachziehen",
-		"body": "Bis zum Handkartenlimit :card:, pro Lähmung :paralysis: [damage]1[/damage] weniger."
+		"body": [
+			"Zieht eure Karten :card: bis zum Handkartenlimit:",
+			"{draws}",
+			"",
+			"[i]Pro Lähmung :paralysis: eine Karte weniger.[/i]"
+		]
 	},
 	"support_without_attack": {
 		"title": "Ohne Wirkung",
