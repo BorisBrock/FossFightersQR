@@ -34,6 +34,47 @@ project made by players for players.
 
 ---
 
+## 📸 A look inside
+
+<table>
+<tr>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/onboarding_party.jpg"><img src="docs/screenshots/onboarding_party.jpg" alt="The party gathered around the table"></a>
+<br><b>Gather your party</b>
+<br><sub>Everyone takes their seat around the table.</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/onboarding_editor.jpg"><img src="docs/screenshots/onboarding_editor.jpg" alt="Creating a hero by scanning character and class cards"></a>
+<br><b>Scan your hero</b>
+<br><sub>Show your character and class cards, and pick a name.</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/boss_overview.jpg"><img src="docs/screenshots/boss_overview.jpg" alt="Mirefang, the Serpent of the Rotmire"></a>
+<br><b>Choose your foe</b>
+<br><sub>Meet Mirefang, the Serpent of the Rotmire.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/fight_planning.jpg"><img src="docs/screenshots/fight_planning.jpg" alt="The boss has planned its attacks and raised its shields"></a>
+<br><b>Know your enemy</b>
+<br><sub>See the boss's attacks and shields, then plan your round.</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/fight_attack.jpg"><img src="docs/screenshots/fight_attack.jpg" alt="A fireball hits the boss"></a>
+<br><b>Strike back</b>
+<br><sub>Every card you play hits the boss with a big effect.</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<a href="docs/screenshots/victory.jpg"><img src="docs/screenshots/victory.jpg" alt="The victory screen with the statistics of the fight"></a>
+<br><b>Celebrate together</b>
+<br><sub>See how the fight went, and who earned which title.</sub>
+</td>
+</tr>
+</table>
+
+---
+
 ## ✨ Why Foss Fighters?
 
 <table>

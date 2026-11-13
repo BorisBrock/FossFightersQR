@@ -46,3 +46,13 @@ save in place, Firefox downloads the file. In that mode **Scans folder…** show
 Tests: `cd tools/ocr && python -m unittest` (text handling, and OCR of the card photos in `tools/ocr/fixtures`
 when tesseract is installed; the photos show copyrighted cards and are kept out of the repository, so put them there
 locally under the names in `expected.json`, otherwise those tests are skipped), `cd tools && python -m unittest` (catalog checks).
+
+# README screenshots
+
+```sh
+godot --disable-vsync res://tools/screenshots/take_screenshots.tscn
+```
+
+Plays through the real scenes with a made-up party (its own party and settings files, so it leaves yours alone)
+and saves the shots the README shows to `docs/screenshots/` as 1080×1920 JPEGs (about 400 KB each). It needs a
+window, like the GUI tests, and uses a fake camera, never the real one. Run it again when the screens change.
