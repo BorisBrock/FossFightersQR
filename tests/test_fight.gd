@@ -590,12 +590,13 @@ func _check_magic_loot_cards() -> void:
 	# and nothing reaches the boss.
 	var boss := TestBoss.new()
 	var fight := _started(boss)
+	var told_before := _told.size()
 	fight.scan(catalog.find("OgEAAA=="))
 	_check(fight.request.kind == Fight.Request.Kind.SHIELD and fight.request.kinds == ["melee", "magic"], "Explosivkristall: which shield? The players tap it")
 	fight.choose_shield("ranged")
 	_check(fight.request != null and fight.request.kind == Fight.Request.Kind.SHIELD, "Explosivkristall: a broken shield cannot be chosen")
 	fight.choose_shield("melee")
-	_check(fight.shields.melee == 0 and fight.shields.magic == 1 and fight.health == 30 and not "shield_hit melee" in boss.calls and _told[-1] == "shield_lowered", "Explosivkristall: the shield is down, without its effect or damage")
+	_check(fight.shields.melee == 0 and fight.shields.magic == 1 and fight.health == 30 and not "shield_hit melee" in boss.calls and _told.size() == told_before, "Explosivkristall: the shield is down, without its effect or damage")
 	fight.abandon()
 	boss = TestBoss.new()
 	boss.shields = { "melee": 0, "ranged": 0, "magic": 0 }
@@ -1000,8 +1001,9 @@ func _check_last_loot_cards() -> void:
 	fight = _started(boss)
 	fight.scan(catalog.find("FAEAAA=="))
 	_check(fight.request.prompt == "prompt_lower_shield" and fight.request.values.amount == 4, "Pyro-Falle: which shield?")
+	var told_before := _told.size()
 	fight.choose_shield("melee")
-	_check(fight.shields.melee == 0 and fight.health == 30 and not boss.calls.has("shield_hit melee") and _values[-1].amount == 2, "Pyro-Falle: the melee shield breaks, nothing beyond it")
+	_check(fight.shields.melee == 0 and fight.health == 30 and not boss.calls.has("shield_hit melee") and _told.size() == told_before, "Pyro-Falle: the melee shield breaks, nothing beyond it")
 	fight.abandon()
 
 	# Donnerspeer: ranged 8, then out of the game for everyone.
@@ -1054,8 +1056,9 @@ func _check_final_loot_cards() -> void:
 	var boss := TestBoss.new()
 	boss.shields = { "melee": 5 }
 	fight = _started(boss)
+	var told_before := _told.size()
 	fight.scan(catalog.find("ZwEAAA=="))
-	_check(fight.shields.melee == 3 and fight.poison == 0 and _told[-1] == "shield_lowered", "Waffengift: a shield that holds gives no poison")
+	_check(fight.shields.melee == 3 and fight.poison == 0 and _told.size() == told_before, "Waffengift: a shield that holds gives no poison")
 	fight.abandon()
 
 	# Magische Haut: Protection as high as the round, then another action.
@@ -1437,8 +1440,9 @@ func _check_paladin_cards() -> void:
 	# Hammer des Zorns: a melee attack of 3, then every shield 1 lower without its effect.
 	var boss := TestBoss.new()
 	fight = _paladin_starts(boss)
+	var told_before := _told.size()
 	fight.scan(catalog.find("qAEAAA=="))
-	_check(fight.health == 29 and fight.shields.values().all(func(n: int) -> bool: return n == 0) and "shield_hit melee" in boss.calls and not "shield_hit magic" in boss.calls and _told[-1] == "shields_lowered", "Hammer des Zorns: 1 through the melee shield, then the magic shield goes down by 1 without its effect")
+	_check(fight.health == 29 and fight.shields.values().all(func(n: int) -> bool: return n == 0) and "shield_hit melee" in boss.calls and not "shield_hit magic" in boss.calls and _told.size() == told_before, "Hammer des Zorns: 1 through the melee shield, then the magic shield goes down by 1 without its effect")
 	fight.abandon()
 
 	# Himmelsschild: an attack lowered to 0 lets the protected hero remove 2 tokens.

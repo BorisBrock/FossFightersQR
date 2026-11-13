@@ -321,10 +321,6 @@
 	"option_shield_magic": {
 		"body": "Magie"
 	},
-	"shield_lowered": {
-		"body": "Der {kind}-Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage].",
-		"auto": true
-	},
 	"no_shield_to_lower": {
 		"body": "[boss]{boss}[/boss] hat keinen Schild mehr: [b]{card}[/b] von [player]{player}[/player] bewirkt nichts.",
 		"auto": true
@@ -383,10 +379,6 @@
 	},
 	"discard_random": {
 		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte :card: ab, falls möglich."
-	},
-	"shields_lowered": {
-		"body": "Jeder Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage], ohne seinen Effekt auszulösen.",
-		"auto": true
 	},
 	"threat_lowers_on_attack": {
 		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff :damage: spielt, sinkt die Boss-Attacke :claw: gegen [player]{player}[/player] um [heal]{amount}[/heal].",

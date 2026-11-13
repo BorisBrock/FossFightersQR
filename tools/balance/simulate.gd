@@ -28,7 +28,7 @@ const READ_ONLY: Array[String] = [
 	"totems_returned", "totem_lightning", "shield_breaker", "card_repeated", "nothing_to_repeat",
 	"attacks_weakened", "attacks_weakened_next_round", "attack_redirected", "attack_halved",
 	"attack_effects_removed", "attack_delayed", "attack_cancelled", "delayed_attack_now",
-	"threat_lowered", "threat_lowers_on_attack", "shields_lowered", "shield_lowered", "no_shield_to_lower",
+	"threat_lowered", "threat_lowers_on_attack", "no_shield_to_lower",
 	"shield_broken_poison", "next_cards_boosted", "poison_burst", "poison_burst_none", "poison_cleared",
 	"poison_on_attack", "poison_on_attack_ready", "toxin_ready", "robot_part", "robot_built", "robot_destroyed",
 	"extra_turns_now", "extra_turns_next_round", "card_wound_up", "play_from_top_rest", "random_hand_cards",

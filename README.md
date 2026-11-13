@@ -120,6 +120,15 @@ Foss Fighters QR is a 2D Godot 4.7 game in portrait mode. Documentation:
 
 </details>
 
+## License
+
+Copyright (c) 2026 Boris Brock. Licensed under the [PolyForm Strict License 1.0.0](LICENSE.md).
+
+You may download, build, and run the game for personal, noncommercial use.
+You may **not** sell it, redistribute it (including publishing it in an app store), or publish modified versions or copies of the source under a different name.
+
+Third-party assets keep their own licenses (see the `License.txt` files next to them).
+
 <div align="center">
 
 <sub>Foss Fighters QR is an unofficial fan project and is not affiliated with or endorsed by
