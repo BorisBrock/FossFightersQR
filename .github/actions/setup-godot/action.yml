@@ -1,0 +1,63 @@
+name: Set up Godot
+description: >
+  Puts the official Godot editor on the PATH as `godot` and, if asked, installs some export templates.
+  The Godot version of the project is set here, in one place.
+
+inputs:
+  version:
+    description: Godot version, without the "-stable" suffix.
+    default: "4.7.2"
+  templates:
+    description: >
+      Space-separated names of the export templates to install, e.g. "android_debug.apk".
+      Only these files are kept from the 1.3 GB template archive, so the cache stays small.
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Godot
+      id: cache-editor
+      uses: actions/cache@v6
+      with:
+        path: ~/godot
+        key: godot-editor-${{ inputs.version }}
+
+    - name: Download Godot
+      if: steps.cache-editor.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p ~/godot
+        curl -fsSL -o /tmp/godot.zip \
+          "https://github.com/godotengine/godot-builds/releases/download/${{ inputs.version }}-stable/Godot_v${{ inputs.version }}-stable_linux.x86_64.zip"
+        unzip -q /tmp/godot.zip -d ~/godot
+        mv ~/godot/Godot_v*_linux.x86_64 ~/godot/godot
+        rm /tmp/godot.zip
+
+    - name: Put Godot on the PATH
+      shell: bash
+      run: |
+        echo "$HOME/godot" >> "$GITHUB_PATH"
+        "$HOME/godot/godot" --headless --version
+
+    - name: Cache export templates
+      id: cache-templates
+      if: inputs.templates != ''
+      uses: actions/cache@v6
+      with:
+        path: ~/.local/share/godot/export_templates/${{ inputs.version }}.stable
+        key: godot-templates-${{ inputs.version }}-${{ hashFiles('.github/actions/setup-godot/action.yml') }}-${{ inputs.templates }}
+
+    - name: Download export templates
+      if: inputs.templates != '' && steps.cache-templates.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        dir=~/.local/share/godot/export_templates/${{ inputs.version }}.stable
+        mkdir -p "$dir"
+        curl -fsSL -o /tmp/templates.tpz \
+          "https://github.com/godotengine/godot-builds/releases/download/${{ inputs.version }}-stable/Godot_v${{ inputs.version }}-stable_export_templates.tpz"
+        files=(templates/version.txt)
+        for name in ${{ inputs.templates }}; do files+=("templates/$name"); done
+        unzip -j /tmp/templates.tpz "${files[@]}" -d "$dir"
+        rm /tmp/templates.tpz
+        ls -l "$dir"

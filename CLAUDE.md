@@ -18,6 +18,7 @@ Most tests run headless, but **`test_game` and `test_onboarding` need a window**
 through the real GPU to the decoder. Run with `--headless`, they get no frames (`frames_submitted: 0`), and every scan
 check fails (16 and 7 failures). That is not a bug in the code. Always run them without `--headless`:
 
+    godot --headless res://tests/check_project.tscn   # every script and scene compiles and loads
     godot --headless -s tests/test_decoder.gd
     godot --headless -s tests/test_cards.gd
     godot --headless -s tests/test_party.gd

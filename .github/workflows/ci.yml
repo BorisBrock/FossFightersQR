@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call: # the release runs the same checks before it builds anything
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  catalog:
+    name: Card catalog and tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # Only what validate_catalog needs; the OCR tools (OpenCV, tesseract) are not tested here.
+      - run: pip install jsonschema
+
+      - name: Validate cards/cards.json
+        run: python tools/validate_catalog.py
+
+      - name: Tool tests
+        working-directory: tools
+        run: python -m unittest -v
+
+  godot:
+    name: Godot checks and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      # The committed libqr_scanner.linux.x86_64.so is linked against a newer glibc than the runner has,
+      # so the extension is built from source. This also checks that the C++ compiles.
+      - name: Cache native build
+        uses: actions/cache@v6
+        with:
+          path: native/build/linux
+          key: native-linux-${{ hashFiles('native/**') }}
+          restore-keys: native-linux-
+
+      - name: Build QR extension (Linux)
+        run: |
+          rm -f addons/qr_scanner/bin/libqr_scanner.linux.x86_64.so
+          native/build.sh linux
+
+      - uses: ./.github/actions/setup-godot
+
+      - name: Import project
+        run: godot --headless --import
+
+      - name: Run tests
+        run: tests/run.sh

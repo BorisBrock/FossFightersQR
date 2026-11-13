@@ -7,6 +7,7 @@
 cd "$(dirname "$0")/.." || exit 1
 
 FAST=(
+	"--headless res://tests/check_project.tscn"
 	"--headless -s tests/test_decoder.gd"
 	"--headless -s tests/test_cards.gd"
 	"--headless -s tests/test_party.gd"

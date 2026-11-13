@@ -1,0 +1,176 @@
+name: Release
+
+# Push a tag like v1.2.3 to release. The tag is the only place the version is written down:
+# the export presets and project.godot get it during the build.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  version:
+    name: Read version from tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      code: ${{ steps.version.outputs.code }}
+    steps:
+      - id: version
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME is not of the form vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          major=${BASH_REMATCH[1]} minor=${BASH_REMATCH[2]} patch=${BASH_REMATCH[3]}
+          if (( 10#$minor > 999 || 10#$patch > 999 || 10#$major > 2000 )); then
+            echo "::error::Version parts too large for an Android version code"
+            exit 1
+          fi
+          echo "version=$major.$minor.$patch" >> "$GITHUB_OUTPUT"
+          # Android needs a growing integer: 1.2.3 -> 1002003
+          echo "code=$(( 10#$major * 1000000 + 10#$minor * 1000 + 10#$patch ))" >> "$GITHUB_OUTPUT"
+
+  android:
+    name: Android debug APK
+    needs: [ci, version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      VERSION_CODE: ${{ needs.version.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Built from the tagged source, so the APK never ships a stale committed binary.
+      - name: Cache native build
+        uses: actions/cache@v6
+        with:
+          path: native/build/arm64-v8a
+          key: native-android-${{ hashFiles('native/**') }}
+          restore-keys: native-android-
+
+      - name: Build QR extension (Android arm64)
+        run: |
+          rm -f addons/qr_scanner/bin/libqr_scanner.android.arm64.so
+          native/build.sh android
+
+      - uses: ./.github/actions/setup-godot
+        with:
+          templates: android_debug.apk
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Set the ANDROID_DEBUG_KEYSTORE secret (base64 of a debug.keystore with the usual
+      # androiddebugkey / android credentials) to sign every release with the same key, so a new
+      # APK installs over the old one. Without it a fresh key is made for each release.
+      - name: Debug keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
+        run: |
+          keystore="$RUNNER_TEMP/debug.keystore"
+          if [[ -n "$KEYSTORE_BASE64" ]]; then
+            base64 -d <<<"$KEYSTORE_BASE64" > "$keystore"
+          else
+            echo "::warning::No ANDROID_DEBUG_KEYSTORE secret: signing with a new debug key."
+            keytool -genkeypair -v -keystore "$keystore" -alias androiddebugkey \
+              -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          echo "KEYSTORE=$keystore" >> "$GITHUB_ENV"
+
+      - name: Godot editor settings for Android
+        run: |
+          godot_minor=$(godot --headless --version | grep -oE '^[0-9]+\.[0-9]+')
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-$godot_minor.tres <<SETTINGS
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$KEYSTORE"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          SETTINGS
+
+      - name: Write version into the project
+        run: |
+          sed -i -E "s/^version\/name=.*/version\/name=\"$VERSION\"/; s/^version\/code=.*/version\/code=$VERSION_CODE/" export_presets.cfg
+          sed -i -E "/^config\/version=/d; /^config\/name=/a config/version=\"$VERSION\"" project.godot
+          grep -E '^version/' export_presets.cfg
+          grep -E '^config/version' project.godot
+
+      - name: Import project
+        run: godot --headless --import
+
+      - name: Export APK
+        run: |
+          mkdir -p dist
+          apk="dist/FossFightersQR_Debug_$VERSION.apk"
+          godot --headless --export-debug "Android" "$PWD/$apk"
+          # Godot does not always fail with a non-zero exit code
+          test -s "$apk"
+          ls -l dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: dist/*.apk
+          retention-days: 1
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    needs: [version, android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # all tags and history, for the list of changes
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List of changes
+        run: |
+          previous=$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*' "$GITHUB_REF_NAME^" 2>/dev/null || true)
+          {
+            if [[ -n "$previous" ]]; then
+              echo "## Changes since $previous"
+              range="$previous..$GITHUB_REF_NAME"
+            else
+              echo "## Changes"
+              range="$GITHUB_REF_NAME"
+            fi
+            echo
+            git log --no-merges --pretty='- %s (%h)' "$range"
+            if [[ -n "$previous" ]]; then
+              echo
+              echo "**Full diff**: https://github.com/$GITHUB_REPOSITORY/compare/$previous...$GITHUB_REF_NAME"
+            fi
+          } > notes.md
+          cat notes.md
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "FossFightersQR $VERSION" \
+            --notes-file notes.md \
+            --verify-tag
