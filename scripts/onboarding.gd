@@ -211,7 +211,6 @@ func _on_resized() -> void:
 	_embers.position = Vector2(size.x / 2.0, size.y + 10.0)
 	_embers.emission_rect_extents = Vector2(size.x / 2.0, 8.0)
 	_stage.pivot_offset = _stage.size / 2.0
-	_table.pivot_offset = size / 2.0
 
 
 func _t(key: String) -> String:
@@ -1136,10 +1135,6 @@ func _play_intro() -> void:
 		var seat: Control = _seats[i]
 		seat.scale = Vector2.ZERO
 		intro.tween_property(seat, "scale", Vector2.ONE, 0.4).set_delay(0.1 + i * 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	# The candlelit table drifts slowly closer and back.
-	var drift := create_tween().set_loops()
-	drift.tween_property(_table, "scale", Vector2(1.05, 1.05), 24.0).set_trans(Tween.TRANS_SINE)
-	drift.tween_property(_table, "scale", Vector2.ONE, 24.0).set_trans(Tween.TRANS_SINE)
 
 
 ## The frame turns like a card to show the choices, with a flash and sparks.
