@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/boss_fight.gd" id="1_script"]
 [ext_resource type="Theme" path="res://assets/onboarding/theme.tres" id="2_theme"]
@@ -16,6 +16,23 @@
 [ext_resource type="FontFile" path="res://assets/onboarding/fonts/Acme-Regular.ttf" id="13_regular"]
 [ext_resource type="FontVariation" path="res://assets/onboarding/fonts/Acme-Bold.tres" id="14_bold"]
 [ext_resource type="AudioStream" uid="uid://dlvvihwlw7l2b" path="res://assets/sounds/card_scanned.ogg" id="16_pling"]
+[ext_resource type="Texture2D" path="res://assets/onboarding/icons/corner.png" id="19_corner"]
+
+[sub_resource type="StyleBoxFlat" id="prompt_frame"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.84, 0.65, 0.28, 0.4)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
 
 [sub_resource type="ShaderMaterial" id="background_material"]
 shader = ExtResource("3_background")
@@ -79,27 +96,24 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxFlat" id="banner"]
-bg_color = Color(0.05, 0.03, 0.02, 0.6)
-border_width_top = 2
-border_width_bottom = 2
-border_color = Color(0.84, 0.65, 0.28, 0.6)
-
 [sub_resource type="StyleBoxFlat" id="prompt"]
-content_margin_left = 20.0
-content_margin_top = 12.0
-content_margin_right = 20.0
-content_margin_bottom = 12.0
-bg_color = Color(0.06, 0.03, 0.02, 0.82)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.84, 0.65, 0.28, 0.9)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+content_margin_left = 28.0
+content_margin_top = 18.0
+content_margin_right = 28.0
+content_margin_bottom = 18.0
+bg_color = Color(0.075, 0.045, 0.03, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.78, 0.6, 0.26, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
+shadow_offset = Vector2(0, 8)
 
 [node name="BossFight" type="Control"]
 layout_mode = 3
@@ -149,25 +163,6 @@ stretch_mode = 5
 [node name="Seats" parent="." instance=ExtResource("5_seats")]
 layout_mode = 1
 
-[node name="Banner" type="PanelContainer" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.3
-anchor_right = 1.0
-anchor_bottom = 0.39
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("banner")
-
-[node name="Text" type="Label" parent="Banner"]
-layout_mode = 2
-theme_type_variation = &"Title"
-theme_override_font_sizes/font_size = 38
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
 [node name="Shields" type="HBoxContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -198,6 +193,79 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("prompt")
+
+[node name="Frame" type="Panel" parent="Prompt"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("prompt_frame")
+
+[node name="TopLeft" type="TextureRect" parent="Prompt/Frame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 0
+anchor_right = 0
+anchor_bottom = 0
+offset_left = -24
+offset_top = -14
+offset_right = 16
+offset_bottom = 26
+mouse_filter = 2
+texture = ExtResource("19_corner")
+expand_mode = 1
+flip_h = false
+flip_v = false
+
+[node name="TopRight" type="TextureRect" parent="Prompt/Frame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 0
+anchor_right = 1
+anchor_bottom = 0
+offset_left = -16
+offset_top = -14
+offset_right = 24
+offset_bottom = 26
+mouse_filter = 2
+texture = ExtResource("19_corner")
+expand_mode = 1
+flip_h = true
+flip_v = false
+
+[node name="BottomLeft" type="TextureRect" parent="Prompt/Frame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0
+anchor_top = 1
+anchor_right = 0
+anchor_bottom = 1
+offset_left = -24
+offset_top = -26
+offset_right = 16
+offset_bottom = 14
+mouse_filter = 2
+texture = ExtResource("19_corner")
+expand_mode = 1
+flip_h = false
+flip_v = true
+
+[node name="BottomRight" type="TextureRect" parent="Prompt/Frame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1
+anchor_top = 1
+anchor_right = 1
+anchor_bottom = 1
+offset_left = -16
+offset_top = -26
+offset_right = 24
+offset_bottom = 14
+mouse_filter = 2
+texture = ExtResource("19_corner")
+expand_mode = 1
+flip_h = true
+flip_v = true
 
 [node name="Layout" type="VBoxContainer" parent="Prompt"]
 layout_mode = 2

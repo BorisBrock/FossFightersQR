@@ -1,6 +1,6 @@
 extends SceneTree
-## Balance simulator: plays many fights against a boss with random parties and a very
-## simple AI, and sums up how they went. See docs/balance.md.
+## Balance simulator: plays many fights against a boss with random parties and an AI for
+## the players, and sums up how they went. See docs/balance.md.
 ##
 ##   godot --headless -s tools/balance/simulate.gd -- --games 200
 ##   godot --headless -s tools/balance/simulate.gd -- --players 2 --difficulty normal --set health=70
@@ -57,6 +57,9 @@ class SimHero:
 	var drawn: Array[Card] = []
 	var tokens := { "poison": 0, "panic": 0, "paralysis": 0, "fire": 0 }
 	var max_poison := 0
+	## Health lost to the boss (its attacks, bite and other abilities) and fire, not to poison or
+	## their own cards: what the planner expects each round.
+	var taken := 0
 	## Health lost, by cause.
 	var lost := {}
 
@@ -81,6 +84,10 @@ class Game:
 	var passes := 0
 	var unhandled := {}
 	var log := false
+	## The card the hero is playing, for the choices it asks for.
+	var playing: Card
+	## The round the boss last spat venom, once a round.
+	var spat_round := 0
 
 
 var _db: CardDatabase
@@ -102,6 +109,8 @@ var _options := {
 	"tokens": 16,
 	"csv": "",
 	"log": false,
+	## "planner" or "greedy", the older AI, see docs/balance.md.
+	"ai": "planner",
 }
 var _game: Game
 var _rows: Array[Dictionary] = []
@@ -128,6 +137,7 @@ func _initialize() -> void:
 				_rows.append(result)
 			summaries.append(_summarize(players, difficulty, results))
 	_print_summaries(summaries)
+	_print_rounds(summaries)
 	_print_by_hero()
 	_print_unhandled()
 	if not _options.csv.is_empty():
@@ -307,8 +317,11 @@ func _answer_action(request: Fight.Request) -> void:
 		_flush_drawn(hero)
 	var candidates := _candidates(hero, request.prompt, request.values)
 	var scored: Array[Array] = []
-	for candidate: Array in candidates:
-		scored.append([_score(hero, candidate[0]), candidate[0], candidate[1]])
+	if _options.ai == "planner":
+		scored = _plan_scores(hero, candidates, request)
+	else:
+		for candidate: Array in candidates:
+			scored.append([_score(hero, candidate[0]), candidate[0], candidate[1]])
 	scored.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
 	var threshold := -INF
 	match request.prompt:
@@ -325,10 +338,13 @@ func _answer_action(request: Fight.Request) -> void:
 			threshold = -INF
 			hero.tokens.panic -= 1
 	for entry: Array in scored:
-		if entry[0] < threshold:
-			break
 		var card: Card = entry[1]
 		var source: String = entry[2]
+		# The planner uses an item for any gain: it costs an action, but no card.
+		var least := minf(threshold, 0.05) if _options.ai == "planner" and source == "table" else threshold
+		if entry[0] < least:
+			continue
+		_game.playing = card
 		_take(hero, card, source)
 		if fight.scan(card) == "":
 			_game.cards_played += 1
@@ -412,26 +428,34 @@ func _choose_hero(request: Fight.Request) -> FightHero:
 	var asking: SimHero = _game.by_name.get(request.values.get("player", ""))
 	var best: FightHero = choices[0]
 	var best_value := -INF
+	var plan: bool = _options.ai == "planner"
+	if plan:
+		_make_look()
 	for fight_hero in choices:
 		var hero: SimHero = _game.by_name[fight_hero.name]
-		var value := 0.0
-		match request.prompt:
-			"prompt_protect", "prompt_halve_who", "prompt_redirect_who":
-				value = _danger(fight_hero) * 10.0 - hero.health * 0.1
-			"prompt_heal_who", "prompt_reset_health_who", "prompt_chosen_hero", "prompt_redraw_hand_who":
-				value = float(hero.max_health - hero.health) / hero.max_health - hero.hand.size() * 0.01
-			"prompt_remove_tokens_who":
-				value = hero.tokens.poison * 2 + hero.tokens.fire + hero.tokens.paralysis + hero.tokens.panic
-			"prompt_choose_starter":
-				value = _strongest_attack(hero)
-			"prompt_free_play_who", "prompt_play_top_who":
-				value = hero.hand.map(func(card: Card) -> float: return _score(hero, card)).max() if not hero.hand.is_empty() else -1.0
-			_:
-				value = 1.0 if hero == asking else 0.0
+		var planned: Variant = _plan_target(request, hero) if plan else null
+		var value: float = planned if planned != null else _greedy_target(request, hero, asking)
 		if value > best_value:
 			best_value = value
 			best = fight_hero
 	return best
+
+
+## What the older AI thinks of hero as the answer to request.
+func _greedy_target(request: Fight.Request, hero: SimHero, asking: SimHero) -> float:
+	var fight_hero := hero.fight_hero
+	match request.prompt:
+		"prompt_protect", "prompt_halve_who", "prompt_redirect_who":
+			return _danger(fight_hero) * 10.0 - hero.health * 0.1
+		"prompt_heal_who", "prompt_reset_health_who", "prompt_chosen_hero", "prompt_redraw_hand_who":
+			return float(hero.max_health - hero.health) / hero.max_health - hero.hand.size() * 0.01
+		"prompt_remove_tokens_who":
+			return hero.tokens.poison * 2 + hero.tokens.fire + hero.tokens.paralysis + hero.tokens.panic
+		"prompt_choose_starter":
+			return _strongest_attack(hero)
+		"prompt_free_play_who", "prompt_play_top_who":
+			return hero.hand.map(func(card: Card) -> float: return _score(hero, card)).max() if not hero.hand.is_empty() else -1.0
+	return 1.0 if hero == asking else 0.0
 
 
 func _choose_option(request: Fight.Request) -> int:
@@ -594,6 +618,357 @@ func _poisonous(kind: String) -> bool:
 #endregion
 
 
+#region The planner (--ai planner)
+## The planner judges every choice by the race it is in: the heroes lose if any of them
+## falls to 0, so health is worth a lot only where it keeps a hero alive until the boss is
+## dead, while damage to the boss is worth the same all the time. See docs/balance.md.
+
+## The boss damage per hero and round the planner assumes before the fight shows the
+## party's pace, and the health it assumes a hero loses per round besides poison. Each
+## counts as one round already played.
+const PACE_PRIOR := 5.0
+const HIT_PRIOR := 6.0
+## Health a hero has beyond what the rest of the fight should cost them, up to which more
+## health is still worth a lot.
+const SAFE_MARGIN := 8.0
+## The part of the party's other attacks and supports of a damage type that it counts on to
+## follow this round.
+const FOLLOW_UP := 0.6
+## What a fight's last use of an item with uses_per_fight is worth in hand, for later.
+const KEEP_ONE_USE := 2.5
+
+## How the race stands, made anew for each choice: "rounds" the boss still needs, this one
+## included, "future" the rounds after this one, "kill_now" whether the party can likely
+## finish it this round, and "hits", by hero name, the health they lose per round besides
+## poison, and "lash" the health every hero loses this round after the attacks, such as
+## to a tail lash.
+var _look := {}
+
+
+func _make_look() -> void:
+	var fight := _game.fight
+	var done := maxi(0, fight.round_number - 1)
+	var pace := (float(fight.max_health - fight.health) + PACE_PRIOR * _game.heroes.size()) / (done + 1)
+	var rounds := maxf(1.0, fight.health / maxf(pace, 1.0))
+	var hits := {}
+	for hero in _game.heroes:
+		hits[hero.name] = (hero.taken + HIT_PRIOR) / (done + 1)
+	# A pattern players soon learn: Mirefang lashes its tail every tail_every rounds.
+	var boss := fight.boss
+	var lash := 0
+	if "tail" in boss and int(boss.get("tail_every")) > 0 and fight.round_number % int(boss.get("tail_every")) == 0:
+		lash = int(boss.get("tail").get(fight.difficulty, 0))
+	_look = {
+		"rounds": rounds,
+		"lash": lash,
+		"future": rounds - 1.0,
+		"kill_now": not fight.boss_away and 0.85 * _party_damage() >= fight.health,
+		"hits": hits,
+	}
+
+
+## Scores the candidates ([card, where it is]) as [score, card, where it is], best first.
+## A card with Lightning gives its action back: it scores what it does plus the best other
+## card that action can play, so that it comes before cards without.
+func _plan_scores(hero: SimHero, candidates: Array[Array], request: Fight.Request) -> Array[Array]:
+	_make_look()
+	var ignore_lightning: bool = request.settings.get("ignore_lightning", false)
+	var values: Array[float] = []
+	var lightning: Array[bool] = []
+	for candidate: Array in candidates:
+		var card: Card = candidate[0]
+		values.append(_plan_value(hero, card))
+		lightning.append(not ignore_lightning and card.symbols.any(func(s: Card.Symbol) -> bool: return s.type == "lightning"))
+	var scored: Array[Array] = []
+	for i in candidates.size():
+		var score := values[i]
+		if lightning[i] and score > 0.0:
+			var other := 0.0
+			for j in candidates.size():
+				if j != i:
+					other = maxf(other, values[j])
+			score += other
+		scored.append([score, candidates[i][0], candidates[i][1]])
+	scored.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+	return scored
+
+
+## What playing card now is worth, its Lightning left out.
+func _plan_value(hero: SimHero, card: Card) -> float:
+	var fight := _game.fight
+	var away := fight.boss_away
+	var shields := fight.shields.duplicate()
+	var attacked := fight.attacked.duplicate()
+	var value := 0.0
+	var damage := 0
+	var poisoned := 0
+	var protection := 0
+	var heal := 0
+	var draw := 0
+	var take := 0
+	var lightning := 0
+	var loss := 0
+	for symbol in card.symbols:
+		var strength := symbol.strength
+		match symbol.type:
+			"attack", "support":
+				if strength == 0:
+					strength = _estimate(hero, card)
+				var kind := symbol.damage_type
+				if away or (symbol.type == "support" and not kind in attacked and not _free_support(hero, card, kind)):
+					value -= 1.0
+					continue
+				# Damage into a shield counts for what the party's other cards of the type
+				# then get through.
+				var pool := _follow_up(hero, card, kind)
+				var opened: bool = kind in attacked or pool[0] > 0.0
+				var without: float = pool[0] + (pool[1] if opened else 0.0)
+				var with_card: float = pool[0] + pool[1]
+				var shield: int = shields.get(kind, 0)
+				value += maxf(0.0, with_card + strength - shield) - maxf(0.0, without - shield)
+				damage += maxi(0, strength - shield)
+				if shield > 0 and _poisonous(kind):
+					poisoned += 1 + (int(fight.boss.get("enraged_bonus")) if fight.boss.get("enraged") == true else 0)
+				shields[kind] = maxi(0, shield - strength)
+				if symbol.type == "attack" and not kind in attacked:
+					attacked.append(kind)
+			"protection":
+				protection += strength if strength > 0 else fight.round_number
+			"heal":
+				heal += strength
+			"draw":
+				draw += strength
+			"take_from_pile":
+				take += strength
+			"lightning":
+				lightning += strength
+			"direct_damage":
+				if not away:
+					value += strength
+					damage += strength
+			"poison":
+				# The boss's poison hurts it at the end of every round.
+				if not away:
+					value += strength * minf(_look.rounds, 4.0)
+			"health_loss":
+				loss += strength
+			"special":
+				value += 1.5
+	var values := card.ability_values
+	match card.ability:
+		"heal_hero":
+			var gains: Array = _game.heroes.map(func(h: SimHero) -> float: return _gain(h, values.get("amount", 8)))
+			gains.sort()
+			gains.reverse()
+			for i in mini(values.get("heroes", 1), gains.size()):
+				value += gains[i]
+		"remove_tokens":
+			var count: int = values.get("count", 2)
+			match values.get("count_by", ""):
+				"damage": count = damage
+				"round": count = fight.round_number
+			if count > 0:
+				if values.get("group", false) or values.get("choose", false):
+					value += _game.heroes.map(func(h: SimHero) -> float: return _gain(h, 0, 0, count)).max()
+				else:
+					value += _gain(hero, 0, 0, count)
+			var every: int = values.get("every_hero", 0)
+			for each in _game.heroes:
+				value += _gain(each, 0, 0, every) if every > 0 else 0.0
+		"lower_shield":
+			value += 0.0 if away else 0.5 * mini(values.get("amount", 7), shields.values().max() if not shields.is_empty() else 0)
+		"poison_burst":
+			value += 0.0 if away else fight.poison * values.get("damage", 1)
+		"attack_lowers_threat":
+			value += _game.heroes.map(func(h: SimHero) -> float: return _gain(h, 0, values.get("amount", 2))).max()
+	# The boss's answers to a hit: the poison shield, and a spit at a strong hit, once a round.
+	if damage >= int(fight.boss.get("spit_damage") if "spit_damage" in fight.boss else 1 << 30) and _game.spat_round != fight.round_number:
+		poisoned += int(fight.boss.get("spit_poison"))
+	if damage >= fight.health and not away:
+		value += 50.0
+	if protection > 0:
+		value += _game.heroes.map(func(h: SimHero) -> float: return _gain(h, 0, protection)).max()
+	# Heal and Draw go to the hero who plays the card, to every hero, or to a chosen one.
+	var actions := _actions_left(hero) - 1 + lightning
+	var chosen: bool = card.ability == "for_chosen_hero" or values.get("chosen_hero", false)
+	if heal > 0 or draw > 0 or take > 0 or chosen:
+		if card.ability == "every_hero":
+			for each in _game.heroes:
+				value += _gain(each, heal) + _draw_value(each, card, draw, take, actions if each == hero else _actions_left(each))
+		elif chosen:
+			var best := -INF
+			for each in _game.heroes:
+				best = maxf(best, _chosen_value(hero, each, card, heal, draw, take, actions))
+			value += best
+		else:
+			value += _gain(hero, heal) + _draw_value(hero, card, draw, take, actions)
+	if loss > 0 or poisoned > 0:
+		value += _gain(hero, 0, 0, -poisoned, loss)
+	if card.uses_per_fight > 0 and hero.fight_hero.uses.get(card.qr, 0) == card.uses_per_fight - 1:
+		value -= KEEP_ONE_USE
+	return value
+
+
+## What a card whose Heal and Draw go to a chosen hero gives to each.
+func _chosen_value(hero: SimHero, each: SimHero, card: Card, heal: int, draw: int, take: int, actions: int) -> float:
+	var extra := 1 if card.ability_values.get("action", false) else 0
+	var value := _gain(each, heal) + _draw_value(each, card, draw, take, (actions if each == hero else _actions_left(each)) + extra)
+	if extra > 0 and not each.hand.is_empty():
+		value += 2.5
+	return value
+
+
+## What the planner thinks of hero as the answer to request, or null to leave it to the
+## older AI.
+func _plan_target(request: Fight.Request, hero: SimHero) -> Variant:
+	var fight_hero := hero.fight_hero
+	match request.prompt:
+		"prompt_protect":
+			return _gain(hero, 0, int(request.values.get("amount", 0)))
+		"prompt_halve_who":
+			return _gain(hero, 0, fight_hero.threat - fight_hero.threat / 2)
+		"prompt_heal_who":
+			return _gain(hero, int(request.values.get("amount", 8)))
+		"prompt_reset_health_who":
+			return _gain(hero, hero.max_health)
+		"prompt_remove_tokens_who":
+			return _gain(hero, 0, 0, int(request.values.get("count", 2)))
+		"prompt_chosen_hero":
+			var card := _game.playing
+			if card == null:
+				return null
+			var heal := 0
+			var draw := 0
+			var take := 0
+			for symbol in card.symbols:
+				match symbol.type:
+					"heal": heal += symbol.strength
+					"draw": draw += symbol.strength
+					"take_from_pile": take += symbol.strength
+			var asking: SimHero = _game.by_name.get(request.values.get("player", ""))
+			var actions := _actions_left(asking) if asking != null else 0
+			if card.ability == "attack_lowers_threat":
+				return _gain(hero, 0, card.ability_values.get("amount", 2))
+			return _chosen_value(asking, hero, card, heal, draw, take, actions)
+		"prompt_redraw_hand_who":
+			if hero.hand.is_empty():
+				return 0.0
+			return -hero.hand.reduce(func(sum: float, card: Card) -> float: return sum + _keep_value(card), 0.0) / hero.hand.size()
+	return null
+
+
+## How much better the race stands for hero when they heal some health, the boss's attack
+## on them is protect lower, cure of their poison tokens are gone (fewer than 0: more
+## come) and they lose loss health.
+func _gain(hero: SimHero, heal := 0, protect := 0, cure := 0, loss := 0) -> float:
+	var fight_hero := hero.fight_hero
+	var effects: int = fight_hero.threat_effects.get("poison", 0)
+	var before := _hero_value(hero, hero.health, fight_hero.threat, effects, hero.tokens.poison)
+	var healed := mini(heal, hero.max_health - hero.health)
+	var poison := maxi(0, hero.tokens.poison - cure)
+	var after := _hero_value(hero, hero.health + healed - loss, maxi(0, fight_hero.threat - protect), effects, poison)
+	# What is cured beyond the poison takes the other tokens.
+	var others: int = hero.tokens.fire + hero.tokens.paralysis + hero.tokens.panic
+	return after - before + 0.7 * clampi(cure - hero.tokens.poison, 0, others)
+
+
+## How well hero stands with this health, the boss's attack on them this round and its
+## poison, and poison tokens: very badly if they fall this round, then by how much health
+## they should have left when the boss falls.
+func _hero_value(hero: SimHero, health: int, threat: int, effects: int, poison: int) -> float:
+	if _look.kill_now:
+		return 0.05 * health
+	# An attack lowered to 0 loses its poison. The poison ticks at the end of this round.
+	var tick := poison + (effects if threat > 0 else 0)
+	var fire: int = 2 * hero.tokens.fire if health > 8 else 0
+	var left := float(health - threat - tick - fire - int(_look.lash))
+	var value := 2.0 * minf(left - 1.0, 0.0)
+	if left <= 0.0:
+		value -= 25.0
+	var margin: float = left - _look.future * (_look.hits[hero.name] + tick)
+	return value + minf(margin, 0.0) + 0.6 * clampf(margin, 0.0, SAFE_MARGIN) + 0.15 * maxf(margin - SAFE_MARGIN, 0.0)
+
+
+## What drawing count cards and taking take of the best from the pile is worth to hero,
+## who has actions left to play them this round: a card for an action they have no good
+## card for. Beyond that, a little, for the better hand to keep.
+func _draw_value(hero: SimHero, playing: Card, count: int, take: int, actions: int) -> float:
+	if count <= 0 and take <= 0:
+		return 0.0
+	var good := hero.hand.filter(func(card: Card) -> bool: return card != playing and _keep_value(card) >= 3.0).size()
+	var open := float(maxi(0, actions - good))
+	var drawn := minf(0.6 * count, open)
+	return 0.3 * count + 2.5 * drawn + 0.5 * take + 3.0 * minf(take, open - drawn)
+
+
+## The actions hero has left this round, the one they are taking included.
+func _actions_left(hero: SimHero) -> int:
+	return hero.fight_hero.turns_left + hero.fight_hero.pending.size()
+
+
+## The damage of kind the party's other cards will likely add this round, as [attacks,
+## supports]: each hero's strongest, as many as they have actions left (Lightning cards
+## free), counted at FOLLOW_UP.
+func _follow_up(hero: SimHero, card: Card, kind: String) -> Array[float]:
+	var result: Array[float] = [0.0, 0.0]
+	for each in _game.heroes:
+		var actions := _actions_left(each) - (1 if each == hero else 0)
+		for entry: Array in _damage_cards(each, card, actions):
+			for symbol: Card.Symbol in (entry[0] as Card).symbols:
+				if symbol.damage_type == kind and symbol.type in ["attack", "support"]:
+					result[0 if symbol.type == "attack" else 1] += FOLLOW_UP * (symbol.strength if symbol.strength > 0 else _estimate(each, entry[0]))
+	return result
+
+
+## The cards with damage hero can likely still play this round, as [card, damage], strongest
+## first: those with Lightning, and as many others as actions.
+func _damage_cards(hero: SimHero, except: Card, actions: int) -> Array[Array]:
+	var cards: Array[Array] = []
+	for card in hero.hand:
+		if card == except or card.qr in hero.fight_hero.played:
+			continue
+		var damage := 0
+		for symbol in card.symbols:
+			if symbol.type in ["attack", "support", "direct_damage"]:
+				damage += symbol.strength if symbol.strength > 0 else _estimate(hero, card)
+		if damage > 0:
+			cards.append([card, damage])
+	cards.sort_custom(func(a: Array, b: Array) -> bool: return a[1] > b[1])
+	var result: Array[Array] = []
+	for entry in cards:
+		if (entry[0] as Card).has_symbol("lightning"):
+			result.append(entry)
+		elif actions > 0:
+			actions -= 1
+			result.append(entry)
+	return result
+
+
+## About the most damage the party can still do to the boss this round, past its shields.
+func _party_damage() -> float:
+	var fight := _game.fight
+	var attacks := {}
+	var supports := {}
+	var direct := 0
+	for hero in _game.heroes:
+		for entry in _damage_cards(hero, null, _actions_left(hero)):
+			var card: Card = entry[0]
+			for symbol in card.symbols:
+				var strength := symbol.strength if symbol.strength > 0 else _estimate(hero, card)
+				match symbol.type:
+					"attack": attacks[symbol.damage_type] = attacks.get(symbol.damage_type, 0) + strength
+					"support": supports[symbol.damage_type] = supports.get(symbol.damage_type, 0) + strength
+					"direct_damage": direct += strength
+	var total := float(direct)
+	for kind: String in Fight.DAMAGE_TYPES:
+		var sum: int = attacks.get(kind, 0)
+		if sum > 0 or kind in fight.attacked:
+			sum += supports.get(kind, 0)
+		total += maxi(0, sum - fight.shields.get(kind, 0))
+	return total
+#endregion
+
+
 #region The table: what the messages ask the players to do
 func _on_message(id: String, values: Dictionary) -> void:
 	var game := _game
@@ -625,6 +1000,7 @@ func _on_message(id: String, values: Dictionary) -> void:
 			_add_tokens(hero, { "poison": int(values.poison) })
 		"mirefang_spit":
 			game.spits += 1
+			game.spat_round = fight.round_number
 			_add_tokens(hero, { "poison": int(values.poison) })
 		"mirefang_tail":
 			for each in game.heroes:
@@ -749,6 +1125,8 @@ func _hurt(hero: SimHero, amount: int, cause: String) -> void:
 		return
 	hero.health -= amount
 	hero.lost[cause] = hero.lost.get(cause, 0) + amount
+	if not cause in ["poison", "card"]:
+		hero.taken += amount
 	if hero.health <= 0 and _game.dead == null:
 		_game.dead = hero
 		_game.death_cause = cause
@@ -773,11 +1151,11 @@ func _remove_tokens(hero: SimHero, count: int) -> void:
 
 
 ## { "en": "1 poison, 2 fire" } as tokens.
+## The tokens of a message value made by Fight.token_text(), as token -> count.
 func _parse_tokens(text: Dictionary) -> Dictionary:
 	var tokens := {}
-	var pattern := RegEx.create_from_string("(\\d+) (\\w+)")
-	for found in pattern.search_all(text.get("en", "")):
-		tokens[found.get_string(2)] = int(found.get_string(1))
+	for part: Array in text.get("parts", []):
+		tokens[(part[0] as String).trim_prefix("part_token_")] = int(part[1].count)
 	return tokens
 
 
@@ -848,10 +1226,13 @@ func _brief(values: Dictionary) -> String:
 	for key: String in values:
 		if key in ["boss", "source", "taunt", "hits"]:
 			continue
-		parts.append("%s=%s" % [key, values[key] if not values[key] is Dictionary else values[key].get("en", values[key].get("de", ""))])
+		var value: Variant = values[key]
+		if value is Dictionary:
+			value = _parse_tokens(value) if value.has("parts") else value.get("en", value.get("de", ""))
+		parts.append("%s=%s" % [key, value])
 	if values.has("hits"):
 		for hit: Array in values.hits:
-			parts.append("%s:%d%s" % [hit[1].player, hit[1].damage, "+" + hit[1].tokens.en if hit[1].has("tokens") else ""])
+			parts.append("%s:%d%s" % [hit[1].player, hit[1].damage, "+" + str(_parse_tokens(hit[1].tokens)) if hit[1].has("tokens") else ""])
 	return " ".join(parts)
 #endregion
 
@@ -872,7 +1253,7 @@ func _parse_args(args: PackedStringArray) -> bool:
 				_options.items = false
 			"--log":
 				_options.log = true
-			"--boss", "--csv":
+			"--boss", "--csv", "--ai":
 				_options[arg.substr(2)] = next
 				i += 1
 			"--games", "--level", "--loot", "--health", "--hand", "--seed", "--max-rounds", "--tokens":
@@ -896,6 +1277,9 @@ func _parse_args(args: PackedStringArray) -> bool:
 				printerr("Unknown option ", arg, "\n", HELP)
 				return false
 		i += 1
+	if not _options.ai in ["planner", "greedy"]:
+		printerr("Unknown AI ", _options.ai)
+		return false
 	if not Bosses.has(_options.boss):
 		printerr("Unknown boss ", _options.boss)
 		return false
@@ -911,6 +1295,7 @@ const HELP := """Usage: godot --headless -s tools/balance/simulate.gd -- [option
   --players 1,2,3,4  player counts to try
   --difficulty easy,normal,hard
   --boss ID          (mirefang)
+  --ai planner|greedy  how the heroes decide (planner; greedy: the older AI)
   --level 1|5|8      hero level: the character and class cards up to it (1)
   --loot N           loot cards per hero, one of each level 1..N (10)
   --no-items         without the base game's items (each hero has them by default:
@@ -958,8 +1343,8 @@ func _override(boss: Boss, key: String, value: Variant) -> void:
 
 
 func _print_setup() -> void:
-	print("Boss %s, %d fights per line, hero level %d, %d loot, items %s, seed %d" % [
-		_options.boss, _options.games, _options.level, _options.loot, "on" if _options.items else "off", _options.seed])
+	print("Boss %s, %d fights per line, AI %s, hero level %d, %d loot, items %s, seed %d" % [
+		_options.boss, _options.games, _options.ai, _options.level, _options.loot, "on" if _options.items else "off", _options.seed])
 	if _options.health > 0 or _options.hand > 0:
 		print("Every hero: health %s, hand limit %s" % [_options.health if _options.health > 0 else "by card", _options.hand if _options.hand > 0 else "by card"])
 	if not _options.set.is_empty():
@@ -998,6 +1383,7 @@ func _summarize(players: int, difficulty: String, results: Array[Dictionary]) ->
 		"max_poison_table": mean.call(results, "max_poison_table"),
 		"over_tokens": float(results.filter(func(r: Dictionary) -> bool: return r.max_poison_table > _options.tokens).size()) / results.size(),
 		"passes": mean.call(results, "passes"),
+		"rounds": results.map(func(r: Dictionary) -> int: return r.rounds),
 		"causes": causes,
 		"damage": damage,
 	}
@@ -1038,6 +1424,33 @@ func _print_summaries(summaries: Array[Dictionary]) -> void:
 
 
 ## Win rate by race and by class, over all fights.
+## How many rounds the fights lasted, won or lost: for each line, and for each number of
+## heroes over all difficulties.
+func _print_rounds(summaries: Array[Dictionary]) -> void:
+	print("\nRounds until the fight ends (won, lost or timed out):")
+	print("pl diff     mean  median  10-90 %  min-max  fights over by round 3/4/5/6/7/8/10")
+	var lines: Array[Array] = []
+	for s in summaries:
+		lines.append(["%2d %-6s" % [s.players, s.difficulty], s.rounds])
+	if _options.difficulty.size() > 1:
+		for players: int in _options.players:
+			var all: Array = []
+			for s in summaries:
+				if s.players == players:
+					all.append_array(s.rounds)
+			lines.append(["%2d %-6s" % [players, "all"], all])
+	for line in lines:
+		var rounds: Array = line[1].duplicate()
+		rounds.sort()
+		var n := rounds.size()
+		var at := func(share: float) -> int: return rounds[clampi(int(share * (n - 1) + 0.5), 0, n - 1)]
+		var over := PackedStringArray()
+		for limit: int in [3, 4, 5, 6, 7, 8, 10]:
+			over.append("%3.0f" % (100.0 * rounds.filter(func(r: int) -> bool: return r <= limit).size() / n))
+		print("%s %6.1f %7d %5d-%-3d %4d-%-3d  %s %%" % [line[0], rounds.reduce(func(sum: int, r: int) -> int: return sum + r, 0) / float(n),
+			at.call(0.5), at.call(0.1), at.call(0.9), rounds[0], rounds[n - 1], "/".join(over)])
+
+
 func _print_by_hero() -> void:
 	var by := {}
 	for r in _rows:

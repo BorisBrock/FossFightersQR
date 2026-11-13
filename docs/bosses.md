@@ -31,6 +31,11 @@ Every boss is one script in `scripts/bosses/`, named after its id, which extends
 `Boss` holds what all bosses share; a boss's script fills in its data in `_init()` and overrides hooks only for what
 makes it special. `scripts/bosses.gd` lists the ids in the order the boss list shows them, and the difficulties.
 
+The difficulties (`Bosses.DIFFICULTIES`) scale every boss: *Easy* has the same health and 1 attack less against each hero,
+*Normal* is the boss as it is, *Hard* has 5 % more health and 1 attack more. Health hardly changes on *Easy*, as the
+[balance simulator](balance.md#the-number-of-heroes) showed that with better play the boss's health matters a lot,
+and *Easy* won too often with less. A boss can change more by difficulty itself, such as Mirefang's bite and tail lash.
+
 ```gdscript
 extends Boss
 
@@ -127,12 +132,12 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
 
   | Heroes | Health | Attacks | Poison per attack | Shields (around) | Bite |
   |--------|--------|---------|-------------------|---------|------|
-  | 1 | 25 | 3 to 7 | 1 | 3 | 6 + 1 poison |
-  | 2 | 42 | 6 to 10 | 1 | 4 | 10 + 2 poison |
-  | 3 | 60 | 7 to 11 | 1 | 5 | 15 + 2 poison |
-  | 4 | 88 | 7 to 11 | 1 | 6 | 18 + 2 poison |
+  | 1 | 28 | 3 to 7 | 1 | 3 | 6 + 1 poison |
+  | 2 | 52 | 6 to 10 | 1 | 4 | 10 + 2 poison |
+  | 3 | 82 | 7 to 11 | 1 | 5 | 15 + 2 poison |
+  | 4 | 120 | 7 to 11 | 1 | 6 | 18 + 2 poison |
 
-  The difficulty changes health and attacks as for every boss, and the bite as below. In the script:
+  The difficulty changes health and attacks as for every boss, and the bite and tail lash as below. In the script:
   `health_by_heroes`, `attack_by_heroes`, `shield_by_heroes`, and its own `bite_by_heroes` (added to the bite's
   damage) and `poison_by_heroes` (added to the poison of its attacks and bite, never below 1).
 - **Attacks:** 7 to 11 against each hero, each with 1 poison (with 3 heroes). Its poison is low and its attacks strong,
@@ -141,7 +146,7 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
   2 higher, each on its own (3 or 4, and 5 to 7). So the heroes attack with other types from round to round. In the
   script: `shield_value`, `shield_low` and `shield_high`. One of the three, chosen at random on its own, is the
   **poison shield**: whoever hits it gets 1 poison (`mirefang_poison_shield`). Cards that ignore a shield's effect ignore that too.
-- **Dive:** when its health falls below 75 %, 50 % and 25 % (45, 30 and 15 on *Normal* with 3 heroes), it dives
+- **Dive:** when its health falls below 75 %, 50 % and 25 % (61, 41 and 20 on *Normal* with 3 heroes), it dives
   (`mirefang_dive`), each mark once. A hit past several marks makes it dive once only; the marks passed are gone.
   - It goes out of reach (`Fight.set_boss_away`): its shields are gone, and attacks and poison from cards do not reach
     it (`mirefang_out_of_reach`).
@@ -159,7 +164,7 @@ The first boss (`scripts/bosses/mirefang.gd`): a giant venomous serpent of an ee
   (`mirefang_spit`), at most once a round. An @-ability of strength 1 (`mirefang_spit`) against that hero. If the same
   card takes it past a mark, it spits first, then dives. In the script: `spit_damage` and `spit_poison`.
 - **Tail lash:** every second round (rounds 2, 4, 6, …), after its attacks, it lashes its tail across the mire: every
-  hero loses 4 health on *Easy*, 5 on *Normal*, 6 on *Hard* (`mirefang_tail`), for any number of heroes. Protection
+  hero loses 4 health on *Easy*, 5 on *Normal* and *Hard* (`mirefang_tail`), for any number of heroes. Protection
   does not lower it, as it is not an attack, but it is an @-ability (`mirefang_tail`), which cards can prevent. It
   comes in rounds in which it surfaced and bit, too, and before it becomes enraged. In the script: `tail` and
   `tail_every`.

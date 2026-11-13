@@ -201,7 +201,7 @@ func _check_round() -> void:
 	_ready(fight)
 	for i in 8:
 		fight.pass_action()
-	_check(_told[-1] == "boss_attacks" and _values[-1].hits[-1][0] == "part_hit_with_tokens" and _values[-1].hits[-1][1].tokens.en == "1 poison", "a poisonous attack tells the hero to take poison")
+	_check(_told[-1] == "boss_attacks" and _values[-1].hits[-1][0] == "part_hit_with_tokens" and _tokens(_values[-1].hits[-1][1].tokens) == { "poison": 1 }, "a poisonous attack tells the hero to take poison")
 	_ready(fight)
 	_check(_told[-1] == "round_end_draw", "which the players apply at the end of the round")
 	_check(_values[-1].draws.map(func(part: Array) -> Array: return [part[0], part[1].player, part[1].count]) == [["hand_limit_draw", "Rosie", 7], ["hand_limit_draw", "Borin", 6], ["hand_limit_draw", "Sonja", 6]], "and the draw lists each hero's hand limit, as in round 1")
@@ -970,7 +970,7 @@ func _check_last_loot_cards() -> void:
 	fight.scan(catalog.find("0AEAAA=="))
 	_check(_told[-1] == "next_cards_boosted" and _values[-1].cards == 8 and _values[-1].bonus == 1, "Muttis Nachtisch: the next 8 cards are boosted")
 	_ready(fight)
-	_check(_told[-1] == "random_token" and _values[-1].player in ["Rosie", "Borin", "Sonja"] and _values[-1].tokens.en == "1 poison", "Muttis Nachtisch: a random hero takes 1 poison")
+	_check(_told[-1] == "random_token" and _values[-1].player in ["Rosie", "Borin", "Sonja"] and _tokens(_values[-1].tokens) == { "poison": 1 }, "Muttis Nachtisch: a random hero takes 1 poison")
 	_ready(fight)
 	var decks := { 1: "halfling", 3: "dwarf", 5: "dryad" }
 	for i in 8:
@@ -1125,7 +1125,7 @@ func _check_final_loot_cards() -> void:
 	# Phönixfeder: 2 fire for every hero, a hero's health back to their start, then out of the game.
 	fight = _started(TestBoss.new())
 	fight.scan(catalog.find("2wEAAA=="))
-	_check(_told[-1] == "tokens_everyone" and _values[-1].tokens.en == "2 fire", "Phönixfeder: every hero takes 2 fire")
+	_check(_told[-1] == "tokens_everyone" and _tokens(_values[-1].tokens) == { "fire": 2 }, "Phönixfeder: every hero takes 2 fire")
 	_ready(fight)
 	_check(fight.request.prompt == "prompt_reset_health_who", "Phönixfeder: whose health?")
 	fight.choose(fight.hero_at(3))
@@ -2350,7 +2350,7 @@ func _check_bosses() -> void:
 		armour_source.append(values.get("source", {})))
 	armoured.deal_damage(5, "ranged")
 	_check(armoured.health == armoured.max_health - 15 and armour_told == [["armour", 2]], "the players are told how much the armour let through")
-	_check(armour_source == [{ "title": armoured.boss.title }], "as the boss's")
+	_check(armour_source == [{ "title": armoured.boss.title, "boss": true }], "as the boss's")
 	armoured.deal_damage(4, Fight.DIRECT)
 	_check(armoured.health == armoured.max_health - 19 and armour_told.size() == 1, "direct damage is no attack: the armour does not halve it")
 
@@ -2358,7 +2358,7 @@ func _check_bosses() -> void:
 	var hard := Bosses.create("mirefang").attack_range("hard")
 	_check(hard.x == easy.x + 2 and hard.y == easy.y + 2, "the difficulty changes the boss's attacks")
 	var scaled := Bosses.create("mirefang")
-	_check([1, 2, 3, 4].map(func(count: int) -> int: return scaled.max_health("normal", count)) == [25, 42, 60, 88], "Mirefang's health grows with the number of heroes")
+	_check([1, 2, 3, 4].map(func(count: int) -> int: return scaled.max_health("normal", count)) == [28, 52, 82, 120], "Mirefang's health grows with the number of heroes")
 	_check(scaled.attack_range("normal", 1) == Vector2i(3, 7) and scaled.attack_range("normal", 3) == Vector2i(7, 11), "and with more heroes, its attacks")
 	var solo_hero := Party.Hero.new()
 	solo_hero.name = "Solo"
@@ -2369,7 +2369,7 @@ func _check_bosses() -> void:
 	solo.start()
 	for i in 3:
 		_ready(solo)
-	_check(solo.max_health == 25 and solo.shields.values().all(func(value: int) -> bool: return value >= 1 and value <= 5), "against one hero, it has less health and weaker shields")
+	_check(solo.max_health == 28 and solo.shields.values().all(func(value: int) -> bool: return value >= 1 and value <= 5), "against one hero, it has less health and weaker shields")
 	var spread := _fight(Bosses.create("mirefang"))
 	var lows := {}
 	var values := {}
@@ -2390,7 +2390,9 @@ func _check_bosses() -> void:
 ## Mirefang: poisonous attacks and shield, venom spit, its dives and its rage.
 func _check_mirefang() -> void:
 	var boss := Bosses.create("mirefang")
-	# Shields of the same value, which the cards below are made for.
+	# Health 60 and shields of the same value, which the cards below are made for.
+	boss.health_by_heroes.clear()
+	boss.health = 60
 	boss.shield_low.clear()
 	boss.shield_high.clear()
 	var away_changes: Array[bool] = []
@@ -2400,7 +2402,7 @@ func _check_mirefang() -> void:
 	_ready(fight)
 	_ready(fight)
 	_ready(fight)
-	_check(fight.max_health == 60, "Mirefang has 60 health on normal")
+	_check(fight.max_health == 60, "on normal, it has the health it was given")
 	_check(fight.heroes.all(func(hero: FightHero) -> bool:
 		var poison: int = hero.threat_effects.get("poison", 0)
 		return hero.threat >= 7 and hero.threat <= 11 and poison == 1), "each of its attacks poisons, with 1")
@@ -2590,3 +2592,11 @@ func _check(condition: bool, description: String) -> void:
 	print(("  ok   " if condition else "  FAIL ") + description)
 	if not condition:
 		_failures += 1
+
+
+## The tokens of a message value made by Fight.token_text(), as token -> count.
+func _tokens(value: Dictionary) -> Dictionary:
+	var tokens := {}
+	for part: Array in value.get("parts", []):
+		tokens[(part[0] as String).trim_prefix("part_token_")] = int(part[1].count)
+	return tokens

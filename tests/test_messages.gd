@@ -2,7 +2,7 @@ extends SceneTree
 ## The message files in messages/ and how a message is turned into text for the screen.
 ## Run with: godot --headless -s tests/test_messages.gd
 
-const EXPECTED_CHECKS := 33
+const EXPECTED_CHECKS := 36
 const BAD_PATH := "user://test_messages_bad.json"
 ## Tags a message may use besides Messages.STYLES. Each has to be closed again.
 const BBCODE_TAGS := ["b", "i", "u", "s", "color", "font_size", "bgcolor", "outline_color", "outline_size"]
@@ -81,6 +81,9 @@ func _check_render() -> void:
 	var parts := [["part_hit", { "player": "[b]Bo", "damage": 3 }], ["part_hit", { "player": "Sonja", "damage": 1 }]]
 	var lines: PackedStringArray = render.call("{boss}:\n{hits}", { "boss": "Toad", "hits": parts }, "en").split("\n")
 	_check(lines.size() == 3 and lines[1].begins_with(Messages.STYLES.player[0] + "[lb]b]Bo") and "Sonja" in lines[2], "fills in a list of parts, one line each, their values shown as they are")
+	var tokens := { "parts": [["part_token_poison", { "count": 1 }], ["part_token_fire", { "count": 2 }]], "separator": ", " }
+	var token_line: String = render.call("{tokens}", { "tokens": tokens }, "en")
+	_check(token_line.begins_with(Messages.STYLES.poison[0] + "1 poison") and (", " + Messages.STYLES.fire[0] + "2 fire") in token_line and not "\n" in token_line, "fills in parts on one line, with a separator: %s" % token_line)
 
 	# Numbers read from JSON are floats, even when written as 1: they must never show as 1.0.
 	var from_json: Dictionary = JSON.parse_string("{ \"count\": 1, \"damage\": 12 }")
@@ -103,6 +106,11 @@ func _check_render() -> void:
 	_check(Messages.heading("example_reminder", { "source": card }, "de") == { "title": "Himmelspaladin", "kicker": "[lb]b]Rosie" }, "one without a title takes the name of its source, its hero above, as they are")
 	_check(Messages.heading("victory", { "source": { "title": { "en": "Old Mirefang" } } }, "en") == { "title": "Victory!", "kicker": "Old Mirefang" }, "one with a title keeps it, its source above")
 	_check(Messages.heading("victory", { "source": card }, "en").kicker == "[lb]b]Rosie · Celestial Paladin", "with its hero")
+	var boss := { "title": { "en": "Old Mirefang" }, "boss": true }
+	var boss_color := "[color=%s]" % Messages.BOSS_COLOR
+	var boss_heading := Messages.heading("victory", { "source": boss }, "en")
+	_check(boss_heading.title.begins_with(boss_color) and boss_heading.kicker == boss_color + "Old Mirefang[/color]", "what the boss does is headed in its colour")
+	_check(Messages.heading("example_reminder", { "source": boss }, "en") == { "title": boss_color + "Old Mirefang[/color]", "kicker": "" }, "also when it takes the boss's name as its title")
 
 
 func _check_bad_file() -> void:

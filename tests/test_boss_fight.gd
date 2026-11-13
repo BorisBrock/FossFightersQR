@@ -53,7 +53,7 @@ class TestBoss extends Boss:
 
 func _check_fight_state() -> void:
 	var boss := TestBoss.new()
-	_check(boss.max_health("easy") == 15 and boss.max_health("normal") == 20 and boss.max_health("hard") == 25, "the difficulty scales the boss's health")
+	_check(boss.max_health("easy") == 20 and boss.max_health("normal") == 20 and boss.max_health("hard") == 21, "the difficulty scales the boss's health")
 	var fight := Fight.new(boss, "normal")
 	var won := [false]
 	fight.won.connect(func() -> void: won[0] = true)
@@ -108,7 +108,7 @@ func _check_screen() -> void:
 		if token.visible:
 			shown.append(token.seat)
 	_check(shown == [1, 3], "only seats with a hero show")
-	_check(screen.get_node("Banner/Text").text == "Mirefang", "the boss's name is announced")
+	_check(screen.get_node("Banner/Text/Title").text == "Mirefang", "the boss's name is announced")
 	_check(not get_tree().quit_on_go_back, "the back button of a phone does not quit the app")
 
 	screen.fight.deal_damage(7, "magic")
@@ -165,7 +165,7 @@ func _check_messages() -> void:
 	box.all_confirmed.connect(func() -> void: all_confirmed[0] = true)
 	_check(box.current() == "boss_taunt" and not box.visible, "the boss speaks, but not over its name")
 	await get_tree().create_timer(screen.INTRO_SEC + MessageBox.CONFIRM_DELAY_SEC + 0.5).timeout
-	_check(box.visible and layout.get_node("Header/Title").text == "[center]Mirefang[/center]", "then its words show")
+	_check(box.visible and (layout.get_node("Header/Title") as RichTextLabel).get_parsed_text() == "Mirefang", "then its words show")
 	_check(layout.get_node("Body").get_parsed_text().contains("hungry"), "in its own words")
 	screen.fight.tell("example_magic_potion", { "health": 10 })
 	screen.show_message("example_reminder")
@@ -173,7 +173,7 @@ func _check_messages() -> void:
 
 	confirm.pressed.emit()
 	_check(confirmed == ["boss_taunt"] and box.current() == "example_magic_potion", "the check mark shows the next message")
-	_check(layout.get_node("Body").get_parsed_text().contains("10 health points"), "with its placeholders filled in")
+	_check(layout.get_node("Body").get_parsed_text().contains("heals 10 health"), "with its placeholders filled in")
 	confirm.pressed.emit()
 	_check(box.current() == "example_magic_potion", "a quick second tap does not close it unread")
 	await get_tree().create_timer(MessageBox.CONFIRM_DELAY_SEC + 0.2).timeout
@@ -358,7 +358,7 @@ func _check_shield_choice() -> void:
 	var ranged: Control = screen.get_node("Shields/Ranged/Shield")
 	var magic: Control = screen.get_node("Shields/Magic/Shield")
 	var text: RichTextLabel = screen.get_node("Prompt/Layout/Text")
-	_check(text.get_parsed_text().contains("tap the shield you want to lower by 2") and not screen.get_node("Prompt/Layout/Buttons").visible, "the players are asked to tap a shield, without buttons")
+	_check(text.get_parsed_text().contains("lowers a shield by 2. Tap the shield.") and not screen.get_node("Prompt/Layout/Buttons").visible, "the players are asked to tap a shield, without buttons")
 	_check(melee.scale.x > 1.0 and magic.scale.x > 1.0 and ranged.scale.x == 1.0, "the shields to choose from pulse, the others do not")
 	var tap := InputEventMouseButton.new()
 	tap.button_index = MOUSE_BUTTON_LEFT

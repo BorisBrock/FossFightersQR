@@ -21,7 +21,7 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
 - **The heroes** at their seats, as on the table (`seats.tscn`, shared with the onboarding). Seats without a hero are
   hidden.
 - **The banner** across the upper half, for short messages. `show_banner(text)` shows one for 3 s. At the
-  start it announces the boss.
+  start it announces the boss, with a red glow. It looks and moves like the card's name below (`_play_banner`).
 - **Messages** in the top half, large, each until the players confirm it with the check mark. They announce rounds and
   phases and say what happens. Those that ask nothing of the players close by themselves after a few seconds, unless
   a player taps them. See [Messages](messages.md).
@@ -46,7 +46,9 @@ Like the table in the [onboarding](onboarding.md), the screen is a map of the ta
   shield rises again.
 - **The prompt** in the upper half, between the seats at the sides, in large type for small screens, while the fight waits for the players: whose turn it is, or which hero to tap,
   with buttons for what cannot be done by tapping a hero or showing a card (*Skip*, choices; a hero passes by showing a Pass card). Below the
-  prompt's text, short notes come and go, such as *This card is already in play this round*.
+  prompt's text, short notes come and go, such as *This card is already in play this round*. The prompt is framed
+  like the messages, pops up and shrinks away like them; a note pops in, and one that rejects a card shakes its
+  head. Choices are buttons in the style of the check mark, *Skip* a plain one.
 - **The card's name** large over the boss, as a card is played (`Fight.card_started`): a dark band opens between
   two golden lines, the name slams in under the hero's name, with a glow in the colour of the card's damage type
   (green for healing, otherwise gold), and a gleam runs across. The fight waits a moment for it before the card takes
@@ -95,7 +97,7 @@ on and take off themselves.
    tack at each step (`Fight.shields_raised`), and the fight waits until they are done. Knowing the boss's attacks
    and shields, the players are told *It's your turn. Who starts this round?*, and the heroes' portraits pulse until
    they tap the one who starts. With one hero, nobody is asked.
-5. **Actions:** from the second round on, curses are revealed first (*Curses*; in the first round nobody can have
+5. **Actions:** from the second round on, curses are revealed first (*Phase 3 · Actions*; in the first round nobody can have
    one). Then the heroes take turns clockwise from the starter, three each, each asked to play a card. Each turn is one
    action: show a card, or *Pass*. Lightning gives another action within the same turn.
    Each hero's badge shows the actions they have left this round as orbs: **blue** for their three turns,

@@ -46,11 +46,11 @@ asks nothing of the players, so that it closes by itself:
 		"title": "Venomous Bite",
 		"body": [
 			"[boss]{boss}[/boss] bites [player]{player}[/player], dealing [damage]{damage} damage[/damage] :claw:.",
-			"[player]{player}[/player] also takes [poison]{poison} poison markers[/poison] :poison:."
+			"[player]{player}[/player] also gets [poison]{poison} poison[/poison] :poison:."
 		]
 	},
 	"example_reminder": {
-		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1[/damage] :health: at the end of each round."
+		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1 health[/damage] :wound: at the end of each round."
 	},
 	"example_shield_lowered": {
 		"body": "The shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage].",
@@ -71,20 +71,28 @@ asks nothing of the players, so that it closes by itself:
   `[color=#ff8040]coloured[/color]` or `[color=red]…[/color]`, `[font_size=48]larger[/font_size]`.
 - **Styles** keep what comes up again and again looking the same everywhere. Prefer them to colours of your own:
 
-  | Style | For |
-  |-------|-----|
-  | `[player]…[/player]` | heroes and players |
-  | `[boss]…[/boss]` | the boss |
-  | `[damage]…[/damage]` | damage and losses |
-  | `[heal]…[/heal]` | healing and gains |
-  | `[poison]…[/poison]` | poison |
-  | `[taunt]…[/taunt]` | what the boss says (its taunt, its line each round): italic, in red |
+  | Style | For | Colour |
+  |-------|-----|--------|
+  | `[player]…[/player]` | heroes and players | gold |
+  | `[boss]…[/boss]` | the boss | red (`Messages.BOSS_COLOR`) |
+  | `[damage]…[/damage]` | damage and losses: health lost, shields lowered, tokens to take | light red |
+  | `[heal]…[/heal]` | healing and gains: health, bonuses, extra actions, boss attacks lowered | green |
+  | `[poison]…[/poison]` | poison | lime green |
+  | `[fire]…[/fire]` | fire | orange |
+  | `[panic]…[/panic]` | panic | blue |
+  | `[paralysis]…[/paralysis]` | paralysis | yellow |
+  | `[curse]…[/curse]` | curses | purple |
+  | `[taunt]…[/taunt]` | what the boss says (its taunt, its line each round), in italics | light red |
+
+  Card counts and other plain numbers are `[b]…[/b]`, as are the names of cards and items: `[b]{card}[/b]`.
 
 - **Symbols** are written `:name:` and drawn inline, as tall as the text:
 
   | Symbol | Icon |
   |--------|------|
-  | `:health:` | `assets/fight/icon_health.png` |
+  | `:health:` | `assets/fight/icon_health.png` (health as a value: starting health, *5 health or more*) |
+  | `:heal:` | `assets/fight/icon_heal.png` (health gained) |
+  | `:wound:` | `assets/fight/icon_wound.png` (health lost, by a hero or the boss) |
   | `:round:` | `assets/fight/icon_round.png` |
   | `:damage:` | `assets/fight/icon_damage.png` (the heroes' attacks) |
   | `:claw:` | `assets/fight/icon_claw.png` (the boss's attacks) |
@@ -96,8 +104,40 @@ asks nothing of the players, so that it closes by itself:
   | `:protection:`, `:lightning:` | `assets/fight/icon_protection.png`, `assets/fight/icon_lightning.png` |
   | `:fire:`, `:panic:`, `:paralysis:` | `assets/fight/icon_fire.png` and so on |
   | `:totem:` | `assets/fight/icon_totem.png` |
+  | `:robot:` | `assets/fight/icon_robot.png` (the Goblin's battle robot) |
 
 Keep messages short. They have to be read out at a table, and a long one does not fit the screen.
+
+### Consistency
+
+The same thing is always called, coloured and drawn the same way. The words follow the cards (`cards/cards.json`):
+
+| Thing | German | English | Style | Symbol |
+|-------|--------|---------|-------|--------|
+| a hero's attack | Angriff | attack | | `:damage:` |
+| the boss's attack | Boss-Attacke (*{boss} greift an*) | boss attack | `[damage]` for its damage | `:claw:` |
+| support | Verstärkung | support | | |
+| protection | Schutz | protection | `[heal]` for its value | `:protection:` |
+| a hero's health | Lebenspunkte | health | `[heal]` / `[damage]` | `:heal:` / `:wound:` / `:health:` |
+| the boss's health | Leben | health | `[damage]` | `:wound:` |
+| tokens | Statusmarke(n), *erhält* | status token(s), *gets* | per token | per token |
+| poison, fire, panic, paralysis | Gift, Feuer, Panik, Lähmung | poison, fire, panic, paralysis | `[poison]` and so on | `:poison:` and so on |
+| curses | Fluch, Flüche | curse(s) | `[curse]` | |
+| playing a card (showing it to the camera) | spielen (*spiele …*) | play | | `:card:` |
+| an action | Aktion | action | `[heal]+1 Aktion[/heal]` for extra ones | |
+| the piles | Nachziehstapel, Ablagestapel, Spielbereich, Handkarte | draw pile, discard pile, play area, hand card | | |
+| discarding | abwerfen | discard | | |
+| out of the game | für den restlichen Bosskampf aus dem Spiel | out of the game for the rest of the fight | | |
+| asking for a hero | *[b]Tippt den Helden an[/b], der …* | *[b]Tap the hero[/b] who …* | | |
+
+- **A symbol follows the word or number it stands for**, not the end of the sentence: *zieht [b]2[/b] :card:*,
+  *[poison]1 Gift[/poison] :poison:*. Where a number stands for a thing, the symbol can replace its word (*2 :card:*).
+- **Phase messages** are titled *Phase N · Name*, after the phases of the rules: *Phase 3 · Aktionen*,
+  *Phase 4 · Boss-Attacke*, *Phase 5 · Status*, *Phase 6 · Abwerfen*, *Phase 7 · Nachziehen*.
+- **Tokens a hero gets** are filled in by the game (`Fight.token_text()`), each in its colour with its symbol: write
+  `{tokens}` without a style around it.
+- **What the boss does is headed in red**: a message from the boss (`Boss.message_source()`, which has `"boss": true`),
+  its taunt and its attacks, has its heading in `Messages.BOSS_COLOR`.
 
 `tests/test_messages.gd` checks the files: that every language has every message, with the same placeholders, that
 every symbol and style exists and that every tag is closed. Run it after changing them.
@@ -127,12 +167,13 @@ Values are shown as they are, never read as formatting, so a hero called `[b]Bo`
 stays as it is, with a warning, to be noticed.
 
 A value can also be a list of **parts**, each `[id, values]` of another message, whose bodies are filled in one per
-line. That is how one message tells of several heroes, such as the boss's attack:
+line, or `{ "parts": […], "separator": ", " }` to fill them in on one line, as `Fight.token_text()` does with the
+`part_token_…` messages. That is how one message tells of several heroes, such as the boss's attack:
 
 ```gdscript
 tell("boss_attacks", { "boss": boss.title, "hits": [
 	["part_hit", { "player": "Rosie", "damage": 4 }],
-	["part_hit_with_tokens", { "player": "Sonja", "damage": 3, "tokens": token_text({ "poison": 1 }) }],
+	["part_hit_with_tokens", { "player": "Sonja", "damage": 3, "tokens": token_text({ "poison": 1, "fire": 2 }) }],
 ] })
 ```
 

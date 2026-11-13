@@ -130,6 +130,11 @@ const SHIELD_ICONS := {
 const CONFIRM_DIALOG := preload("res://confirm_dialog.tscn")
 const GIVE_UP_FADE_SEC := 0.7
 const BANNER_SEC := 3.0
+## How long a banner (_play_banner) takes to go.
+const BANNER_OUT_SEC := 0.4
+## The glow behind a banner, and behind the boss's name.
+const BANNER_COLOR := Color(1.0, 0.78, 0.38)
+const BOSS_BANNER_COLOR := Color(1.0, 0.36, 0.2)
 ## Messages wait while the boss is introduced.
 const INTRO_SEC := 1.6
 const TEXT := {
@@ -170,7 +175,8 @@ var cards_path := CARDS_PATH
 var fight: Fight
 
 var _cards: CardDatabase
-var _banner_tween: Tween
+## The banner across the middle of the screen (show_banner).
+var _banner: Control
 var _give_up_dialog: ConfirmDialog
 var _code_seen_msec := {}
 var _notice_tween: Tween
@@ -211,15 +217,13 @@ var _shake_tween: Tween
 var _screen_shake: Tween
 ## The attack whose effect plays now is a big one (BIG_ATTACK): its hits shake the screen.
 var _big_attack := false
-## The name of the card being played, over the boss (_make_card_name).
+## The name of the card being played, over the boss (_show_card_name).
 var _card_name: Control
 
 @onready var _background: TextureRect = $Background
 @onready var _ambience: CPUParticles2D = $Ambience
 @onready var _figure: TextureRect = $Figure
 @onready var _seats: Array[Node] = $Seats.get_children()
-@onready var _banner: Control = $Banner
-@onready var _banner_text: Label = $Banner/Text
 @onready var messages: MessageBox = $Messages
 @onready var _give_up: BaseButton = $Hud/GiveUp/Button
 @onready var _round: Label = $Hud/Round/Row/Value
@@ -288,6 +292,7 @@ func _ready() -> void:
 	add_child(_effects)
 	# Over the boss, the heroes and the shields, under the prompt, messages and HUD.
 	move_child(_effects, _shields.get_index() + 1)
+	_banner = _make_banner("Banner", 0.29, 0.42)
 	for token: SeatToken in _seats:
 		# A hero who can be chosen answers with "select" instead.
 		ButtonSounds.silence(token.get_node("Hit"))
@@ -369,9 +374,17 @@ func show_notice(id: String, values := {}) -> void:
 	_notice.text = "[center]%s[/center]" % Messages.render(id, values, TranslationServer.get_locale(), _symbol_size(_notice)).body
 	_notice.show()
 	_notice.modulate.a = 1.0
+	_notice.scale = Vector2(1.2, 1.2)
+	_notice.rotation = 0.0
 	if _notice_tween != null:
 		_notice_tween.kill()
+	# It pops in, and one that says no shakes its head.
 	_notice_tween = create_tween()
+	_notice_tween.tween_callback(func() -> void: _notice.pivot_offset = _notice.size / 2.0)
+	_notice_tween.tween_property(_notice, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if id != "notice_lightning":
+		for angle in [3.0, -3.0, 2.0, -1.0, 0.0]:
+			_notice_tween.tween_property(_notice, "rotation", deg_to_rad(angle), 0.06)
 	_notice_tween.tween_interval(NOTICE_SEC)
 	_notice_tween.tween_property(_notice, "modulate:a", 0.0, 0.4)
 	_notice_tween.tween_callback(_notice.hide)
@@ -383,17 +396,10 @@ func show_message(id: String, values := {}) -> void:
 	messages.tell(id, values)
 
 
-## Shows text across the middle of the screen for a while, such as whose turn it is.
-func show_banner(text: String, seconds := BANNER_SEC) -> void:
-	if _banner_tween != null:
-		_banner_tween.kill()
-	_banner_text.text = text
-	_banner.show()
-	_banner_tween = create_tween()
-	_banner_tween.tween_property(_banner, "modulate:a", 1.0, 0.3)
-	_banner_tween.tween_interval(seconds)
-	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.5)
-	_banner_tween.tween_callback(_banner.hide)
+## Shows text across the middle of the screen for a while, such as the boss's name, as a
+## banner like the card names (_play_banner), with a glow in color.
+func show_banner(text: String, seconds := BANNER_SEC, color := BANNER_COLOR) -> void:
+	_play_banner(_banner, text, "", color, seconds + BANNER_OUT_SEC + 0.3)
 
 
 func _t(key: String) -> String:
@@ -652,23 +658,34 @@ func _add_button(id: String, action: Callable) -> void:
 	button.text = Messages.find(id).get("body", id)
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(150, 64)
+	# Choices in the style of the messages' check mark, skipping plainer.
+	if id != "option_skip":
+		button.theme_type_variation = &"PrimaryButton"
 	ButtonSounds.silence(button)
 	button.pressed.connect(_sfx.play.bind("select"))
 	button.pressed.connect(action)
 	_buttons.add_child(button)
 
 
+## The prompt pops up like the messages do, and shrinks away.
 func _fade_prompt(shown: bool) -> void:
 	if _prompt_tween != null:
 		_prompt_tween.kill()
-	_prompt_tween = create_tween()
+	_prompt_tween = create_tween().set_parallel()
+	_prompt_tween.tween_callback(func() -> void: _prompt.pivot_offset = _prompt.size / 2.0)
 	if shown:
+		if not _prompt.visible:
+			_prompt.modulate.a = 0.0
+			_prompt.scale = Vector2(0.85, 0.85)
 		_prompt.show()
-		_prompt.modulate.a = 0.0
-		_prompt_tween.tween_property(_prompt, "modulate:a", 1.0, 0.25)
+		_prompt_tween.tween_property(_prompt, "modulate:a", 1.0, 0.2)
+		_prompt_tween.tween_property(_prompt, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	else:
-		_prompt_tween.tween_property(_prompt, "modulate:a", 0.0, 0.2)
-		_prompt_tween.tween_callback(_prompt.hide)
+		_prompt_tween.tween_property(_prompt, "modulate:a", 0.0, 0.2).set_ease(Tween.EASE_IN)
+		_prompt_tween.tween_property(_prompt, "scale", Vector2(0.9, 0.9), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		_prompt_tween.chain().tween_callback(_prompt.hide)
+
+
 #endregion
 
 
@@ -1211,34 +1228,38 @@ func _card_color(play: CardPlay) -> Color:
 	for effect in play.effects:
 		if effect.type == "heal":
 			return Color(0.45, 0.95, 0.55)
-	return Color(1.0, 0.78, 0.38)
+	return BANNER_COLOR
 
 
-## The name of a card being played, as a banner across the upper part of the boss: a dark
-## band opens between two golden lines, the name slams in with the hero's name above it, a
-## glow in the card's colour (_card_color) behind it, and a gleam runs across.
+## The name of a card being played, as a banner across the upper part of the boss (see
+## _play_banner), with the hero's name above it and a glow in the card's colour.
 func _show_card_name(title: String, hero: String, color: Color) -> void:
 	if _card_name == null:
-		_card_name = _make_card_name()
-		add_child(_card_name)
-		# Over the boss and its effects, under the prompt and the messages.
-		move_child(_card_name, _effects.get_index() + 1)
-	var band: Control = _card_name.get_node("Band")
-	var sweep: Control = band.get_node("Sweep")
-	var glow: Control = _card_name.get_node("Glow")
-	var lines: Array[Control] = [_card_name.get_node("LineTop"), _card_name.get_node("LineBottom")]
-	var kicker: Label = _card_name.get_node("Text/Kicker")
-	var label: Label = _card_name.get_node("Text/Title")
+		_card_name = _make_banner("CardName", 0.12, 0.27)
 	messages.hold(CARD_NAME_HOLD_SEC)
-	var tween_name := &"card_name_tween"
-	if _card_name.has_meta(tween_name):
-		(_card_name.get_meta(tween_name) as Tween).kill()
+	_play_banner(_card_name, title, hero, color, CARD_NAME_SEC)
+
+
+## Shows a banner (_make_banner) for seconds in all: a dark band opens between two golden
+## lines, the title slams in with the kicker above it (none if empty), a glow in color
+## flares behind it and a gleam runs across. Then the title drifts up and fades as the band
+## closes.
+func _play_banner(banner: Control, title: String, kicker_text: String, color: Color, seconds: float) -> void:
+	var band: Control = banner.get_node("Band")
+	var sweep: Control = band.get_node("Sweep")
+	var glow: Control = banner.get_node("Glow")
+	var lines: Array[Control] = [banner.get_node("LineTop"), banner.get_node("LineBottom")]
+	var kicker: Label = banner.get_node("Text/Kicker")
+	var label: Label = banner.get_node("Text/Title")
+	var tween_name := &"banner_tween"
+	if banner.has_meta(tween_name):
+		(banner.get_meta(tween_name) as Tween).kill()
 	label.text = title
-	kicker.text = hero.to_upper()
-	kicker.visible = not hero.is_empty()
+	kicker.text = kicker_text.to_upper()
+	kicker.visible = not kicker_text.is_empty()
 	glow.modulate = Color(color, 0.0)
-	_card_name.show()
-	_card_name.modulate.a = 1.0
+	banner.show()
+	banner.modulate.a = 1.0
 	band.scale = Vector2(1.0, 0.0)
 	label.modulate.a = 0.0
 	label.scale = Vector2.ONE * 1.8
@@ -1247,7 +1268,7 @@ func _show_card_name(title: String, hero: String, color: Color) -> void:
 	for line in lines:
 		line.scale = Vector2(0.0, 1.0)
 	var tween := create_tween().set_parallel()
-	_card_name.set_meta(tween_name, tween)
+	banner.set_meta(tween_name, tween)
 	# Sizes are known from the first step on, after the layout.
 	tween.tween_callback(func() -> void:
 		for node: Control in [band, glow, label, kicker] + lines:
@@ -1258,7 +1279,7 @@ func _show_card_name(title: String, hero: String, color: Color) -> void:
 	tween.tween_property(label, "modulate:a", 1.0, 0.12).set_delay(0.06)
 	tween.tween_property(label, "scale", Vector2.ONE, 0.32).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(kicker, "modulate:a", 1.0, 0.3).set_delay(0.22)
-	# The glow flares as the name lands, then settles.
+	# The glow flares as the title lands, then settles.
 	tween.tween_property(glow, "modulate:a", 1.0, 0.18).set_delay(0.12)
 	tween.tween_property(glow, "scale", Vector2(1.25, 1.25), 0.18).from(Vector2(0.6, 0.6)).set_delay(0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(glow, "modulate:a", 0.55, 0.6).set_delay(0.3)
@@ -1269,25 +1290,30 @@ func _show_card_name(title: String, hero: String, color: Color) -> void:
 		sweep.modulate.a = 1.0).set_delay(0.3)
 	tween.tween_method(func(t: float) -> void:
 		sweep.position.x = lerpf(-sweep.size.x, band.size.x, t), 0.0, 1.0, 0.55).set_delay(0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	# Then it all goes: the name drifts up and grows a little as it fades, the band closes.
-	var out_at := CARD_NAME_SEC - 0.4
-	tween.tween_property(_card_name, "modulate:a", 0.0, 0.4).set_delay(out_at).set_ease(Tween.EASE_IN)
-	tween.tween_property(label, "scale", Vector2.ONE * 1.12, 0.4).set_delay(out_at).set_ease(Tween.EASE_IN)
-	tween.tween_property(band, "scale:y", 0.2, 0.4).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	# Then it all goes: the title grows a little as it fades, the band closes.
+	var out_at := maxf(seconds - BANNER_OUT_SEC, 0.6)
+	tween.tween_property(banner, "modulate:a", 0.0, BANNER_OUT_SEC).set_delay(out_at).set_ease(Tween.EASE_IN)
+	tween.tween_property(label, "scale", Vector2.ONE * 1.12, BANNER_OUT_SEC).set_delay(out_at).set_ease(Tween.EASE_IN)
+	tween.tween_property(band, "scale:y", 0.2, BANNER_OUT_SEC).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	for line in lines:
-		tween.tween_property(line, "scale:x", 0.3, 0.4).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.chain().tween_callback(_card_name.hide)
+		tween.tween_property(line, "scale:x", 0.3, BANNER_OUT_SEC).set_delay(out_at).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(banner.hide)
 
 
-## The nodes of the card name's banner (see _show_card_name).
-func _make_card_name() -> Control:
+## A banner (see _play_banner) across the screen from top to bottom, as parts of its
+## height, over the boss and its effects, under the prompt and the messages.
+func _make_banner(node_name: String, top: float, bottom: float) -> Control:
 	var root := Control.new()
-	root.name = "CardName"
+	root.name = node_name
+	root.hide()
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.set_anchor_and_offset(SIDE_LEFT, 0.0, 0.0)
-	root.set_anchor_and_offset(SIDE_RIGHT, 1.0, 0.0)
-	root.set_anchor_and_offset(SIDE_TOP, 0.12, 0.0)
-	root.set_anchor_and_offset(SIDE_BOTTOM, 0.27, 0.0)
+	add_child(root)
+	move_child(root, _effects.get_index() + 1)
+	_fill(root)
+	root.anchor_top = top
+	root.anchor_bottom = bottom
+	root.offset_top = 0.0
+	root.offset_bottom = 0.0
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 
@@ -1304,7 +1330,7 @@ func _make_card_name() -> Control:
 	glow_texture.height = 128
 	var glow := _banner_rect("Glow", glow_texture, root)
 	glow.material = add
-	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fill(glow)
 	glow.offset_left = 120.0
 	glow.offset_right = -120.0
 	glow.offset_top = -30.0
@@ -1313,7 +1339,7 @@ func _make_card_name() -> Control:
 	# The dark band, fading out towards the sides.
 	var band := _banner_rect("Band", _fading_strip(Color(0.05, 0.025, 0.015, 0.85), 0.2), root)
 	band.clip_contents = true
-	band.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fill(band)
 	band.offset_top = 14.0
 	band.offset_bottom = -14.0
 	var sweep_gradient := Gradient.new()
@@ -1334,10 +1360,10 @@ func _make_card_name() -> Control:
 		line.anchor_right = 1.0
 		line.offset_left = 30.0
 		line.offset_right = -30.0
-		var top: bool = side == "Top"
-		line.anchor_top = 0.0 if top else 1.0
+		var at_top: bool = side == "Top"
+		line.anchor_top = 0.0 if at_top else 1.0
 		line.anchor_bottom = line.anchor_top
-		line.offset_top = 12.0 if top else -16.0
+		line.offset_top = 12.0 if at_top else -16.0
 		line.offset_bottom = line.offset_top + 3.0
 
 	# The glow lights up the band, behind the text.
@@ -1348,7 +1374,7 @@ func _make_card_name() -> Control:
 	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	text.alignment = BoxContainer.ALIGNMENT_CENTER
 	text.add_theme_constant_override("separation", -4)
-	text.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fill(text)
 	text.offset_left = 40.0
 	text.offset_right = -40.0
 	root.add_child(text)
@@ -1380,6 +1406,14 @@ func _make_card_name() -> Control:
 	for node in [kicker, label]:
 		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return root
+
+
+## Makes control fill its parent, whatever size that has now.
+static func _fill(control: Control) -> void:
+	control.anchor_right = 1.0
+	control.anchor_bottom = 1.0
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		control.set_offset(side, 0.0)
 
 
 ## A horizontal strip of color that fades out over fade of its width at each end.
@@ -1727,8 +1761,7 @@ func _play_intro() -> void:
 	var count := create_tween()
 	count.tween_method(func(value: int) -> void: _health.text = str(value), 0, fight.max_health, HEALTH_COUNT_SEC).set_delay(0.4)
 	count.tween_callback(_pop.bind(_health))
-	_banner.modulate.a = 0.0
-	show_banner(CardDatabase.localized(fight.boss.title, TranslationServer.get_locale()))
+	show_banner(CardDatabase.localized(fight.boss.title, TranslationServer.get_locale()), BANNER_SEC, BOSS_BANNER_COLOR)
 
 
 func _pop(control: Control) -> void:

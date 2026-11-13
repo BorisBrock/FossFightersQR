@@ -36,7 +36,7 @@ var spit_damage := 5
 var spit_poison := 1
 ## Its tail lash after its attacks, every tail_every rounds (in round tail_every, twice
 ## that, ...): health every hero loses, by difficulty. 0 for none.
-var tail := { "easy": 4, "normal": 5, "hard": 6 }
+var tail := { "easy": 4, "normal": 5, "hard": 5 }
 var tail_every := 2
 const ENRAGED_EYES := Color(1.0, 0.18, 0.1)
 
@@ -94,7 +94,7 @@ func _init() -> void:
 	# By the number of heroes, so that 1 to 4 have about the same chance: fewer heroes have
 	# fewer actions, cards to protect, heal and remove poison, and each is bitten more
 	# often. Found with the balance simulator, see docs/balance.md.
-	health_by_heroes = [25, 42, 60, 88]
+	health_by_heroes = [28, 52, 82, 120]
 	attack_by_heroes = [-1, 2, 3, 3]
 	shield_by_heroes = [-2, -1, 0, 1]
 	bite_by_heroes = [-9, -5, 0, 3]

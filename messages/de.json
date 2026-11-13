@@ -1,6 +1,5 @@
 {
 	"boss_taunt": {
-		"title": "{boss}",
 		"body": "[taunt]»{taunt}«[/taunt]",
 		"auto": true
 	},
@@ -12,7 +11,7 @@
 			"Zieht eure Karten :card: bis zum Handkartenlimit:",
 			"{draws}",
 			"",
-			"[i]Pro Lähmung :paralysis: eine Karte weniger.[/i]"
+			"[i]Pro [paralysis]Lähmung[/paralysis] :paralysis: eine Karte weniger.[/i]"
 		]
 	},
 	"hand_limit_draw": {
@@ -24,15 +23,15 @@
 		"auto": true
 	},
 	"boss_planning": {
-		"body": "[boss]{boss}[/boss] bereitet seine Attacken vor …",
+		"body": "[boss]{boss}[/boss] bereitet seine Attacken :claw: vor …",
 		"animation": true
 	},
 	"phase_action": {
-		"title": "Flüche",
-		"body": "Deckt jetzt eure Flüche auf, falls ihr welche habt."
+		"title": "Phase 3 · Aktionen",
+		"body": "Deckt zuerst eure [curse]Flüche[/curse] auf, falls ihr welche habt."
 	},
 	"boss_attacks": {
-		"title": "Phase 4 · Angriff",
+		"title": "Phase 4 · Boss-Attacke",
 		"body": [
 			"[boss]{boss}[/boss] greift an:",
 			"{hits}"
@@ -42,61 +41,73 @@
 		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :claw:"
 	},
 	"part_hit_with_tokens": {
-		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :claw: und [poison]{tokens}[/poison]"
+		"body": "[player]{player}[/player]: [damage]{damage} Schaden[/damage] :claw: und {tokens}"
+	},
+	"part_token_poison": {
+		"body": "[poison]{count} Gift[/poison] :poison:"
+	},
+	"part_token_fire": {
+		"body": "[fire]{count} Feuer[/fire] :fire:"
+	},
+	"part_token_panic": {
+		"body": "[panic]{count} Panik[/panic] :panic:"
+	},
+	"part_token_paralysis": {
+		"body": "[paralysis]{count} Lähmung[/paralysis] :paralysis:"
 	},
 	"phase_attack_blocked": {
-		"title": "Phase 4 · Angriff",
+		"title": "Phase 4 · Boss-Attacke",
 		"body": "Alles abgewehrt! [boss]{boss}[/boss] trifft diese Runde niemanden.",
 		"auto": true
 	},
 	"round_end_status": {
-		"title": "Rundenende · Status",
+		"title": "Phase 5 · Status",
 		"body": [
-			"Gift :poison:: [damage]1[/damage] :health: pro Marker verlieren.",
-			"Feuer :fire:: [b]1[/b] :card: pro Marker ziehen, jede für den Kampf entfernen [i]oder[/i] abwerfen und [damage]2[/damage] :health: verlieren."
+			"[poison]Gift[/poison] :poison:: [damage]1 Lebenspunkt[/damage] :wound: pro Statusmarke verlieren.",
+			"[fire]Feuer[/fire] :fire:: [b]1[/b] :card: pro Statusmarke ziehen, jede für den restlichen Bosskampf entfernen [i]oder[/i] abwerfen und [damage]2 Lebenspunkte[/damage] :wound: verlieren."
 		]
 	},
 	"round_end_discard": {
-		"title": "Rundenende · Abwerfen",
-		"body": "Spielbereich auf den Ablagestapel, dann bis aufs Handkartenlimit abwerfen, gern mehr."
+		"title": "Phase 6 · Abwerfen",
+		"body": "Legt euren Spielbereich auf den Ablagestapel und werft dann Handkarten :card: bis aufs Handkartenlimit ab, gern auch mehr."
 	},
 	"round_end_draw": {
-		"title": "Rundenende · Nachziehen",
+		"title": "Phase 7 · Nachziehen",
 		"body": [
 			"Zieht eure Karten :card: bis zum Handkartenlimit:",
 			"{draws}",
 			"",
-			"[i]Pro Lähmung :paralysis: eine Karte weniger.[/i]"
+			"[i]Pro [paralysis]Lähmung[/paralysis] :paralysis: eine Karte weniger.[/i]"
 		]
 	},
 	"support_without_attack": {
 		"title": "Ohne Wirkung",
-		"body": "Eine Unterstützung wirkt erst nach einem Angriff der Art [b]{kind}[/b] in dieser Runde. Die Unterstützung von [player]{player}[/player] bewirkt nichts.",
+		"body": "Eine Verstärkung wirkt erst nach einem Angriff der Art [b]{kind}[/b] in dieser Runde. Die Verstärkung von [player]{player}[/player] bewirkt nichts.",
 		"auto": true
 	},
 	"heal": {
-		"body": "[player]{player}[/player] heilt [heal]{amount} Lebenspunkte[/heal] :health:, aber nicht über die Start-Lebenspunkte."
+		"body": "[player]{player}[/player] heilt [heal]{amount} Lebenspunkte[/heal] :heal:, aber nicht über die Start-Lebenspunkte."
 	},
 	"health_loss": {
-		"body": "[player]{player}[/player] verliert [damage]{amount} Lebenspunkte[/damage] :health:."
+		"body": "[player]{player}[/player] verliert [damage]{amount} Lebenspunkte[/damage] :wound:."
 	},
 	"draw_cards": {
 		"body": "[player]{player}[/player] zieht [b]{count}[/b] :card:."
 	},
 	"extra_turns_now": {
-		"body": "[player]{player}[/player] bekommt in dieser Runde [heal]{count} Züge mehr[/heal].",
+		"body": "[player]{player}[/player] bekommt in dieser Runde [heal]+{count} Aktion[/heal].",
 		"auto": true
 	},
 	"extra_turns_next_round": {
-		"body": "[player]{player}[/player] bekommt in der nächsten Runde [heal]{count} Züge mehr[/heal].",
+		"body": "[player]{player}[/player] bekommt in der nächsten Runde [heal]+{count} Aktion[/heal].",
 		"auto": true
 	},
 	"empowered": {
-		"body": "Bis zum Ende der Runde bekommt jeder {kind} von [player]{player}[/player] [heal]+{bonus}[/heal].",
+		"body": "Bis zum Ende der Runde bekommt [player]{player}[/player] [heal]+{bonus}[/heal] auf [b]{kind}[/b].",
 		"auto": true
 	},
 	"remove_tokens": {
-		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Marker."
+		"body": "[player]{player}[/player] entfernt bis zu [heal]{count}[/heal] eigene Statusmarken."
 	},
 	"victory": {
 		"title": "Sieg!",
@@ -113,22 +124,22 @@
 		"body": "[player]{player}[/player], du bist dran:\nspiele eine Karte :card:."
 	},
 	"prompt_protect": {
-		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :protection:. [b]Tippt den Helden an, der geschützt wird.[/b]"
+		"body": "[player]{player}[/player] schützt [heal]{amount}[/heal] :protection:. [b]Tippt den Helden an[/b], der geschützt wird."
 	},
 	"prompt_tied_target": {
-		"body": "[boss]{boss}[/boss] kann sich nicht entscheiden. [b]Tippt den Helden an, den er angreift.[/b]"
+		"body": "[boss]{boss}[/boss] kann sich nicht entscheiden. [b]Tippt den Helden an[/b], den er angreift."
 	},
 	"prompt_free_play_who": {
-		"body": "[player]{player}[/player] lässt einen anderen Helden eine Karte gratis spielen. [b]Tippt an, wen.[/b]"
+		"body": "[player]{player}[/player] lässt einen anderen Helden eine Karte :card: gratis spielen. [b]Tippt den Helden an.[/b]"
 	},
 	"prompt_free_play": {
-		"body": "[player]{player}[/player], spiel eine Karte gratis :card:."
+		"body": "[player]{player}[/player], spiele eine Karte :card: gratis."
 	},
 	"prompt_lucky_charm": {
-		"body": "[player]{player}[/player], zeig die [b]oberste Karte deines Nachziehstapels[/b] :card:."
+		"body": "[player]{player}[/player], spiele die [b]oberste Karte deines Nachziehstapels[/b] :card:."
 	},
 	"prompt_heal_who": {
-		"body": "[b]Tippt den Helden an[/b], der [heal]{amount}[/heal] :health: heilt."
+		"body": "[b]Tippt den Helden an[/b], der [heal]{amount} Lebenspunkte[/heal] :heal: heilt."
 	},
 	"prompt_empower_who": {
 		"body": "[b]Tippt den Helden an[/b], den [player]{player}[/player] stärkt."
@@ -146,13 +157,13 @@
 		"body": "Das ist keine Karte von [player]{player}[/player]."
 	},
 	"notice_used_up": {
-		"body": "[player]{player}[/player] hat das in diesem Kampf schon aufgebraucht."
+		"body": "[player]{player}[/player] hat das in diesem Bosskampf schon aufgebraucht."
 	},
 	"notice_removed": {
-		"body": "Diese Karte ist für den Rest des Kampfes aus dem Spiel."
+		"body": "Diese Karte ist für den restlichen Bosskampf aus dem Spiel."
 	},
 	"notice_lightning": {
-		"body": ":lightning: Blitz! [player]{player}[/player] hat noch eine Aktion."
+		"body": "Blitz :lightning:! [player]{player}[/player] hat noch eine Aktion."
 	},
 	"option_skip": {
 		"body": "Auslassen"
@@ -161,21 +172,21 @@
 		"body": "[player]{player}[/player] nimmt [b]{count}[/b] :card: nach Wahl aus dem Nachziehstapel."
 	},
 	"card_removed": {
-		"body": "[player]{player}[/player], lege diese Karte zurück in die Schachtel: Sie ist für den Rest des Kampfes aus dem Spiel."
+		"body": "[player]{player}[/player], lege diese Karte :card: zurück in die Schachtel: Sie ist für den restlichen Bosskampf aus dem Spiel."
 	},
 	"draw_cards_everyone": {
-		"body": "Jeder Held zieht [heal]{count}[/heal] :card:."
+		"body": "Jeder Held zieht [b]{count}[/b] :card:."
 	},
 	"attack_effects_removed": {
-		"body": "Der Angriff gegen [player]{player}[/player] verliert seinen Zusatzeffekt.",
+		"body": "Die Boss-Attacke :claw: gegen [player]{player}[/player] verliert ihren Zusatzeffekt.",
 		"auto": true
 	},
 	"attack_cancelled": {
-		"body": "Der Angriff gegen [player]{player}[/player] entfällt.",
+		"body": "Die Boss-Attacke :claw: gegen [player]{player}[/player] entfällt.",
 		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Der Angriff mit [damage]{damage}[/damage] :claw: trifft jetzt [player]{player}[/player].",
+		"body": "[player]{player}[/player] stellt sich vor [player]{other}[/player]: Die Boss-Attacke mit [damage]{damage} Schaden[/damage] :claw: trifft jetzt [player]{player}[/player].",
 		"auto": true
 	},
 	"ward_placed": {
@@ -191,10 +202,10 @@
 		"auto": true
 	},
 	"may_draw": {
-		"body": "[player]{player}[/player] darf [heal]{count}[/heal] :card: ziehen."
+		"body": "[player]{player}[/player] darf [b]{count}[/b] :card: ziehen."
 	},
 	"shield_breaker": {
-		"body": "Schild zerstört! [boss]{boss}[/boss] verliert sofort [damage]{damage} Leben[/damage].",
+		"body": "Schild zerstört! [boss]{boss}[/boss] verliert sofort [damage]{damage} Leben[/damage] :wound:.",
 		"auto": true
 	},
 	"prompt_if_healthy": {
@@ -204,19 +215,19 @@
 		"body": "[b]Tippt den Helden an[/b], für den die Karte von [player]{player}[/player] ist."
 	},
 	"prompt_remove_tokens_who": {
-		"body": "[b]Tippt den Helden an[/b], der bis zu [heal]{count}[/heal] Marker entfernt."
+		"body": "[b]Tippt den Helden an[/b], der bis zu [heal]{count}[/heal] Statusmarken entfernt."
 	},
 	"prompt_redirect_who": {
-		"body": "[b]Tippt den Helden an[/b], dessen Angriff [player]{player}[/player] auf sich lenkt."
+		"body": "[b]Tippt den Helden an[/b], dessen Boss-Attacke :claw: [player]{player}[/player] auf sich lenkt."
 	},
 	"prompt_use_ward": {
-		"body": "[boss]{boss}[/boss] setzt eine @-Fähigkeit gegen [player]{player}[/player] ein. [b]{card}[/b] ablegen, um sie zu verhindern?"
+		"body": "[boss]{boss}[/boss] setzt eine @-Fähigkeit gegen [player]{player}[/player] ein. [b]{card}[/b] abwerfen, um sie zu verhindern?"
 	},
 	"prompt_top_card_or_item": {
-		"body": "[player]{player}[/player], spiele die [b]oberste Karte deines Decks[/b] :card: oder nutze Opas Glasauge."
+		"body": "[player]{player}[/player], spiele die [b]oberste Karte deines Nachziehstapels[/b] :card: oder nutze [b]Opas Glasauge[/b]."
 	},
 	"prompt_attack_or_item": {
-		"body": "[player]{player}[/player], spiele eine Handkarte mit [b]Angriff[/b] :card: oder nutze den Trinkschlauch."
+		"body": "[player]{player}[/player], spiele eine Handkarte :card: mit [b]Angriff[/b] oder nutze den [b]Trinkschlauch[/b]."
 	},
 	"notice_still_in_play": {
 		"body": "Diese Karte liegt noch neben der Heldenkarte von [player]{player}[/player]."
@@ -234,7 +245,7 @@
 		"body": "Nein"
 	},
 	"prompt_search_pile": {
-		"body": "[player]{player}[/player], durchsuche deinen [b]Nachziehstapel[/b] nach einer Karte und zeig sie :card:."
+		"body": "[player]{player}[/player], durchsuche deinen [b]Nachziehstapel[/b] nach einer Karte und spiele sie :card:."
 	},
 	"shuffle_pile": {
 		"body": "[player]{player}[/player] mischt den Nachziehstapel."
@@ -243,13 +254,13 @@
 		"body": "[player]{player}[/player] mischt den Nachziehstapel und legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
 	},
 	"prompt_discard_or_top": {
-		"body": "[player]{player}[/player], zeig eine Karte aus deinem [b]Ablagestapel[/b] oder die [b]oberste Karte deines Nachziehstapels[/b] :card:."
+		"body": "[player]{player}[/player], spiele eine Karte aus deinem [b]Ablagestapel[/b] oder die [b]oberste Karte deines Nachziehstapels[/b] :card:."
 	},
 	"played_card_removed": {
 		"body": "[player]{player}[/player] legt [b]{card}[/b] in die Schachtel: Die Karte ist für den restlichen Bosskampf aus dem Spiel."
 	},
 	"toxin_ready": {
-		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] mehr.",
+		"body": "[b]{card}[/b] von [player]{player}[/player]: Ab sofort kostet jedes [poison]Gift[/poison] :poison: des Bosses am Ende der Runde [damage]{damage} Leben[/damage] :wound: mehr.",
 		"auto": true
 	},
 	"card_repeated": {
@@ -269,37 +280,37 @@
 		"auto": true
 	},
 	"prompt_halve_who": {
-		"body": "[b]Tippt den Helden an[/b], dessen Angriff halbiert wird."
+		"body": "[b]Tippt den Helden an[/b], dessen Boss-Attacke :claw: halbiert wird."
 	},
 	"attack_halved": {
-		"body": "Der Angriff gegen [player]{player}[/player] wird auf [damage]{damage}[/damage] :claw: halbiert und verliert seinen Zusatzeffekt.",
+		"body": "Die Boss-Attacke gegen [player]{player}[/player] wird auf [damage]{damage} Schaden[/damage] :claw: halbiert und verliert ihren Zusatzeffekt.",
 		"auto": true
 	},
 	"remove_curse": {
-		"body": "[player]{player}[/player] legt 1 aktiven Fluch eines beliebigen Helden auf den Fluch-Ablagestapel."
+		"body": "[player]{player}[/player] legt 1 aktiven [curse]Fluch[/curse] eines beliebigen Helden auf den Fluch-Ablagestapel."
 	},
 	"prompt_use_item": {
-		"body": "[player]{player}[/player], nutze einen [b]Gegenstand[/b] deiner Wahl :card:."
+		"body": "[player]{player}[/player], nutze einen [b]Gegenstand[/b] :card: deiner Wahl."
 	},
 	"card_to_pile": {
-		"body": "[player]{player}[/player] legt [b]{count}[/b] andere Handkarte oben auf den Nachziehstapel :card:."
+		"body": "[player]{player}[/player] legt [b]{count}[/b] andere Handkarte :card: oben auf den Nachziehstapel."
 	},
 	"prompt_play_top_who": {
-		"body": "[b]Tippt den Helden an[/b], der die obersten [b]{count}[/b] Karten seines Nachziehstapels ausspielt."
+		"body": "[b]Tippt den Helden an[/b], der die obersten [b]{count}[/b] :card: seines Nachziehstapels spielt."
 	},
 	"boss_poison": {
-		"body": "Das Gift wirkt! [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert [damage]{damage} Leben[/damage] :health:.",
+		"body": "Das [poison]Gift[/poison] wirkt! [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert [damage]{damage} Leben[/damage] :wound:.",
 		"auto": true
 	},
 	"example_magic_potion": {
 		"title": "Zaubertrank",
-		"body": "Wählt einen Spieler, der [heal]{health} Lebenspunkte[/heal] :health: erhält."
+		"body": "[b]Tippt den Helden an[/b], der [heal]{health} Lebenspunkte[/heal] :heal: heilt."
 	},
 	"example_reminder": {
-		"body": "[i]Denkt daran:[/i] Vergiftete Helden verlieren am Ende jeder Runde [damage]1[/damage] :health:."
+		"body": "[i]Denkt daran:[/i] Vergiftete Helden verlieren am Ende jeder Runde [damage]1 Lebenspunkt[/damage] :wound:."
 	},
 	"prompt_lower_shield": {
-		"body": "[player]{player}[/player], tippe auf den Schild, der um [damage]{amount}[/damage] sinken soll."
+		"body": "[player]{player}[/player] senkt einen Schild um [damage]{amount}[/damage]. [b]Tippt den Schild an.[/b]"
 	},
 	"option_shield_melee": {
 		"body": "Nahkampf"
@@ -319,10 +330,10 @@
 		"auto": true
 	},
 	"prompt_poison_on_attack_who": {
-		"body": "[b]Tippt den Helden an[/b]: Trifft ihn eine Boss-Attacke von [damage]{threshold}[/damage] oder mehr, erhält der Boss [poison]{poison} Gift[/poison] :poison:."
+		"body": "[b]Tippt den Helden an[/b]: Trifft ihn eine Boss-Attacke von [damage]{threshold} Schaden[/damage] :claw: oder mehr, erhält der Boss [poison]{poison} Gift[/poison] :poison:."
 	},
 	"poison_on_attack_ready": {
-		"body": "[b]{card}[/b]: Bis zum Ende des Kampfes erhält der Boss [poison]{poison} Gift[/poison] :poison:, wenn er [player]{player}[/player] mit [damage]{threshold}[/damage] oder mehr angreift.",
+		"body": "[b]{card}[/b]: Bis zum Ende des Bosskampfes erhält der Boss [poison]{poison} Gift[/poison] :poison:, wenn er [player]{player}[/player] mit [damage]{threshold} Schaden[/damage] :claw: oder mehr angreift.",
 		"auto": true
 	},
 	"poison_on_attack": {
@@ -330,24 +341,24 @@
 		"auto": true
 	},
 	"attacks_weakened_next_round": {
-		"body": "[b]{card}[/b] von [player]{player}[/player]: In der nächsten Runde sinken alle Angriffe des Bosses um [heal]{amount}[/heal].",
+		"body": "[b]{card}[/b] von [player]{player}[/player]: In der nächsten Runde sinken alle Boss-Attacken :claw: um [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"attacks_weakened": {
-		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt: Alle Angriffe des Bosses sinken um [heal]{amount}[/heal].",
+		"body": "[b]{card}[/b] von [player]{player}[/player] wirkt: Alle Boss-Attacken :claw: sinken um [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"remove_tokens_everyone": {
-		"body": "Jeder Held entfernt bis zu [heal]{count}[/heal] eigene Marker."
+		"body": "Jeder Held entfernt bis zu [heal]{count}[/heal] eigene Statusmarken."
 	},
 	"form_thorn": {
 		"title": "Stachelform",
-		"body": "[player]{player}[/player] nimmt die Stachelform an: Alle ihre Angriffe und Verstärkungen bekommen [heal]+1[/heal].",
+		"body": "[player]{player}[/player] nimmt die Stachelform an: Alle ihre Angriffe :damage: und Verstärkungen bekommen [heal]+1[/heal].",
 		"auto": true
 	},
 	"form_blossom": {
 		"title": "Blütenform",
-		"body": "[player]{player}[/player] nimmt die Blütenform an: Jedes Mal, wenn ihre Angriffe oder Verstärkungen den Boss Leben kosten, heilt sie [heal]3 Lebenspunkte[/heal] :health:.",
+		"body": "[player]{player}[/player] nimmt die Blütenform an: Jedes Mal, wenn ihre Angriffe :damage: oder Verstärkungen den Boss Leben kosten, heilt sie [heal]3 Lebenspunkte[/heal] :heal:.",
 		"auto": true
 	},
 	"form_bark": {
@@ -362,31 +373,31 @@
 		"body": "[player]{player}[/player] darf beliebig viele eigene Lebenspunkte :health: an [b]genau einen[/b] anderen Helden abgeben."
 	},
 	"card_back_to_pile": {
-		"body": "[player]{player}[/player] legt [b]{card}[/b] nicht ab, sondern mischt die Karte zurück in den Nachziehstapel :card:."
+		"body": "[player]{player}[/player] wirft [b]{card}[/b] nicht ab, sondern mischt die Karte :card: zurück in den Nachziehstapel."
 	},
 	"prompt_redraw_hand_who": {
-		"body": "[b]Tippt den Helden an[/b], der beliebig viele Handkarten abwirft und dann bis zum Handkartenlimit nachzieht."
+		"body": "[b]Tippt den Helden an[/b], der beliebig viele Handkarten :card: abwirft und dann bis zum Handkartenlimit nachzieht."
 	},
 	"redraw_hand": {
-		"body": "[player]{player}[/player] wirft beliebig viele Handkarten ab und zieht dann bis zum Handkartenlimit nach :card:."
+		"body": "[player]{player}[/player] wirft beliebig viele Handkarten :card: ab und zieht dann bis zum Handkartenlimit nach."
 	},
 	"discard_random": {
-		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte ab, falls möglich :card:."
+		"body": "[player]{player}[/player] wirft [b]{count}[/b] zufällige Handkarte :card: ab, falls möglich."
 	},
 	"shields_lowered": {
 		"body": "Jeder Schild von [boss]{boss}[/boss] sinkt um [damage]{amount}[/damage], ohne seinen Effekt auszulösen.",
 		"auto": true
 	},
 	"threat_lowers_on_attack": {
-		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff spielt, sinkt die Boss-Attacke gegen [player]{player}[/player] um [heal]{amount}[/heal].",
+		"body": "Jedes Mal, wenn [player]{player}[/player] in dieser Runde einen Angriff :damage: spielt, sinkt die Boss-Attacke :claw: gegen [player]{player}[/player] um [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"threat_lowered": {
-		"body": "Die Attacke von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal].",
+		"body": "Die Boss-Attacke :claw: von [boss]{boss}[/boss] gegen [player]{player}[/player] sinkt um [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"remove_tokens_group": {
-		"body": "Ihr entfernt als Gruppe insgesamt bis zu [heal]{count}[/heal] Marker, von wem ihr wollt."
+		"body": "Ihr entfernt als Gruppe insgesamt bis zu [heal]{count}[/heal] Statusmarken, von wem ihr wollt."
 	},
 	"look_at_top_everyone": {
 		"body": "Jeder Held schaut sich die obersten [b]{look}[/b] :card: seines Nachziehstapels an, nimmt [b]{take}[/b] davon auf die Hand und legt die anderen [b]{back}[/b] in beliebiger Reihenfolge zurück."
@@ -395,32 +406,32 @@
 		"body": "[player]{player}[/player] nimmt [b]{count}[/b] :card: nach Wahl aus dem Nachziehstapel auf die Hand und mischt den Nachziehstapel."
 	},
 	"take_token": {
-		"body": "[player]{player}[/player] nimmt sich [damage]{count}[/damage] Statusmarke nach Wahl aus dem Vorrat."
+		"body": "[player]{player}[/player] erhält [damage]{count}[/damage] Statusmarke nach Wahl aus dem Vorrat."
 	},
 	"draw_and_play": {
 		"body": "[player]{player}[/player] zieht [b]{draw}[/b] :card:, spielt gleich [b]{play}[/b] davon und wirft die übrigen [b]{discard}[/b] ab."
 	},
 	"prompt_play_drawn": {
-		"body": "[player]{player}[/player], zeig eine der [b]gerade gezogenen Karten[/b] :card:."
+		"body": "[player]{player}[/player], spiele eine der [b]gerade gezogenen Karten[/b] :card:."
 	},
 	"tear_placed": {
-		"body": "[player]{player}[/player] legt [b]{card}[/b] dauerhaft neben die Heldenkarte. Würde ein Held Lebenspunkte verlieren, egal wodurch, dürft ihr sie ablegen, um es zu verhindern: Behaltet das am Tisch im Blick."
+		"body": "[player]{player}[/player] legt [b]{card}[/b] dauerhaft neben die Heldenkarte. Würde ein Held Lebenspunkte :wound: verlieren, egal wodurch, dürft ihr sie abwerfen, um es zu verhindern: Behaltet das am Tisch im Blick."
 	},
 	"draw_and_return_everyone": {
 		"body": "Jeder Held zieht [b]{draw}[/b] :card: und legt dann [b]{back}[/b] seiner Handkarten verdeckt auf seinen Nachziehstapel."
 	},
 	"next_cards_boosted": {
-		"body": "Auf den nächsten [b]{cards}[/b] gespielten :card:, von wem auch immer, ist jeder Angriff und jede Verstärkung um [heal]{bonus}[/heal] erhöht.",
+		"body": "Auf den nächsten [b]{cards}[/b] gespielten :card:, von wem auch immer, ist jeder Angriff :damage: und jede Verstärkung um [heal]{bonus}[/heal] erhöht.",
 		"auto": true
 	},
 	"random_token": {
-		"body": "Zufällig getroffen: [player]{player}[/player] erhält eine Statusmarke, [poison]{tokens}[/poison]."
+		"body": "Zufällig getroffen: [player]{player}[/player] erhält eine Statusmarke, {tokens}."
 	},
 	"totem_attack": {
 		"title": "{card}",
 		"body": [
 			"Gebt [player]{player}[/player] den Totem-Marker :totem:.",
-			"Bis zum Ende der Runde sind alle Angriffe von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
+			"Bis zum Ende der Runde sind alle Angriffe :damage: von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht."
 		]
 	},
 	"totem_support": {
@@ -453,13 +464,13 @@
 		"body": "Die Runde ist vorbei. Gebt die Totem-Marker :totem: zurück: [player]{players}[/player]."
 	},
 	"robot_built": {
-		"body": "[player]{player}[/player] dreht das letzte Teil um: Der [b]Kampfroboter[/b] steht! Solange er funktioniert, sind alle Angriffe von [player]{player}[/player] um [damage]{bonus}[/damage] erhöht. Er hat [heal]{health}[/heal] Leben."
+		"body": "[player]{player}[/player] dreht das letzte Teil um: Der [b]Kampfroboter[/b] :robot: steht! Solange er funktioniert, sind alle Angriffe :damage: von [player]{player}[/player] um [heal]{bonus}[/heal] erhöht. Er hat [heal]{health} Lebenspunkte[/heal] :health:."
 	},
 	"robot_part": {
-		"body": "[player]{player}[/player] dreht ein Teil des Kampfroboters um ([b]{count}/{total}[/b])."
+		"body": "[player]{player}[/player] dreht ein Teil des [b]Kampfroboters[/b] :robot: um ([b]{count}/{total}[/b])."
 	},
 	"robot_destroyed": {
-		"body": "Der Kampfroboter von [player]{player}[/player] ist [damage]zerstört[/damage]! Dreht seine drei Teile zurück. Mit Angriff, Unterstützung und Schutz kann er neu gebaut werden."
+		"body": "Der [b]Kampfroboter[/b] :robot: von [player]{player}[/player] ist [damage]zerstört[/damage]! Dreht seine drei Teile zurück. Mit Angriff, Verstärkung und Schutz kann er neu gebaut werden."
 	},
 	"card_wound_up": {
 		"body": "[player]{player}[/player] mischt [b]{card}[/b] zurück in den Nachziehstapel :card:. Sie ist jetzt aufgezogen."
@@ -468,15 +479,15 @@
 		"body": "[player]{player}[/player] darf [b]{card}[/b] zurück auf die Hand nehmen und diese Runde noch einmal spielen."
 	},
 	"poison_burst": {
-		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert sofort [damage]{damage} Leben[/damage] :health:.",
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat [poison]{poison} Gift[/poison] :poison: und verliert sofort [damage]{damage} Leben[/damage] :wound:.",
 		"auto": true
 	},
 	"poison_burst_none": {
-		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat kein Gift :poison:, also passiert nichts.",
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] hat [poison]kein Gift[/poison] :poison:, also passiert nichts.",
 		"auto": true
 	},
 	"poison_cleared": {
-		"body": "Das ganze Gift von [boss]{boss}[/boss] ist entfernt :poison:.",
+		"body": "Das ganze [poison]Gift[/poison] :poison: von [boss]{boss}[/boss] ist entfernt.",
 		"auto": true
 	},
 	"shield_broken_poison": {
@@ -484,25 +495,25 @@
 		"auto": true
 	},
 	"prompt_play_from_top": {
-		"body": "[player]{player}[/player], schau dir die [b]obersten {look} Karten[/b] deines Nachziehstapels an und zeig eine davon :card:."
+		"body": "[player]{player}[/player], schau dir die [b]obersten {look} Karten[/b] deines Nachziehstapels an und spiele eine davon :card:."
 	},
 	"play_from_top_rest": {
 		"body": "[player]{player}[/player] legt die anderen [b]{count}[/b] :card: in beliebiger Reihenfolge zurück auf oder unter den Nachziehstapel."
 	},
 	"random_hand_cards": {
-		"body": "[b]{card}[/b]: Für die restliche Runde gilt für [player]{player}[/player]: Jede Handkarte, die gespielt wird, muss eine [b]zufällige[/b] sein :card:."
+		"body": "[b]{card}[/b]: Für die restliche Runde gilt für [player]{player}[/player]: Jede Handkarte :card:, die gespielt wird, muss eine [b]zufällige[/b] sein."
 	},
 	"random_hand_reminder": {
 		"body": "[i]Denkt daran:[/i] [player]{player}[/player] spielt diese Runde eine [b]zufällige[/b] Handkarte :card:."
 	},
 	"tokens_everyone": {
-		"body": "Jeder Held erhält Statusmarken: [poison]{tokens}[/poison]."
+		"body": "Jeder Held erhält Statusmarken: {tokens}."
 	},
 	"prompt_reset_health_who": {
-		"body": "[b]Tippt den Helden an[/b], dessen Lebenspunkte auf den Startwert zurückgehen :health:."
+		"body": "[b]Tippt den Helden an[/b], dessen Lebenspunkte :health: auf den Startwert zurückgehen."
 	},
 	"reset_health": {
-		"body": "[player]{player}[/player] setzt die Lebenspunkte auf den [heal]Startwert[/heal] :health:."
+		"body": "[player]{player}[/player] setzt die Lebenspunkte :health: auf den [heal]Startwert[/heal]."
 	},
 	"boss_away_missed": {
 		"body": "[boss]{boss}[/boss] ist außer Reichweite: Der Angriff wirkt nicht.",
@@ -515,14 +526,14 @@
 	},
 	"mirefang_poison_shield": {
 		"title": "Giftschild",
-		"body": "[player]{player}[/player] trifft den Giftschild und erhält [poison]{poison} Gift[/poison] :poison:."
+		"body": "[player]{player}[/player] trifft den [poison]Giftschild[/poison] und erhält [poison]{poison} Gift[/poison] :poison:."
 	},
 	"mirefang_dive": {
 		"title": "Abgetaucht",
 		"body": [
-			"[boss]{boss}[/boss] taucht ins schwarze Wasser ab. Seine Schilde und Angriffe sind fort, und kein Angriff erreicht ihn.",
+			"[boss]{boss}[/boss] taucht ins schwarze Wasser ab. Seine Schilde und Attacken sind fort, und kein Angriff erreicht ihn.",
 			"Er lauert unter [player]{player}[/player]: Taucht er auf, beißt er zu, mit [damage]{damage} Schaden[/damage] :claw: und [poison]{poison} Gift[/poison] :poison:.",
-			"Jeder Held bekommt [heal]1 Aktion mehr[/heal], um sich vorzubereiten."
+			"Jeder Held bekommt [heal]+1 Aktion[/heal], um sich vorzubereiten."
 		]
 	},
 	"mirefang_surfaces": {
@@ -532,14 +543,14 @@
 	},
 	"mirefang_spit": {
 		"title": "Giftspucke",
-		"body": "Getroffen spuckt [boss]{boss}[/boss] Gift auf [player]{player}[/player]: [player]{player}[/player] erhält [poison]{poison} Gift[/poison] :poison:."
+		"body": "Getroffen spuckt [boss]{boss}[/boss] [poison]Gift[/poison] auf [player]{player}[/player]: [player]{player}[/player] erhält [poison]{poison} Gift[/poison] :poison:."
 	},
 	"mirefang_tail": {
 		"title": "Schwanzhieb",
-		"body": "[boss]{boss}[/boss] peitscht mit seinem riesigen Schwanz über das Moor: Jeder Held verliert [damage]{damage} Leben[/damage] :health:."
+		"body": "[boss]{boss}[/boss] peitscht mit seinem riesigen Schwanz über das Moor: Jeder Held verliert [damage]{damage} Lebenspunkte[/damage] :wound:."
 	},
 	"mirefang_enraged": {
 		"title": "Rasend",
-		"body": "[boss]{boss}[/boss] ist rasend vor Wut! Ab jetzt sind seine Angriffe und Schilde stärker, und sein Giftschild vergiftet mehr."
+		"body": "[boss]{boss}[/boss] ist rasend vor Wut! Ab jetzt sind seine Attacken :claw: und Schilde stärker, und sein [poison]Giftschild[/poison] vergiftet mehr."
 	}
 }

@@ -67,7 +67,7 @@ const TURNS_PER_ROUND := 3
 ## For the text of messages: symbols, damage types and tokens.
 const NAMES := {
 	"attack": { "de": "Angriff", "en": "attack" },
-	"support": { "de": "Unterstützung", "en": "support" },
+	"support": { "de": "Verstärkung", "en": "support" },
 	"protection": { "de": "Schutz", "en": "protection" },
 	"heal": { "de": "Heilung", "en": "healing" },
 	"melee": { "de": "Nahkampf", "en": "melee" },
@@ -758,15 +758,13 @@ func heroes_where(condition: Callable) -> Array[FightHero]:
 	return result
 
 
-## Tokens as text for messages, such as "1 poison, 2 fire", in every language.
+## Tokens for a message's placeholder, such as "1 poison, 2 fire", each in its colour and
+## with its icon: a part_token_<token> message each, on one line (see Messages.render()).
 func token_text(tokens: Dictionary) -> Dictionary:
-	var text := {}
-	for language: String in ["de", "en"]:
-		var parts := PackedStringArray()
-		for token: String in tokens:
-			parts.append("%d %s" % [tokens[token], NAMES[token][language]])
-		text[language] = ", ".join(parts)
-	return text
+	var parts := []
+	for token: String in tokens:
+		parts.append(["part_token_" + token, { "count": tokens[token] }])
+	return { "parts": parts, "separator": ", " }
 
 
 ## Ends the fight as lost, such as when a hero has fallen.
@@ -787,7 +785,7 @@ func abandon() -> void:
 
 func _run() -> void:
 	await _each_rule("fight_started")
-	tell("boss_taunt", { "boss": boss.title, "taunt": boss.taunt })
+	tell("boss_taunt", { "boss": boss.title, "taunt": boss.taunt, "source": boss.message_source() })
 	await until_read()
 	if over:
 		return
@@ -922,7 +920,7 @@ func _tell_hits() -> void:
 		else:
 			values.tokens = token_text(effects)
 			parts.append(["part_hit_with_tokens", values])
-	tell("boss_attacks", { "boss": boss.title, "hits": parts })
+	tell("boss_attacks", { "boss": boss.title, "hits": parts, "source": boss.message_source() })
 	for hit in _hits:
 		await _each_rule("hero_struck", [hit[0], hit[1]])
 		await _each_rule("hero_hurt", [hit[0], hit[1], null])

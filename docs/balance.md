@@ -1,6 +1,6 @@
 # Balancing
 
-`tools/balance/simulate.gd` plays many fights against a boss with random parties and a very simple AI, and sums up
+`tools/balance/simulate.gd` plays many fights against a boss with random parties and an AI for the players, and sums up
 how they went. Its numbers show where to tune, such as the boss's health or its attacks. What the boss
 should feel like is still for real players to decide.
 
@@ -23,17 +23,58 @@ lists the options.
   forms lie on the table, as do the base game's items (Heiltrank, Medizintasche, Trinkschlauch, …), unless
   `--no-items`. Players always have them, and they change the outcome a lot. `--level 5` or `8` gives the heroes the abilities of their
   higher character and class cards.
-- **The AI is greedy.** On each action it scores every card it could play and plays the best one: damage that gets
-  past the shields, less for damage to a shield, nothing for an attack while the boss is under water, a minus for
-  hitting the poison shield, a bonus for opening a damage type a support in someone's hand needs. Protection is
-  worth what it blocks, more for blocking the attack's poison too and when the attack would take the hero to 0. Heal,
-  draw, Lightning and poison have small fixed values. With nothing worth at least 0.5, it passes and keeps its cards.
-  Protection goes to the most dangerous attack, heals to the most hurt hero, and the hero with the strongest card
-  starts the round.
+- **The AI plays the race** (`--ai planner`, the default). The heroes lose as soon as one of them is at 0, so
+  health is worth a lot only where it keeps a hero alive until the boss is dead. Damage to the boss is worth the same
+  all the time. Before each choice the AI estimates:
+  - how many rounds the boss still needs, from the party's damage per round so far;
+  - what this round costs each hero: the attack on them (lowered by Protection, its poison gone at 0), their poison
+    tokens, fire, and the tail lash if it comes this round;
+  - what each later round costs them, from the health they lost per round so far, plus their poison.
 
-The AI plays worse than good players: it does not plan a round ahead or save cards for the bite. Read the results as a
-**comparison** between settings, not as the true chance to win. A change that moves the win rate from 30 % to 60 % for
-the AI will make the fight easier for players too.
+  From these it judges each hero's health against the rest of the fight. A hero who would fall this round makes saving
+  them worth far more than any damage. A hero with health to spare gets little from more. Each card is worth its
+  damage plus what that change does to the heroes. If the party can likely finish the boss this round, the AI goes all
+  in on damage and ignores defence.
+
+  The details:
+  - **Lightning first.** A card with Lightning gives its action back, so it scores what it does plus the best card
+    that action can play.
+  - **Shields.** Damage into a shield counts only for what the party's other attacks and supports of that type can
+    then get through this round: shields come back every round. It counts the poison of the poison shield and of the
+    spit against it.
+  - **Drawing** is worth a lot only for actions the hero has left and no good card for, and a little otherwise.
+  - **Items.** It uses them for any gain at all, as they cost no card. It keeps a fight's last use of an item (the
+    Heiltrank) for when it matters.
+  - **Choices.** It aims Protection, heals and token removal at the hero they help most by the same judgement as the
+    card's score. It gives a chosen hero's draw and extra action to the hero who has actions and no good cards for
+    them.
+  - **Unchanged from the older AI:** passing (below 0.5 it keeps its cards), what it keeps at the discard, who starts
+    the round, Panic, and the abilities without a value of their own (a flat bonus for the special symbol). The
+    Glücksbringer is still never used.
+
+  `--ai greedy` is the older AI. It scores each card on its own, with fixed values for heal, draw, Lightning and
+  poison. It aims Protection at the biggest attack and heals at the most hurt hero.
+
+The AI still plays worse than good players: it does not plan a round ahead, and it does not choose its loot. Read
+the results as a **comparison** between settings, not as the true chance to win. A change that moves the win rate
+from 30 % to 60 % for the AI will make the fight easier for players too. Compare settings with the same AI.
+
+### The planner against the older AI
+
+Mirefang with its health as tuned for the older AI (25, 42, 60 and 88), with items, 400 fights per line, the same
+seeds (November 2026):
+
+| Heroes | Easy greedy → planner | Normal greedy → planner | Hard greedy → planner |
+|--------|-----------------------|-------------------------|-----------------------|
+| 1 | 83 → 95 % | 36 → 58 % | 3 → 14 % |
+| 2 | 91 → 99 % | 39 → 77 % | 2 → 14 % |
+| 3 | 95 → 100 % | 48 → 91 % | 5 → 33 % |
+| 4 | 91 → 100 % | 40 → 96 % | 3 → 36 % |
+
+The better the play, the more the party size matters. Aimed Protection, heals and token removal help a party more
+than a hero alone, so the planner wins *Normal* 58 % alone but 96 % with 4. A hero alone still dies mostly of poison
+and the tail lash, worn down. So Mirefang's health by the number of heroes was tuned again with the planner, see
+[below](#the-number-of-heroes).
 
 ## Before trusting the numbers
 
@@ -61,6 +102,11 @@ One line for each player count and difficulty:
 | `>box` | fights in which `tblpsn` was more than the game box has: 16 tokens, or `--tokens` |
 | `hero dmg/round` | health each hero lost per round: from the boss's attacks, its bite, their poison tokens at the end of the round, and other things such as cards |
 | `deaths` | the fights lost, by what took the hero to 0 |
+
+Then how many rounds the fights lasted, won, lost or timed out: for each line, and for each number of heroes over all
+difficulties (`all`). It lists the mean, the median, the range of the middle 80 % of fights (`10-90 %`), the shortest
+and longest, and the share of fights over by round 3, 4, 5, 6, 7, 8 and 10. A fight that timed out counts with
+`--max-rounds` + 1.
 
 Below that, the win rate of the fights each race and class took part in, which shows a hero who is far stronger or
 weaker than the rest. `--csv file.csv` writes one line per fight for a closer look in a spreadsheet, and `--log` prints
@@ -92,7 +138,7 @@ attack against one hero falls on each of them less often. So a boss's numbers ch
 (`health_by_heroes`, `attack_by_heroes`, `shield_by_heroes`, see [Choosing the boss](bosses.md#bosses-and-difficulties)),
 so that 1 to 4 heroes have about the same chance.
 
-**Mirefang** (November 2026, hero level 1, 10 loot cards, at first without items), 3 heroes left as they were. Without the scaling,
+**Mirefang** (November 2026, hero level 1, 10 loot cards, at first without items, the older AI: `--ai greedy`), 3 heroes left as they were. Without the scaling,
 with its 80 health for any number, the AI won on *Normal* 0 % alone, 9 % with 2, 53 % with 3 and 84 % with 4. A hero
 alone mostly died of poison: their shields took most of their damage, the fight lasted long, and every bite was theirs.
 Shields, poison and the bite matter as much as health: with 4 heroes, the fight is over in about 4 rounds and the dives
@@ -124,3 +170,43 @@ alone went up by 1 (3 to 7). With items, 400 fights each:
 The AI plays worse than good players, so *Normal* at about 40 % for the AI should be a fair fight for people. *Hard*
 is very hard for the AI: the lash comes more often in its longer fights. Even a lash of 4 on *Hard* gave only about
 7 %, and none at all about 23 %. The lash counts under `other` in `hero dmg/round` and `deaths`.
+
+**Then, with the planner** (November 2026). Its health matters much more than with the older AI. That AI with 4
+heroes was done in about 4 rounds whatever the health, while the planner gets through the dives and its health
+decides how long they last. Health alone was enough to even out the number of heroes; attacks, shields, bite and
+poison stayed as they were. Aimed at about 50 % on *Normal*, as the planner plays better than the older AI but still
+worse than good players. Health 28, 52, 82 and 120 (it was 25, 42, 60 and 88), 400 fights each, two seeds:
+
+| Heroes | Easy | Normal | Hard |
+|--------|------|--------|------|
+| 1 | 92 / 89 % | 53 / 46 % | 7 / 6 % |
+| 2 | 98 / 99 % | 51 / 49 % | 4 / 3 % |
+| 3 | 98 / 99 % | 50 / 50 % | 1 / 3 % |
+| 4 | 99 / 100 % | 49 / 52 % | 1 / 1 % |
+
+*Easy* was nearly always won with 2 to 4 heroes, and *Hard* almost never.
+
+**Then the difficulties** (November 2026), aimed at 80 to 90 % on *Easy* and 10 to 20 % on *Hard*. Mirefang's bite
+and lash alone could not do it: what made the fight harder for a party made it harder still for a hero alone, who
+gets every bite. Its health moves a party's chance a lot and a lone hero's hardly at all, so the difficulties'
+`health_factor` (`Bosses.DIFFICULTIES`, for every boss) went from 0.75 to 1.0 on *Easy* and from 1.25 to 1.05 on
+*Hard*. Mirefang's tail lash on *Hard* went from 6 to 5. 400 fights each, two seeds:
+
+| Heroes | Easy | Normal | Hard |
+|--------|------|--------|------|
+| 1 | 81 / 81 % | 50 / 51 % | 21 / 19 % |
+| 2 | 87 / 88 % | 49 / 51 % | 17 / 19 % |
+| 3 | 88 / 88 % | 49 / 50 % | 17 / 20 % |
+| 4 | 89 / 90 % | 51 / 53 % | 19 / 18 % |
+
+Rounds until the fight ends, over all three difficulties:
+
+| Heroes | Mean | Median | Middle 80 % | Over by round 6 |
+|--------|------|--------|-------------|-----------------|
+| 1 | 9.3 | 8 | 5 to 14 | 24 % |
+| 2 | 6.0 | 6 | 4 to 8 | 73 % |
+| 3 | 5.5 | 5 | 4 to 7 | 86 % |
+| 4 | 5.5 | 6 | 4 to 7 | 86 % |
+
+A hero alone fights about two thirds longer than a party, and longer still on *Easy* (mean 10): they deal less damage per
+round, and heal and protect themselves much of the time. On *Easy*, 1 or 2 fights alone in 400 last 40 rounds.

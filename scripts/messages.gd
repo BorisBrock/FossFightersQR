@@ -39,18 +39,28 @@ const SYMBOLS := {
 	"panic": "res://assets/fight/icon_panic.png",
 	"paralysis": "res://assets/fight/icon_paralysis.png",
 	"totem": "res://assets/fight/icon_totem.png",
+	"heal": "res://assets/fight/icon_heal.png",
+	"wound": "res://assets/fight/icon_wound.png",
+	"robot": "res://assets/fight/icon_robot.png",
 }
+
+## The colour of the boss: its name in a message, and the heading of what it does.
+const BOSS_COLOR := "#ff4d5e"
 
 ## Tags for what comes up again and again, so that it looks the same in every message.
 ## Each is the BBCode it stands for, opening and closing.
 const STYLES := {
 	"player": ["[b][color=#ffd27a]", "[/color][/b]"],
-	"boss": ["[b][color=#ff9a5c]", "[/color][/b]"],
+	"boss": ["[b][color=" + BOSS_COLOR + "]", "[/color][/b]"],
 	"damage": ["[b][color=#ff5a4a]", "[/color][/b]"],
 	"heal": ["[b][color=#7fe07a]", "[/color][/b]"],
 	"poison": ["[b][color=#b6e04a]", "[/color][/b]"],
+	"fire": ["[b][color=#ffa040]", "[/color][/b]"],
+	"panic": ["[b][color=#8fb8ff]", "[/color][/b]"],
+	"paralysis": ["[b][color=#f2e35a]", "[/color][/b]"],
+	"curse": ["[b][color=#c58cff]", "[/color][/b]"],
 	## What the boss says, such as its taunt: in its own voice, apart from the instructions.
-	"taunt": ["[i][color=#ff8070]", "[/color][/i]"],
+	"taunt": ["[i][color=#ff7a85]", "[/color][/i]"],
 }
 
 static var _files := {}
@@ -63,7 +73,8 @@ static var _style := _regex("\\[(/?)([a-z_]+)\\]")
 ## "body": … }. The title is "" if the message has none. values fill in the placeholders,
 ## either as they are or, for a { "de": …, "en": … } dictionary, in the language shown.
 ## A value can also be a list of parts, each [id, values] of another message, whose
-## bodies are filled in one per line, such as one line per hero.
+## bodies are filled in one per line, such as one line per hero, or { "parts": …,
+## "separator": ", " } to fill them in on one line, such as tokens.
 ## symbol_size is the height of the symbols in pixels, best about that of the text.
 static func render(id: String, values := {}, locale := TranslationServer.get_locale(), symbol_size := 32) -> Dictionary:
 	var entry := find(id, locale)
@@ -78,7 +89,8 @@ static func render(id: String, values := {}, locale := TranslationServer.get_loc
 
 ## The heading of a message, as BBCode: { "title": …, "kicker": … }, each "" if it has
 ## none. The kicker is the small line above the title that says where the message comes
-## from, from values.source (see Fight.source()): { "title": …, "hero": … }.
+## from, from values.source (see Fight.source()): { "title": …, "hero": … }, and
+## "boss": true if it is the boss, whose heading is then in its colour.
 ## - A message with a title of its own keeps it, and the kicker names the source, such as
 ##   the boss whose armour weakens an attack, with its hero, if any.
 ## - A message without one, such as a heal, takes the source's name as its title, such as
@@ -90,10 +102,18 @@ static func heading(id: String, values := {}, locale := TranslationServer.get_lo
 		source = {}
 	var hero := _escape(_text_of(source.get("hero", ""), locale))
 	var from := _escape(_text_of(source.get("title", ""), locale))
+	var result := {}
 	if title.is_empty():
-		return { "title": from, "kicker": hero if not from.is_empty() else "" }
-	var names := PackedStringArray([hero, from])
-	return { "title": title, "kicker": " · ".join(Array(names).filter(func(name: String) -> bool: return not name.is_empty())) }
+		result = { "title": from, "kicker": hero if not from.is_empty() else "" }
+	else:
+		var names := PackedStringArray([hero, from])
+		result = { "title": title, "kicker": " · ".join(Array(names).filter(func(name: String) -> bool: return not name.is_empty())) }
+	# What the boss does is headed in its colour.
+	if source.get("boss", false):
+		for key: String in result:
+			if not result[key].is_empty():
+				result[key] = "[color=%s]%s[/color]" % [BOSS_COLOR, result[key]]
+	return result
 
 
 ## The message as written in its file, in the language of locale or the fallback:
@@ -179,6 +199,8 @@ static func to_bbcode(text: String, values := {}, locale := TranslationServer.ge
 			var value: Variant = values[key]
 			if value is Array:
 				result += _parts(value, locale, symbol_size)
+			elif value is Dictionary and value.has("parts"):
+				result += _parts(value.parts, locale, symbol_size, value.get("separator", "\n"))
 			else:
 				result += _escape(_text_of(value, locale))
 		else:
@@ -230,8 +252,9 @@ static func _markup(text: String, symbol_size: int) -> String:
 	return result + text.substr(start)
 
 
-## Each part, [id, values] of a message, as the BBCode of its body, one per line.
-static func _parts(parts: Array, locale: String, symbol_size: int) -> String:
+## Each part, [id, values] of a message, as the BBCode of its body, one per line or
+## between them separator.
+static func _parts(parts: Array, locale: String, symbol_size: int, separator := "\n") -> String:
 	var lines := PackedStringArray()
 	for part: Variant in parts:
 		if not part is Array or part.size() != 2 or not part[0] is String or not part[1] is Dictionary:
@@ -243,7 +266,7 @@ static func _parts(parts: Array, locale: String, symbol_size: int) -> String:
 			lines.append(_escape(part[0]))
 		else:
 			lines.append(to_bbcode(entry.body, part[1], locale, symbol_size))
-	return "\n".join(lines)
+	return separator.join(lines)
 
 
 ## A placeholder's value as text. Numbers are always shown as whole numbers: a value read

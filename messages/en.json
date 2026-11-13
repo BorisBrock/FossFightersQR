@@ -1,6 +1,5 @@
 {
 	"boss_taunt": {
-		"title": "{boss}",
 		"body": "[taunt]»{taunt}«[/taunt]",
 		"auto": true
 	},
@@ -12,7 +11,7 @@
 			"Draw your cards :card: up to your hand limit:",
 			"{draws}",
 			"",
-			"[i]One card less per paralysis :paralysis:.[/i]"
+			"[i]One card less per [paralysis]paralysis[/paralysis] :paralysis:.[/i]"
 		]
 	},
 	"hand_limit_draw": {
@@ -24,15 +23,15 @@
 		"auto": true
 	},
 	"boss_planning": {
-		"body": "[boss]{boss}[/boss] is preparing its attacks …",
+		"body": "[boss]{boss}[/boss] is preparing its attacks :claw: …",
 		"animation": true
 	},
 	"phase_action": {
-		"title": "Curses",
-		"body": "Reveal your curses now, if you have any."
+		"title": "Phase 3 · Actions",
+		"body": "Reveal your [curse]curses[/curse] first, if you have any."
 	},
 	"boss_attacks": {
-		"title": "Phase 4 · Attack",
+		"title": "Phase 4 · Boss Attack",
 		"body": [
 			"[boss]{boss}[/boss] attacks:",
 			"{hits}"
@@ -42,31 +41,43 @@
 		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :claw:"
 	},
 	"part_hit_with_tokens": {
-		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :claw: and [poison]{tokens}[/poison]"
+		"body": "[player]{player}[/player]: [damage]{damage} damage[/damage] :claw: and {tokens}"
+	},
+	"part_token_poison": {
+		"body": "[poison]{count} poison[/poison] :poison:"
+	},
+	"part_token_fire": {
+		"body": "[fire]{count} fire[/fire] :fire:"
+	},
+	"part_token_panic": {
+		"body": "[panic]{count} panic[/panic] :panic:"
+	},
+	"part_token_paralysis": {
+		"body": "[paralysis]{count} paralysis[/paralysis] :paralysis:"
 	},
 	"phase_attack_blocked": {
-		"title": "Phase 4 · Attack",
+		"title": "Phase 4 · Boss Attack",
 		"body": "You blocked everything! [boss]{boss}[/boss] hits nobody this round.",
 		"auto": true
 	},
 	"round_end_status": {
-		"title": "End of the Round · Status",
+		"title": "Phase 5 · Status",
 		"body": [
-			"Poison :poison:: lose [damage]1[/damage] :health: per token.",
-			"Fire :fire:: draw [b]1[/b] :card: per token, remove each for the fight [i]or[/i] discard it and lose [damage]2[/damage] :health:."
+			"[poison]Poison[/poison] :poison:: lose [damage]1 health[/damage] :wound: per status token.",
+			"[fire]Fire[/fire] :fire:: draw [b]1[/b] :card: per status token, remove each for the rest of the fight [i]or[/i] discard it and lose [damage]2 health[/damage] :wound:."
 		]
 	},
 	"round_end_discard": {
-		"title": "End of the Round · Discard",
-		"body": "Your play area to your discard pile, then down to your hand limit, or more."
+		"title": "Phase 6 · Discard",
+		"body": "Put your play area on your discard pile, then discard hand cards :card: down to your hand limit, or more."
 	},
 	"round_end_draw": {
-		"title": "End of the Round · Draw",
+		"title": "Phase 7 · Draw",
 		"body": [
 			"Draw your cards :card: up to your hand limit:",
 			"{draws}",
 			"",
-			"[i]One card less per paralysis :paralysis:.[/i]"
+			"[i]One card less per [paralysis]paralysis[/paralysis] :paralysis:.[/i]"
 		]
 	},
 	"support_without_attack": {
@@ -75,28 +86,28 @@
 		"auto": true
 	},
 	"heal": {
-		"body": "[player]{player}[/player] heals [heal]{amount} health[/heal] :health:, but not above their starting health."
+		"body": "[player]{player}[/player] heals [heal]{amount} health[/heal] :heal:, but not above their starting health."
 	},
 	"health_loss": {
-		"body": "[player]{player}[/player] loses [damage]{amount} health[/damage] :health:."
+		"body": "[player]{player}[/player] loses [damage]{amount} health[/damage] :wound:."
 	},
 	"draw_cards": {
 		"body": "[player]{player}[/player] draws [b]{count}[/b] :card:."
 	},
 	"extra_turns_now": {
-		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] this round.",
+		"body": "[player]{player}[/player] gets [heal]+{count} action[/heal] this round.",
 		"auto": true
 	},
 	"extra_turns_next_round": {
-		"body": "[player]{player}[/player] gets [heal]{count} more turns[/heal] next round.",
+		"body": "[player]{player}[/player] gets [heal]+{count} action[/heal] next round.",
 		"auto": true
 	},
 	"empowered": {
-		"body": "Until the end of the round, every {kind} of [player]{player}[/player] gets [heal]+{bonus}[/heal].",
+		"body": "Until the end of the round, [player]{player}[/player] gets [heal]+{bonus}[/heal] on [b]{kind}[/b].",
 		"auto": true
 	},
 	"remove_tokens": {
-		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own tokens."
+		"body": "[player]{player}[/player] removes up to [heal]{count}[/heal] of their own status tokens."
 	},
 	"victory": {
 		"title": "Victory!",
@@ -110,25 +121,25 @@
 		"body": "It's your turn. Who starts this round?\n[b]Tap a hero![/b]"
 	},
 	"prompt_action": {
-		"body": "[player]{player}[/player], your turn: play a card :card:."
+		"body": "[player]{player}[/player], your turn:\nplay a card :card:."
 	},
 	"prompt_protect": {
-		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :protection:. [b]Tap the hero to protect.[/b]"
+		"body": "[player]{player}[/player] protects [heal]{amount}[/heal] :protection:. [b]Tap the hero[/b] to protect."
 	},
 	"prompt_tied_target": {
-		"body": "[boss]{boss}[/boss] cannot decide. [b]Tap the hero it targets.[/b]"
+		"body": "[boss]{boss}[/boss] cannot decide. [b]Tap the hero[/b] it attacks."
 	},
 	"prompt_free_play_who": {
-		"body": "[player]{player}[/player] lets another hero play a card for free. [b]Tap who.[/b]"
+		"body": "[player]{player}[/player] lets another hero play a card :card: for free. [b]Tap the hero.[/b]"
 	},
 	"prompt_free_play": {
-		"body": "[player]{player}[/player], play a card for free :card:."
+		"body": "[player]{player}[/player], play a card :card: for free."
 	},
 	"prompt_lucky_charm": {
-		"body": "[player]{player}[/player], show the [b]top card of your draw pile[/b] :card:."
+		"body": "[player]{player}[/player], play the [b]top card of your draw pile[/b] :card:."
 	},
 	"prompt_heal_who": {
-		"body": "[b]Tap the hero[/b] who heals [heal]{amount}[/heal] :health:."
+		"body": "[b]Tap the hero[/b] who heals [heal]{amount} health[/heal] :heal:."
 	},
 	"prompt_empower_who": {
 		"body": "[b]Tap the hero[/b] that [player]{player}[/player] strengthens."
@@ -152,7 +163,7 @@
 		"body": "This card is out of the game for the rest of the fight."
 	},
 	"notice_lightning": {
-		"body": ":lightning: Lightning! [player]{player}[/player] takes another action."
+		"body": "Lightning :lightning:! [player]{player}[/player] takes another action."
 	},
 	"option_skip": {
 		"body": "Skip"
@@ -161,21 +172,21 @@
 		"body": "[player]{player}[/player] takes [b]{count}[/b] :card: of their choice from their draw pile."
 	},
 	"card_removed": {
-		"body": "[player]{player}[/player], put this card back in the box: it is out of the game for the rest of the fight."
+		"body": "[player]{player}[/player], put this card :card: back in the box: it is out of the game for the rest of the fight."
 	},
 	"draw_cards_everyone": {
-		"body": "Every hero draws [heal]{count}[/heal] :card:."
+		"body": "Each hero draws [b]{count}[/b] :card:."
 	},
 	"attack_effects_removed": {
-		"body": "The attack against [player]{player}[/player] loses its extra effect.",
+		"body": "The boss attack :claw: against [player]{player}[/player] loses its extra effect.",
 		"auto": true
 	},
 	"attack_cancelled": {
-		"body": "The attack against [player]{player}[/player] is gone.",
+		"body": "The boss attack :claw: against [player]{player}[/player] is cancelled.",
 		"auto": true
 	},
 	"attack_redirected": {
-		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the attack of [damage]{damage}[/damage] :claw: now hits [player]{player}[/player].",
+		"body": "[player]{player}[/player] steps in front of [player]{other}[/player]: the boss attack of [damage]{damage} damage[/damage] :claw: now hits [player]{player}[/player].",
 		"auto": true
 	},
 	"ward_placed": {
@@ -191,10 +202,10 @@
 		"auto": true
 	},
 	"may_draw": {
-		"body": "[player]{player}[/player] may draw [heal]{count}[/heal] :card:."
+		"body": "[player]{player}[/player] may draw [b]{count}[/b] :card:."
 	},
 	"shield_breaker": {
-		"body": "Shield destroyed! [boss]{boss}[/boss] loses [damage]{damage} health[/damage] at once.",
+		"body": "Shield destroyed! [boss]{boss}[/boss] loses [damage]{damage} health[/damage] :wound: at once.",
 		"auto": true
 	},
 	"prompt_if_healthy": {
@@ -204,19 +215,19 @@
 		"body": "[b]Tap the hero[/b] the card of [player]{player}[/player] is for."
 	},
 	"prompt_remove_tokens_who": {
-		"body": "[b]Tap the hero[/b] who removes up to [heal]{count}[/heal] tokens."
+		"body": "[b]Tap the hero[/b] who removes up to [heal]{count}[/heal] status tokens."
 	},
 	"prompt_redirect_who": {
-		"body": "[b]Tap the hero[/b] whose attack [player]{player}[/player] takes on."
+		"body": "[b]Tap the hero[/b] whose boss attack :claw: [player]{player}[/player] takes on."
 	},
 	"prompt_use_ward": {
 		"body": "[boss]{boss}[/boss] uses an @-ability against [player]{player}[/player]. Discard [b]{card}[/b] to prevent it?"
 	},
 	"prompt_top_card_or_item": {
-		"body": "[player]{player}[/player], play the [b]top card of your deck[/b] :card: or use Grandpa's Glass Eye."
+		"body": "[player]{player}[/player], play the [b]top card of your draw pile[/b] :card: or use [b]Grandpa's Glass Eye[/b]."
 	},
 	"prompt_attack_or_item": {
-		"body": "[player]{player}[/player], play a hand card with an [b]attack[/b] :card: or use the Water Skin."
+		"body": "[player]{player}[/player], play a hand card :card: with an [b]attack[/b] or use the [b]Waterskin[/b]."
 	},
 	"notice_still_in_play": {
 		"body": "This card still lies next to the hero card of [player]{player}[/player]."
@@ -234,7 +245,7 @@
 		"body": "No"
 	},
 	"prompt_search_pile": {
-		"body": "[player]{player}[/player], search your [b]draw pile[/b] for a card and show it :card:."
+		"body": "[player]{player}[/player], search your [b]draw pile[/b] for a card and play it :card:."
 	},
 	"shuffle_pile": {
 		"body": "[player]{player}[/player] shuffles their draw pile."
@@ -243,13 +254,13 @@
 		"body": "[player]{player}[/player] shuffles their draw pile and puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
 	},
 	"prompt_discard_or_top": {
-		"body": "[player]{player}[/player], show a card from your [b]discard pile[/b] or the [b]top card of your draw pile[/b] :card:."
+		"body": "[player]{player}[/player], play a card from your [b]discard pile[/b] or the [b]top card of your draw pile[/b] :card:."
 	},
 	"played_card_removed": {
 		"body": "[player]{player}[/player] puts [b]{card}[/b] back in the box: it is out of the game for the rest of the fight."
 	},
 	"toxin_ready": {
-		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison token[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] more at the end of the round.",
+		"body": "[b]{card}[/b] of [player]{player}[/player]: from now on, each [poison]poison[/poison] :poison: of the boss costs it [damage]{damage} health[/damage] :wound: more at the end of the round.",
 		"auto": true
 	},
 	"card_repeated": {
@@ -269,37 +280,37 @@
 		"auto": true
 	},
 	"prompt_halve_who": {
-		"body": "[b]Tap the hero[/b] whose attack is halved."
+		"body": "[b]Tap the hero[/b] whose boss attack :claw: is halved."
 	},
 	"attack_halved": {
-		"body": "The attack against [player]{player}[/player] is halved to [damage]{damage}[/damage] :claw: and loses its extra effect.",
+		"body": "The boss attack against [player]{player}[/player] is halved to [damage]{damage} damage[/damage] :claw: and loses its extra effect.",
 		"auto": true
 	},
 	"remove_curse": {
-		"body": "[player]{player}[/player] puts 1 active curse of any hero on the curse discard pile."
+		"body": "[player]{player}[/player] puts 1 active [curse]curse[/curse] of any hero on the curse discard pile."
 	},
 	"prompt_use_item": {
-		"body": "[player]{player}[/player], use an [b]item[/b] of your choice :card:."
+		"body": "[player]{player}[/player], use an [b]item[/b] :card: of your choice."
 	},
 	"card_to_pile": {
-		"body": "[player]{player}[/player] puts [b]{count}[/b] other card from their hand on top of their draw pile :card:."
+		"body": "[player]{player}[/player] puts [b]{count}[/b] other hand card :card: on top of their draw pile."
 	},
 	"prompt_play_top_who": {
-		"body": "[b]Tap the hero[/b] who plays the top [b]{count}[/b] cards of their draw pile."
+		"body": "[b]Tap the hero[/b] who plays the top [b]{count}[/b] :card: of their draw pile."
 	},
 	"boss_poison": {
-		"body": "The poison works! [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health:.",
+		"body": "The [poison]poison[/poison] works! [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :wound:.",
 		"auto": true
 	},
 	"example_magic_potion": {
 		"title": "Magic Potion",
-		"body": "Choose a player to gain [heal]{health} health points[/heal] :health:."
+		"body": "[b]Tap the hero[/b] who heals [heal]{health} health[/heal] :heal:."
 	},
 	"example_reminder": {
-		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1[/damage] :health: at the end of each round."
+		"body": "[i]Remember:[/i] poisoned heroes lose [damage]1 health[/damage] :wound: at the end of each round."
 	},
 	"prompt_lower_shield": {
-		"body": "[player]{player}[/player], tap the shield you want to lower by [damage]{amount}[/damage]."
+		"body": "[player]{player}[/player] lowers a shield by [damage]{amount}[/damage]. [b]Tap the shield.[/b]"
 	},
 	"option_shield_melee": {
 		"body": "Melee"
@@ -319,10 +330,10 @@
 		"auto": true
 	},
 	"prompt_poison_on_attack_who": {
-		"body": "[b]Tap the hero[/b]: whenever a boss attack of [damage]{threshold}[/damage] or more strikes them, the boss gets [poison]{poison} poison[/poison] :poison:."
+		"body": "[b]Tap the hero[/b]: whenever a boss attack of [damage]{threshold} damage[/damage] :claw: or more hits them, the boss gets [poison]{poison} poison[/poison] :poison:."
 	},
 	"poison_on_attack_ready": {
-		"body": "[b]{card}[/b]: until the end of the fight, the boss gets [poison]{poison} poison[/poison] :poison: whenever it attacks [player]{player}[/player] with [damage]{threshold}[/damage] or more.",
+		"body": "[b]{card}[/b]: until the end of the fight, the boss gets [poison]{poison} poison[/poison] :poison: whenever it attacks [player]{player}[/player] with [damage]{threshold} damage[/damage] :claw: or more.",
 		"auto": true
 	},
 	"poison_on_attack": {
@@ -330,24 +341,24 @@
 		"auto": true
 	},
 	"attacks_weakened_next_round": {
-		"body": "[b]{card}[/b] of [player]{player}[/player]: next round, every attack of the boss is [heal]{amount}[/heal] lower.",
+		"body": "[b]{card}[/b] of [player]{player}[/player]: next round, every boss attack :claw: is [heal]{amount}[/heal] lower.",
 		"auto": true
 	},
 	"attacks_weakened": {
-		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect: every attack of the boss is [heal]{amount}[/heal] lower.",
+		"body": "[b]{card}[/b] of [player]{player}[/player] takes effect: every boss attack :claw: is [heal]{amount}[/heal] lower.",
 		"auto": true
 	},
 	"remove_tokens_everyone": {
-		"body": "Each hero removes up to [heal]{count}[/heal] of their tokens."
+		"body": "Each hero removes up to [heal]{count}[/heal] of their own status tokens."
 	},
 	"form_thorn": {
 		"title": "Thorn Form",
-		"body": "[player]{player}[/player] takes the Thorn Form: their attacks and supports get [heal]+1[/heal].",
+		"body": "[player]{player}[/player] takes the Thorn Form: their attacks :damage: and supports get [heal]+1[/heal].",
 		"auto": true
 	},
 	"form_blossom": {
 		"title": "Blossom Form",
-		"body": "[player]{player}[/player] takes the Blossom Form: each time their attacks or supports cost the boss health, they heal [heal]3 health[/heal] :health:.",
+		"body": "[player]{player}[/player] takes the Blossom Form: each time their attacks :damage: or supports cost the boss health, they heal [heal]3 health[/heal] :heal:.",
 		"auto": true
 	},
 	"form_bark": {
@@ -362,65 +373,65 @@
 		"body": "[player]{player}[/player] may give as much of their health :health: as they like to [b]exactly one[/b] other hero."
 	},
 	"card_back_to_pile": {
-		"body": "[player]{player}[/player] does not discard [b]{card}[/b], but shuffles it back into their draw pile :card:."
+		"body": "[player]{player}[/player] does not discard [b]{card}[/b], but shuffles the card :card: back into their draw pile."
 	},
 	"prompt_redraw_hand_who": {
-		"body": "[b]Tap the hero[/b] who discards any number of hand cards and then draws up to their hand limit."
+		"body": "[b]Tap the hero[/b] who discards any number of hand cards :card: and then draws up to their hand limit."
 	},
 	"redraw_hand": {
-		"body": "[player]{player}[/player] discards as many hand cards as they like, then draws up to their hand limit :card:."
+		"body": "[player]{player}[/player] discards as many hand cards :card: as they like, then draws up to their hand limit."
 	},
 	"discard_random": {
-		"body": "[player]{player}[/player] discards [b]{count}[/b] random card from their hand, if they have one :card:."
+		"body": "[player]{player}[/player] discards [b]{count}[/b] random hand card :card:, if they have one."
 	},
 	"shields_lowered": {
 		"body": "Every shield of [boss]{boss}[/boss] goes down by [damage]{amount}[/damage], without its effect.",
 		"auto": true
 	},
 	"threat_lowers_on_attack": {
-		"body": "Each time [player]{player}[/player] plays an attack this round, the boss's attack against them goes down by [heal]{amount}[/heal].",
+		"body": "Each time [player]{player}[/player] plays an attack :damage: this round, the boss attack :claw: against them goes down by [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"threat_lowered": {
-		"body": "The attack of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal].",
+		"body": "The boss attack :claw: of [boss]{boss}[/boss] against [player]{player}[/player] goes down by [heal]{amount}[/heal].",
 		"auto": true
 	},
 	"remove_tokens_group": {
-		"body": "Together you remove up to [heal]{count}[/heal] tokens, from whoever you like."
+		"body": "Together you remove up to [heal]{count}[/heal] status tokens, from whoever you like."
 	},
 	"look_at_top_everyone": {
 		"body": "Each hero looks at the top [b]{look}[/b] :card: of their draw pile, takes [b]{take}[/b] of them into their hand and puts the other [b]{back}[/b] back in any order."
 	},
 	"search_to_hand": {
-		"body": "[player]{player}[/player] takes [b]{count}[/b] :card: of their choice from their draw pile into their hand and shuffles the pile."
+		"body": "[player]{player}[/player] takes [b]{count}[/b] :card: of their choice from their draw pile into their hand and shuffles their draw pile."
 	},
 	"take_token": {
-		"body": "[player]{player}[/player] takes [damage]{count}[/damage] status token of their choice from the supply."
+		"body": "[player]{player}[/player] gets [damage]{count}[/damage] status token of their choice from the supply."
 	},
 	"draw_and_play": {
 		"body": "[player]{player}[/player] draws [b]{draw}[/b] :card:, plays [b]{play}[/b] of them at once and discards the other [b]{discard}[/b]."
 	},
 	"prompt_play_drawn": {
-		"body": "[player]{player}[/player], show one of the [b]cards you just drew[/b] :card:."
+		"body": "[player]{player}[/player], play one of the [b]cards you just drew[/b] :card:."
 	},
 	"tear_placed": {
-		"body": "[player]{player}[/player] places [b]{card}[/b] next to their hero card. When a hero would lose health, from anything, you may discard it to prevent that: keep track of it on the table."
+		"body": "[player]{player}[/player] places [b]{card}[/b] next to their hero card for good. When a hero would lose health :wound:, from anything, you may discard it to prevent that: keep track of it on the table."
 	},
 	"draw_and_return_everyone": {
 		"body": "Each hero draws [b]{draw}[/b] :card:, then puts [b]{back}[/b] of their hand cards face down on their draw pile."
 	},
 	"next_cards_boosted": {
-		"body": "On the next [b]{cards}[/b] :card: played, by anyone, every attack and support is [heal]{bonus}[/heal] higher.",
+		"body": "On the next [b]{cards}[/b] :card: played, by anyone, every attack :damage: and support is [heal]{bonus}[/heal] higher.",
 		"auto": true
 	},
 	"random_token": {
-		"body": "Chosen at random: [player]{player}[/player] takes a status token, [poison]{tokens}[/poison]."
+		"body": "Chosen at random: [player]{player}[/player] gets a status token, {tokens}."
 	},
 	"totem_attack": {
 		"title": "{card}",
 		"body": [
 			"Give [player]{player}[/player] the totem token :totem:.",
-			"Until the end of the round, every attack of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
+			"Until the end of the round, every attack :damage: of [player]{player}[/player] is [heal]{bonus}[/heal] higher."
 		]
 	},
 	"totem_support": {
@@ -441,11 +452,11 @@
 		"title": "{card}",
 		"body": [
 			"Give [player]{player}[/player] the totem token :totem:.",
-			"Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play."
+			"Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their own status tokens for each lightning :lightning: they play."
 		]
 	},
 	"tokens_per_lightning": {
-		"body": "Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their status tokens for each lightning :lightning: they play.",
+		"body": "Until the end of the round, [player]{player}[/player] may remove [heal]{count}[/heal] of their own status tokens for each lightning :lightning: they play.",
 		"auto": true
 	},
 	"totems_returned": {
@@ -453,13 +464,13 @@
 		"body": "The round is over. Give back the totem tokens :totem:: [player]{players}[/player]."
 	},
 	"robot_built": {
-		"body": "[player]{player}[/player] flips the last part: the [b]battle robot[/b] stands! While it works, all attacks of [player]{player}[/player] are [damage]{bonus}[/damage] stronger. It has [heal]{health}[/heal] health."
+		"body": "[player]{player}[/player] flips the last part: the [b]battle robot[/b] :robot: stands! While it works, every attack :damage: of [player]{player}[/player] is [heal]{bonus}[/heal] higher. It has [heal]{health} health[/heal] :health:."
 	},
 	"robot_part": {
-		"body": "[player]{player}[/player] flips a part of the battle robot ([b]{count}/{total}[/b])."
+		"body": "[player]{player}[/player] flips a part of the [b]battle robot[/b] :robot: ([b]{count}/{total}[/b])."
 	},
 	"robot_destroyed": {
-		"body": "The battle robot of [player]{player}[/player] is [damage]destroyed[/damage]! Flip its three parts back. With an attack, a support and a protection it can be built again."
+		"body": "The [b]battle robot[/b] :robot: of [player]{player}[/player] is [damage]destroyed[/damage]! Flip its three parts back. With an attack, a support and a protection it can be built again."
 	},
 	"card_wound_up": {
 		"body": "[player]{player}[/player] shuffles [b]{card}[/b] back into their draw pile :card:. It is now wound up."
@@ -468,15 +479,15 @@
 		"body": "[player]{player}[/player] may take [b]{card}[/b] back into their hand and play it again this round."
 	},
 	"poison_burst": {
-		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :health: at once.",
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has [poison]{poison} poison[/poison] :poison: and loses [damage]{damage} health[/damage] :wound: at once.",
 		"auto": true
 	},
 	"poison_burst_none": {
-		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has no poison :poison:, so nothing happens.",
+		"body": "[b]{card}[/b]: [boss]{boss}[/boss] has [poison]no poison[/poison] :poison:, so nothing happens.",
 		"auto": true
 	},
 	"poison_cleared": {
-		"body": "All poison of [boss]{boss}[/boss] is gone :poison:.",
+		"body": "All [poison]poison[/poison] :poison: of [boss]{boss}[/boss] is gone.",
 		"auto": true
 	},
 	"shield_broken_poison": {
@@ -484,25 +495,25 @@
 		"auto": true
 	},
 	"prompt_play_from_top": {
-		"body": "[player]{player}[/player], look at the [b]top {look} cards[/b] of your draw pile and show one of them :card:."
+		"body": "[player]{player}[/player], look at the [b]top {look} cards[/b] of your draw pile and play one of them :card:."
 	},
 	"play_from_top_rest": {
 		"body": "[player]{player}[/player] puts the other [b]{count}[/b] :card: back on top of or below their draw pile, in any order."
 	},
 	"random_hand_cards": {
-		"body": "[b]{card}[/b]: for the rest of the round, whenever [player]{player}[/player] plays a hand card, it has to be a [b]random[/b] one :card:."
+		"body": "[b]{card}[/b]: for the rest of the round, whenever [player]{player}[/player] plays a hand card :card:, it has to be a [b]random[/b] one."
 	},
 	"random_hand_reminder": {
-		"body": "[i]Remember:[/i] [player]{player}[/player] plays a [b]random[/b] hand card this round :card:."
+		"body": "[i]Remember:[/i] [player]{player}[/player] plays a [b]random[/b] hand card :card: this round."
 	},
 	"tokens_everyone": {
-		"body": "Each hero takes [poison]{tokens}[/poison] tokens."
+		"body": "Each hero gets status tokens: {tokens}."
 	},
 	"prompt_reset_health_who": {
-		"body": "[b]Tap the hero[/b] whose health goes back to their starting health :health:."
+		"body": "[b]Tap the hero[/b] whose health :health: goes back to their starting health."
 	},
 	"reset_health": {
-		"body": "[player]{player}[/player] sets their health back to their [heal]starting health[/heal] :health:."
+		"body": "[player]{player}[/player] sets their health :health: back to their [heal]starting health[/heal]."
 	},
 	"boss_away_missed": {
 		"body": "[boss]{boss}[/boss] is out of reach: the attack has no effect.",
@@ -515,14 +526,14 @@
 	},
 	"mirefang_poison_shield": {
 		"title": "Poison Shield",
-		"body": "[player]{player}[/player] hits the poison shield and takes [poison]{poison} poison[/poison] :poison:."
+		"body": "[player]{player}[/player] hits the [poison]poison shield[/poison] and gets [poison]{poison} poison[/poison] :poison:."
 	},
 	"mirefang_dive": {
 		"title": "Dive",
 		"body": [
 			"[boss]{boss}[/boss] dives into the black water. Its shields and attacks are gone, and no attack reaches it.",
 			"It lurks beneath [player]{player}[/player]: surfacing, it bites for [damage]{damage} damage[/damage] :claw: and [poison]{poison} poison[/poison] :poison:.",
-			"Every hero gets [heal]1 action more[/heal] to prepare."
+			"Each hero gets [heal]+1 action[/heal] to prepare."
 		]
 	},
 	"mirefang_surfaces": {
@@ -532,14 +543,14 @@
 	},
 	"mirefang_spit": {
 		"title": "Venom Spit",
-		"body": "Hurt by the blow, [boss]{boss}[/boss] spits venom at [player]{player}[/player], who takes [poison]{poison} poison[/poison] :poison:."
+		"body": "Hurt by the blow, [boss]{boss}[/boss] spits [poison]venom[/poison] at [player]{player}[/player], who gets [poison]{poison} poison[/poison] :poison:."
 	},
 	"mirefang_tail": {
 		"title": "Tail Lash",
-		"body": "[boss]{boss}[/boss] lashes its huge tail across the mire: every hero loses [damage]{damage} health[/damage] :health:."
+		"body": "[boss]{boss}[/boss] lashes its huge tail across the mire: each hero loses [damage]{damage} health[/damage] :wound:."
 	},
 	"mirefang_enraged": {
 		"title": "Enraged",
-		"body": "[boss]{boss}[/boss] is enraged! From now on, its attacks and shields are stronger, and its poison shield poisons more."
+		"body": "[boss]{boss}[/boss] is enraged! From now on, its attacks :claw: and shields are stronger, and its [poison]poison shield[/poison] poisons more."
 	}
 }

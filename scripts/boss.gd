@@ -164,7 +164,7 @@ func round_text(round_number: int) -> Dictionary:
 
 ## What the boss tells comes with its name, such as its armour weakening an attack.
 func message_source() -> Dictionary:
-	return { "title": title }
+	return { "title": title, "boss": true }
 
 
 #region The boss's own hooks
