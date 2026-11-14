@@ -51,7 +51,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: native/build/arm64-v8a
-          key: native-android-${{ hashFiles('native/**') }}
+          # CMake caches absolute paths, so the key includes the repo name, which is part of the checkout path.
+          key: native-android-${{ hashFiles('native/**') }}-${{ github.event.repository.name }}
           restore-keys: native-android-
 
       - name: Build QR extension (Android arm64)

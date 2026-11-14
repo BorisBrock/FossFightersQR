@@ -24,9 +24,23 @@ extra_args=()
 [[ -n "${QR_ZXING_SOURCE:-}" ]] && extra_args+=("-DFETCHCONTENT_SOURCE_DIR_ZXING=$QR_ZXING_SOURCE")
 [[ -n "${QR_GODOT_CPP_SOURCE:-}" ]] && extra_args+=("-DFETCHCONTENT_SOURCE_DIR_GODOT-CPP=$QR_GODOT_CPP_SOURCE")
 
+# CMake refuses a build dir configured from another source path (e.g. a restored CI cache
+# after the repo was renamed or moved). Such a dir is useless, so start it fresh.
+drop_stale_build() {
+	local cache="$1/CMakeCache.txt"
+	[[ -f "$cache" ]] || return 0
+	local src
+	src="$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "$cache")"
+	if [[ "$src" != "$native_dir" ]]; then
+		echo "Removing stale build dir $1 (configured from $src)" >&2
+		rm -rf "$1"
+	fi
+}
+
 for target in "${targets[@]}"; do
 	case "$target" in
 		linux)
+			drop_stale_build "$build_root/linux"
 			cmake -S "$native_dir" -B "$build_root/linux" -DCMAKE_BUILD_TYPE=Release \
 				-DQR_PLATFORM_TAG=linux.x86_64 "${extra_args[@]}"
 			cmake --build "$build_root/linux" --target qr_scanner -j"$jobs"
@@ -35,6 +49,7 @@ for target in "${targets[@]}"; do
 			ndk="$(find_ndk)"
 			[[ -d "$ndk" ]] || { echo "Android NDK not found; set ANDROID_NDK_ROOT." >&2; exit 1; }
 			for abi in ${QR_ANDROID_ABIS:-arm64-v8a}; do
+				drop_stale_build "$build_root/$abi"
 				case "$abi" in
 					arm64-v8a) tag=android.arm64 ;;
 					x86_64) tag=android.x86_64 ;;
