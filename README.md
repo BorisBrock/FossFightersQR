@@ -97,14 +97,14 @@ has a fresh challenge.
 <td width="50%" valign="top">
 
 ### ⚡ Lightning-fast scanning
-Very good QR code detection. Cards are recognized **fast and reliably**, so you spend less time waving cards at your phone and more time fighting.
+Sophisticated QR code detection. Cards are recognized **fast and reliably**, so you spend less time waving cards at your phone and more time fighting.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🔋 Easy on your battery
 Optimized for **low battery usage**, so the boss runs out of health before your
-phone runs out of power.
+tablet runs out of power.
 
 </td>
 </tr>
@@ -171,7 +171,7 @@ Third-party assets keep their own licenses (see the `License.txt` files next to 
 
 <div align="center">
 
-<sub>Foss Fighters QR is an unofficial fan project and is not affiliated with or endorsed by
+<sub>Foss Fighters is an unofficial fan project and is not affiliated with or endorsed by
 Pegasus Spiele. Boss Fighters QR is a trademark of its respective owners.</sub>
 
 <br><br>
