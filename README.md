@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="icon.png" alt="Foss Fighters QR" width="280">
+<img src="icon.png" alt="Foss Fighters" width="280">
 
-# ⚔️ Foss Fighters QR ⚔️
+# ⚔️ Foss Fighters ⚔️
 
 ### The free, open source companion app for **Boss Fighters QR**
 
