@@ -97,14 +97,13 @@ has a fresh challenge.
 <td width="50%" valign="top">
 
 ### ⚡ Lightning-fast scanning
-Much better QR code detection. Cards are recognized **faster and more reliably**, so you
-spend less time waving cards at your phone and more time fighting.
+Very good QR code detection. Cards are recognized **fast and reliably**, so you spend less time waving cards at your phone and more time fighting.
 
 </td>
 <td width="50%" valign="top">
 
 ### 🔋 Easy on your battery
-Uses **40% less battery** than the official app, so the boss runs out of health before your
+Optimized for **low battery usage**, so the boss runs out of health before your
 phone runs out of power.
 
 </td>
